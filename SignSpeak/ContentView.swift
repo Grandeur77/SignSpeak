@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  SignSpeak
-//
-//  Created by Mileesha Fernando on 2026-09-30.
-//
-
 import SwiftUI
 
 struct ContentView: View {
