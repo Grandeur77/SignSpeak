@@ -19,7 +19,7 @@ person's speech is transcribed to text on screen.
 ## Planned Features
 
 **Basic**
-- Authentication & Onboarding (Firebase Auth — Apple, Google, email)
+- Authentication & Onboarding (Firebase Auth — email/password, Google, guest)
 - Settings & Face ID / Touch ID Lock
 - Push Notifications (daily reminders, streak alerts)
 - Dashboard (streak, accuracy, practice time)
@@ -39,3 +39,56 @@ person's speech is transcribed to text on screen.
 MVVM, with camera, recognition, speech, and data-access services wrapped
 behind protocols so ViewModels can be unit-tested with mocks rather than
 real hardware or network calls.
+
+Camera frames, hand landmarks, audio and speech are processed on-device and
+never uploaded. Firebase stores only account, progress and community data.
+
+## Project Structure
+
+```
+SignSpeak/
+├── App/          App entry point and app delegate (Firebase setup)
+├── Models/       Data types (signs, lessons, progress, posts)
+├── ViewModels/   Screen state and logic, one per feature
+├── Views/        SwiftUI screens, grouped by feature
+│   ├── Auth, Onboarding, Home, Learn, Talk
+│   ├── Signs, Community, Settings
+│   └── Components   Reusable buttons, cards and styles
+├── Services/     Camera, recognition, speech, Firebase (protocol-based)
+└── Resources/    GoogleService-Info.plist, ML model, sign assets
+SignSpeakTests/   Unit tests (Swift Testing)
+```
+
+## Tech Stack
+
+Swift · SwiftUI · Firebase Auth & Firestore (Swift Package Manager) ·
+Vision · Core ML / Create ML · AVFoundation · Speech · AVSpeechSynthesizer ·
+LocalAuthentication · UserNotifications · WidgetKit · App Intents ·
+Swift Charts · Swift Testing
+
+## Requirements
+
+- Xcode 26 or later
+- iOS 17.0 or later — iPhone and iPad
+- A real device for camera-based features (the simulator has no camera)
+
+## Getting Started
+
+1. Clone the repository and open `SignSpeak.xcodeproj`.
+2. Wait for Xcode to resolve the Firebase Swift packages.
+3. Select the **SignSpeak** scheme and an iPhone or iPad simulator, then run (⌘R).
+
+`GoogleService-Info.plist` is included in `SignSpeak/Resources/` so the
+project runs as submitted. It identifies the Firebase project and is not a
+secret; data access is protected by Firestore security rules and Firebase
+Authentication.
+
+## Testing
+
+Unit tests use the **Swift Testing** framework (`import Testing`, `@Test`,
+`#expect`). Run them with **Product → Test** (⌘U).
+
+## AI Use
+
+AI tools were used during development for planning, research and coding
+assistance. This use is declared in the project report.
