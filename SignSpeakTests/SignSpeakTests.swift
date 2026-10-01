@@ -1,19 +1,16 @@
-//
-//  SignSpeakTests.swift
-//  SignSpeakTests
-//
-//  Created by Mileesha Fernando on 2026-09-30.
-//
-
+import Foundation
 import Testing
 @testable import SignSpeak
 
-struct SignSpeakTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+/// Smoke tests
+struct AppDependenciesTests {
+    @Test func liveContainerUsesTheSystemClock() {
+        #expect(AppDependencies.live.dateProvider is SystemDateProvider)
     }
 
+    @Test func previewContainerUsesAFixedDate() {
+        let provider = AppDependencies.preview.dateProvider
+        #expect(provider is FixedDateProvider)
+        #expect(provider.now == Date(timeIntervalSince1970: 1_790_812_800))
+    }
 }
