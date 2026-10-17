@@ -30,24 +30,54 @@ private struct DesignSystemGallery: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                CardView {
                     Text("Daily streak")
-                        .font(.appSectionTitle)
+                        .appTextStyle(.headline)
                         .foregroundStyle(.textPrimary)
                     Text("5 days in a row. Keep it going!")
+                        .appTextStyle(.body)
                         .foregroundStyle(.textSecondary)
                     Text("See progress")
+                        .appTextStyle(.caption)
                         .foregroundStyle(.accentText)
                 }
-                .cardStyle()
 
                 Button("Start lesson") {}
                     .buttonStyle(.primary)
                 Button("Continue as guest") {}
                     .buttonStyle(.secondary)
+                Button("Delete account") {}
+                    .buttonStyle(.destructive)
                 Button("Disabled") {}
                     .buttonStyle(.primary)
                     .disabled(true)
+
+                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+                    Text("State Views")
+                        .appTextStyle(.headline)
+                        .foregroundStyle(.textPrimary)
+
+                    CardView {
+                        EmptyStateView(
+                            title: "No Signs Found",
+                            message: "Try searching with a different keyword.",
+                            systemImage: "magnifyingglass",
+                            actionTitle: "Clear Search",
+                            action: {}
+                        )
+                    }
+
+                    CardView {
+                        ErrorStateView(
+                            message: "Unable to load lessons. Please retry.",
+                            onRetry: {}
+                        )
+                    }
+
+                    CardView {
+                        LoadingView(message: "Syncing progress...")
+                    }
+                }
             }
             .padding(Theme.Spacing.m)
         }
