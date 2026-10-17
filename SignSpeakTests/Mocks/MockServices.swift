@@ -182,3 +182,33 @@ public final class MockSpeechSynthesisService: SpeechSynthesisServicing, @unchec
         isSpeaking = false
     }
 }
+
+/// Configurable mock hand pose detector for testing gesture recognition and tracking states.
+public final class MockHandPoseDetector: HandPoseDetecting, @unchecked Sendable {
+    private let lock = NSLock()
+    public var confidenceThreshold: Float = 0.3
+    public var stubbedPose: HandPose?
+    public var shouldThrowError: Error?
+    private var _detectPoseCallCount = 0
+
+    public var detectPoseCallCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return _detectPoseCallCount
+    }
+
+    public init(stubbedPose: HandPose? = nil) {
+        self.stubbedPose = stubbedPose
+    }
+
+    public nonisolated func detectPose(in sampleBuffer: CMSampleBuffer) async throws -> HandPose? {
+        lock.lock()
+        _detectPoseCallCount += 1
+        let error = shouldThrowError
+        let result = stubbedPose
+        lock.unlock()
+
+        if let error { throw error }
+        return result
+    }
+}

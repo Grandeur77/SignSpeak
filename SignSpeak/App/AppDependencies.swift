@@ -23,7 +23,7 @@ nonisolated struct AppDependencies: Sendable {
     static let live = AppDependencies(
         dateProvider: SystemDateProvider(),
         cameraService: CameraService(),
-        handPoseDetector: StubHandPoseDetector(),
+        handPoseDetector: HandPoseDetector(),
         signClassifier: StubSignClassifier(),
         signRecognitionService: StubSignRecognitionService(),
         authService: StubAuthService(),

@@ -1,8 +1,8 @@
 import SwiftUI
 import AVFoundation
 
-/// Temporary camera debug screen reachable from ContentView to test CameraService,
-/// preview layer, front/back switching, and background lifecycle handling.
+/// Camera debug screen with live AVFoundation preview, real-time Vision hand pose detection,
+/// skeletal joint overlays, left-hand mirroring, and simulator fallbacks.
 struct CameraTestView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -14,7 +14,10 @@ struct CameraTestView: View {
         if let viewModel {
             _viewModel = State(initialValue: viewModel)
         } else {
-            _viewModel = State(initialValue: CameraTestViewModel(cameraService: dependencies.cameraService))
+            _viewModel = State(initialValue: CameraTestViewModel(
+                cameraService: dependencies.cameraService,
+                handPoseDetector: dependencies.handPoseDetector
+            ))
         }
     }
 
@@ -46,7 +49,7 @@ struct CameraTestView: View {
                 cameraActiveView
             }
         }
-        .navigationTitle("Camera Preview")
+        .navigationTitle("Camera Practice")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -76,6 +79,14 @@ struct CameraTestView: View {
                 CameraPreviewView(
                     session: dependencies.cameraService.captureSession,
                     isMirrored: viewModel.currentPosition == .front
+                )
+                .ignoresSafeArea()
+
+                // Vision hand skeleton and guide overlay
+                HandSkeletonOverlay(
+                    pose: viewModel.detectedPose,
+                    isFrontCamera: viewModel.currentPosition == .front,
+                    isLeftHanded: viewModel.isLeftHanded
                 )
                 .ignoresSafeArea()
 
@@ -139,41 +150,58 @@ struct CameraTestView: View {
     // MARK: - Overlays & Controls
 
     private var topStatusHeader: some View {
-        HStack {
-            // Processing status chip
+        VStack(spacing: Theme.Spacing.s) {
+            HStack {
+                // Processing status chip
+                HStack(spacing: Theme.Spacing.xs) {
+                    Circle()
+                        .fill(Color.brandTurquoise)
+                        .frame(width: 8, height: 8)
+                    Text("Processed on this iPhone")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, Theme.Spacing.s)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.6), in: Capsule())
+
+                Spacer()
+
+                // Lens & Frame Badge
+                HStack(spacing: Theme.Spacing.xs) {
+                    Text(viewModel.currentPosition == .front ? "Front" : "Back")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.white)
+                    if viewModel.frameCount > 0 {
+                        Text("• \(viewModel.frameCount) frames")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                }
+                .padding(.horizontal, Theme.Spacing.s)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.6), in: Capsule())
+            }
+
+            // Real-time Hand Detection Status Pill
             HStack(spacing: Theme.Spacing.xs) {
                 Circle()
-                    .fill(Color.brandTurquoise)
+                    .fill(viewModel.detectedPose != nil ? Color.success : Color.brandYellow)
                     .frame(width: 8, height: 8)
-                Text("Processed on this iPhone")
-                    .font(.caption2)
+                Text(viewModel.detectedPose != nil ? "Hand detected • ASL ready" : "Searching for hand...")
+                    .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
             }
-            .padding(.horizontal, Theme.Spacing.s)
+            .padding(.horizontal, Theme.Spacing.m)
             .padding(.vertical, 6)
-            .background(Color.black.opacity(0.6), in: Capsule())
-
-            Spacer()
-
-            // Frame counter / Position badge
-            HStack(spacing: Theme.Spacing.xs) {
-                Text(viewModel.currentPosition == .front ? "Front Camera" : "Back Camera")
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.white)
-                if viewModel.frameCount > 0 {
-                    Text("• \(viewModel.frameCount) frames")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.8))
-                }
-            }
-            .padding(.horizontal, Theme.Spacing.s)
-            .padding(.vertical, 6)
-            .background(Color.black.opacity(0.6), in: Capsule())
+            .background(Color.black.opacity(0.65), in: Capsule())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(viewModel.detectedPose != nil ? "Hand detected and tracked" : "Searching for hand gestures")
         }
         .padding(.top, Theme.Spacing.s)
-        .accessibilityElement(children: .combine)
     }
 
     private var bottomControlBar: some View {
@@ -189,7 +217,20 @@ struct CameraTestView: View {
                     .background(Color.black.opacity(0.6), in: Circle())
             }
             .accessibilityLabel("Switch camera lens")
-            .accessibilityHint("Toggles between the front and rear cameras")
+            .accessibilityHint("Toggles between front and rear cameras")
+
+            // Left-handed mirror toggle
+            Button {
+                viewModel.toggleLeftHandMirror()
+            } label: {
+                Image(systemName: viewModel.isLeftHanded ? "hand.point.left.fill" : "hand.point.right.fill")
+                    .font(.title2)
+                    .foregroundStyle(viewModel.isLeftHanded ? Color.brandYellow : .white)
+                    .frame(width: 56, height: 56)
+                    .background(Color.black.opacity(0.6), in: Circle())
+            }
+            .accessibilityLabel(viewModel.isLeftHanded ? "Left-handed mode active" : "Right-handed mode active")
+            .accessibilityHint("Toggles left-hand gesture mirroring")
 
             // Session pause/resume toggle
             Button {
@@ -216,7 +257,10 @@ struct CameraTestView: View {
 #Preview("Authorized Camera View") {
     NavigationStack {
         CameraTestView(
-            viewModel: CameraTestViewModel(cameraService: StubCameraService(authorizationState: .authorized))
+            viewModel: CameraTestViewModel(
+                cameraService: StubCameraService(authorizationState: .authorized),
+                handPoseDetector: StubHandPoseDetector()
+            )
         )
     }
 }
@@ -224,7 +268,10 @@ struct CameraTestView: View {
 #Preview("Simulator Fallback") {
     NavigationStack {
         CameraTestView(
-            viewModel: CameraTestViewModel(cameraService: StubCameraService(authorizationState: .unavailableOnSimulator))
+            viewModel: CameraTestViewModel(
+                cameraService: StubCameraService(authorizationState: .unavailableOnSimulator),
+                handPoseDetector: StubHandPoseDetector()
+            )
         )
     }
 }
@@ -232,7 +279,10 @@ struct CameraTestView: View {
 #Preview("Permission Denied") {
     NavigationStack {
         CameraTestView(
-            viewModel: CameraTestViewModel(cameraService: StubCameraService(authorizationState: .denied))
+            viewModel: CameraTestViewModel(
+                cameraService: StubCameraService(authorizationState: .denied),
+                handPoseDetector: StubHandPoseDetector()
+            )
         )
     }
 }

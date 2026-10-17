@@ -11,7 +11,7 @@ struct AppDependenciesTests {
 
         #expect(live.dateProvider is SystemDateProvider)
         #expect(live.cameraService is CameraService)
-        #expect(live.handPoseDetector is StubHandPoseDetector)
+        #expect(live.handPoseDetector is HandPoseDetector)
         #expect(live.signClassifier is StubSignClassifier)
         #expect(live.signRecognitionService is StubSignRecognitionService)
         #expect(live.authService is StubAuthService)

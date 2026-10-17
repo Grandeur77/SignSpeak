@@ -2,11 +2,12 @@ import SwiftUI
 import AVFoundation
 import CoreMedia
 
-/// ViewModel managing camera capture lifecycle, permissions, and frame stream observation.
+/// ViewModel managing camera capture lifecycle, permissions, and Vision hand pose detection.
 @Observable
 @MainActor
 final class CameraTestViewModel {
     private let cameraService: any CameraServicing
+    private let handPoseDetector: any HandPoseDetecting
     private var frameTask: Task<Void, Never>?
 
     var authorizationState: CameraAuthorizationState = .notDetermined
@@ -14,6 +15,8 @@ final class CameraTestViewModel {
     var currentPosition: AVCaptureDevice.Position = .front
     var frameCount: Int = 0
     var isSimulator: Bool = false
+    var isLeftHanded: Bool = false
+    var detectedPose: HandPose?
 
     var isAuthorized: Bool {
         authorizationState == .authorized
@@ -23,8 +26,12 @@ final class CameraTestViewModel {
         authorizationState == .denied || authorizationState == .restricted
     }
 
-    init(cameraService: any CameraServicing) {
+    init(
+        cameraService: any CameraServicing,
+        handPoseDetector: any HandPoseDetecting = StubHandPoseDetector()
+    ) {
         self.cameraService = cameraService
+        self.handPoseDetector = handPoseDetector
         #if targetEnvironment(simulator)
         self.isSimulator = true
         #endif
@@ -68,11 +75,16 @@ final class CameraTestViewModel {
         frameTask = nil
         await cameraService.stopSession()
         isSessionRunning = false
+        detectedPose = nil
     }
 
     func switchCamera() async {
         await cameraService.switchCamera()
         currentPosition = cameraService.currentPosition
+    }
+
+    func toggleLeftHandMirror() {
+        isLeftHanded.toggle()
     }
 
     func handleScenePhaseChange(to phase: ScenePhase) async {
@@ -93,9 +105,18 @@ final class CameraTestViewModel {
         frameTask?.cancel()
         frameTask = Task { [weak self] in
             guard let self else { return }
-            for await _ in self.cameraService.frameStream {
+            for await sampleBuffer in self.cameraService.frameStream {
                 if Task.isCancelled { break }
                 self.frameCount += 1
+
+                do {
+                    let pose = try await self.handPoseDetector.detectPose(in: sampleBuffer)
+                    if !Task.isCancelled {
+                        self.detectedPose = pose
+                    }
+                } catch {
+                    // Frame skipped gracefully
+                }
             }
         }
     }
