@@ -229,3 +229,56 @@ public final class MockSignClassifier: SignClassifying, @unchecked Sendable {
         return stubbedResult
     }
 }
+
+/// Configurable mock sign recognition service for testing recognition lifecycle and state transitions.
+public final class MockSignRecognitionService: SignRecognitionServicing, @unchecked Sendable {
+    public var currentState: RecognitionState
+    public var confidenceThreshold: Double
+    public var holdDuration: TimeInterval
+    public private(set) var startRecognitionCallCount = 0
+    public private(set) var stopRecognitionCallCount = 0
+    public private(set) var resetCallCount = 0
+
+    public var continuation: AsyncStream<RecognitionState>.Continuation?
+    public lazy var stateStream: AsyncStream<RecognitionState> = {
+        AsyncStream { [weak self] continuation in
+            self?.continuation = continuation
+            continuation.yield(self?.currentState ?? .noHand)
+        }
+    }()
+
+    public init(
+        initialState: RecognitionState = .noHand,
+        confidenceThreshold: Double = 0.85,
+        holdDuration: TimeInterval = 1.0
+    ) {
+        self.currentState = initialState
+        self.confidenceThreshold = confidenceThreshold
+        self.holdDuration = holdDuration
+    }
+
+    public func emitState(_ state: RecognitionState) {
+        currentState = state
+        continuation?.yield(state)
+    }
+
+    public func startRecognition() async {
+        startRecognitionCallCount += 1
+    }
+
+    public func stopRecognition() async {
+        stopRecognitionCallCount += 1
+    }
+
+    public func reset() {
+        resetCallCount += 1
+        currentState = .noHand
+        continuation?.yield(.noHand)
+    }
+
+    @discardableResult
+    public func processPose(_ pose: HandPose?) -> RecognitionState {
+        currentState
+    }
+}
+
