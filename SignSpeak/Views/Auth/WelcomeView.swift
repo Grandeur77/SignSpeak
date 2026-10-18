@@ -1,10 +1,13 @@
 import SwiftUI
 
-/// Features a hero photo of deaf and hearing friends communicating, the Deaf Flag unity badge,
-/// and primary authentication pathways (Email/Password, Google, Guest).
+/// Welcome landing screen for unauthenticated users matching Stitch design `cd04a4753a4b4cde9a1700c7542a3b5d`.
+/// Features a hero photo with subtle Deaf Flag sinuous waves, the Deaf & Hearing Unity badge,
+/// primary "Create account", secondary "Sign in", "Continue with Google", "Continue as guest",
+/// and the transparent privacy assurance ("We only collect your name and email.").
 public struct WelcomeView: View {
     @Environment(\.dependencies) private var dependencies
     
+    public var onCreateAccount: (() -> Void)?
     public var onSignIn: (() -> Void)?
     public var onGoogleSignIn: (() async -> Void)?
     public var onGuestSignIn: (() async -> Void)?
@@ -14,10 +17,12 @@ public struct WelcomeView: View {
     @State private var errorMessage: String?
 
     public init(
+        onCreateAccount: (() -> Void)? = nil,
         onSignIn: (() -> Void)? = nil,
         onGoogleSignIn: (() async -> Void)? = nil,
         onGuestSignIn: (() async -> Void)? = nil
     ) {
+        self.onCreateAccount = onCreateAccount
         self.onSignIn = onSignIn
         self.onGoogleSignIn = onGoogleSignIn
         self.onGuestSignIn = onGuestSignIn
@@ -26,11 +31,11 @@ public struct WelcomeView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Top Hero Section
+                // MARK: - Top Hero Banner
                 heroBanner
                     .accessibilityHidden(true)
 
-                // Overlapping App Logo
+                // MARK: - Overlapping App Logo Card
                 AppLogoArtwork()
                     .frame(width: 64, height: 64)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -38,12 +43,12 @@ public struct WelcomeView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(Color.white, lineWidth: 3)
                     )
-                    .shadow(color: Color.black.opacity(0.12), radius: 8, y: 4)
+                    .shadow(color: Color.brandTurquoise.opacity(0.18), radius: 16, y: 8)
                     .offset(y: -32)
                     .padding(.bottom, -20)
                     .accessibilityLabel("SignSpeak Logo")
 
-                // Core Brand & Value Proposition
+                // MARK: - Core Headline & Value Proposition
                 VStack(spacing: Theme.Spacing.m) {
                     // "DEAF & HEARING UNITY" Pill Badge
                     HStack(spacing: 6) {
@@ -80,7 +85,7 @@ public struct WelcomeView: View {
                 }
                 .padding(.top, Theme.Spacing.s)
 
-                // Error message if authentication fails
+                // Error alert message if an action fails
                 if let errorMessage {
                     Text(errorMessage)
                         .font(.caption)
@@ -89,15 +94,19 @@ public struct WelcomeView: View {
                         .padding(.top, Theme.Spacing.s)
                 }
 
-                // Action Buttons Section
-                VStack(spacing: Theme.Spacing.m) {
-                    // Primary Sign In Button
+                // MARK: - Action Buttons (matching Stitch screen cd04a4753a4b4cde9a1700c7542a3b5d)
+                VStack(spacing: 12) {
+                    // 1. Primary Action: "Create account ->"
                     Button {
-                        onSignIn?()
+                        if let onCreateAccount {
+                            onCreateAccount()
+                        } else {
+                            onSignIn?()
+                        }
                     } label: {
-                        HStack {
+                        HStack(spacing: 8) {
                             Spacer()
-                            Text("Sign in")
+                            Text("Create account")
                                 .font(.system(size: 17, weight: .semibold))
                             Image(systemName: "arrow.right")
                                 .font(.system(size: 15, weight: .semibold))
@@ -105,45 +114,24 @@ public struct WelcomeView: View {
                         }
                         .foregroundStyle(Color.onPrimary)
                         .frame(height: 52)
-                        .background(Color.primaryFill, in: RoundedRectangle(cornerRadius: Theme.Radius.button))
+                        .background(
+                            Color.brandNavy,
+                            in: RoundedRectangle(cornerRadius: Theme.Radius.button)
+                        )
+                        .shadow(color: Color.brandNavy.opacity(0.2), radius: 8, y: 4)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Sign in with email and password")
+                    .accessibilityLabel("Create an account")
 
-                    // "OR CONTINUE WITH" Divider
-                    HStack(spacing: Theme.Spacing.m) {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.25))
-                            .frame(height: 1)
-
-                        Text("OR CONTINUE WITH")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color.gray)
-                            .tracking(0.8)
-
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.25))
-                            .frame(height: 1)
-                    }
-                    .padding(.vertical, Theme.Spacing.xs)
-
-                    // Continue with Google Button
+                    // 2. Secondary Action: "Sign in"
                     Button {
-                        handleGoogleSignIn()
+                        onSignIn?()
                     } label: {
-                        HStack(spacing: 12) {
+                        HStack {
                             Spacer()
-                            if isSigningInGoogle {
-                                ProgressView()
-                                    .tint(.primary)
-                            } else {
-                                GoogleGlyph()
-                                    .frame(width: 20, height: 20)
-
-                                Text("Continue with Google")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(Color.textPrimary)
-                            }
+                            Text("Sign in")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(Color.brandNavy)
                             Spacer()
                         }
                         .frame(height: 52)
@@ -155,34 +143,76 @@ public struct WelcomeView: View {
                             RoundedRectangle(cornerRadius: Theme.Radius.button)
                                 .stroke(Color.gray.opacity(0.25), lineWidth: 1)
                         )
+                        .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Sign in to existing account")
+
+                    // 3. Social: "Continue with Google"
+                    Button {
+                        handleGoogleSignIn()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Spacer()
+                            if isSigningInGoogle {
+                                ProgressView()
+                                    .tint(.primary)
+                            } else {
+                                GoogleGlyph()
+                                    .frame(width: 18, height: 18)
+
+                                Text("Continue with Google")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(Color.textPrimary)
+                            }
+                            Spacer()
+                        }
+                        .frame(height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: Theme.Radius.button)
+                                .fill(Color.cardBackground.opacity(0.9))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Theme.Radius.button)
+                                .stroke(Color.gray.opacity(0.18), lineWidth: 1)
+                        )
                     }
                     .buttonStyle(.plain)
                     .disabled(isSigningInGoogle || isSigningInGuest)
                     .accessibilityLabel("Continue with Google")
 
-                    // Explore as Guest Link
+                    // 4. Tertiary Link: "Continue as guest"
                     Button {
                         handleGuestSignIn()
                     } label: {
                         HStack(spacing: 6) {
                             if isSigningInGuest {
                                 ProgressView()
-                                    .tint(Color.brandNavy)
+                                    .tint(Color.brandTurquoise)
                             } else {
-                                Text("Explore as Guest")
+                                Text("Continue as guest")
                                     .font(.system(size: 15, weight: .semibold))
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(Color.brandTurquoise)
                             }
                         }
-                        .foregroundStyle(Color.brandNavy)
                         .frame(minHeight: Theme.minTapTarget)
                     }
                     .buttonStyle(.plain)
                     .disabled(isSigningInGoogle || isSigningInGuest)
-                    .padding(.top, Theme.Spacing.xs)
 
-                    // Terms and Privacy Legal Note
+                    // 5. Privacy Trust Note
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.textSecondary)
+
+                        Text("We only collect your name and email.")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .padding(.top, 2)
+
+                    // 6. Terms and Privacy Legal Note
                     HStack(spacing: 4) {
                         Text("By continuing, you agree to SignSpeak's")
                             .foregroundStyle(Color.textSecondary)
@@ -200,11 +230,11 @@ public struct WelcomeView: View {
                     }
                     .font(.system(size: 11))
                     .multilineTextAlignment(.center)
-                    .padding(.top, Theme.Spacing.s)
+                    .padding(.top, Theme.Spacing.xs)
                     .padding(.horizontal, Theme.Spacing.m)
                 }
                 .padding(.horizontal, Theme.Spacing.l)
-                .padding(.top, Theme.Spacing.m)
+                .padding(.top, Theme.Spacing.s)
                 .padding(.bottom, Theme.Spacing.xl)
             }
         }
@@ -212,35 +242,40 @@ public struct WelcomeView: View {
         .ignoresSafeArea(edges: .top)
     }
 
-    // MARK: - Hero Banner
+    // MARK: - Hero Banner with Multi-Layer Wave SVG Styling
     private var heroBanner: some View {
         ZStack(alignment: .bottom) {
             Image("WelcomeHero")
                 .resizable()
                 .scaledToFill()
                 .frame(maxWidth: .infinity)
-                .frame(height: 330)
+                .frame(height: 320)
                 .clipped()
 
             // Sinuous Deaf Flag waves overlapping bottom edge
             ZStack(alignment: .bottom) {
-                // Wave 1: Soft Yellow
+                // Wave 1: Soft Yellow (#ffdf99 with 0.45 opacity)
                 WaveShape(phase: 1.0, amplitude: 14, frequency: 1.1)
-                    .fill(Color.brandYellow.opacity(0.85))
+                    .fill(Color(red: 255/255, green: 223/255, blue: 153/255).opacity(0.45))
                     .frame(height: 38)
 
-                // Wave 2: Deaf Flag Turquoise
+                // Wave 2: Cyan/Turquoise (#79eefd with 0.35 opacity)
                 WaveShape(phase: 2.2, amplitude: 16, frequency: 1.0)
-                    .fill(Color.brandTurquoise.opacity(0.9))
-                    .frame(height: 28)
+                    .fill(Color(red: 121/255, green: 238/255, blue: 253/255).opacity(0.40))
+                    .frame(height: 30)
 
-                // Bottom fade to content background
+                // Wave 3: Surface blend
+                WaveShape(phase: 3.4, amplitude: 10, frequency: 1.3)
+                    .fill(Color.appBackground)
+                    .frame(height: 22)
+
+                // Subtle gradient transition
                 LinearGradient(
                     colors: [Color.clear, Color.appBackground],
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 30)
+                .frame(height: 28)
             }
         }
     }
@@ -343,7 +378,7 @@ public struct GoogleGlyph: View {
     }
 }
 
-#Preview("Welcome Screen - 03-welcome") {
+#Preview("Welcome Screen - Stitch cd04a4753a4b4cde9a1700c7542a3b5d") {
     WelcomeView()
         .environment(\.dependencies, .preview)
 }

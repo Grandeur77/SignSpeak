@@ -42,8 +42,12 @@ public struct AppRootView: View {
 
             case .welcome:
                 WelcomeView(
+                    onCreateAccount: {
+                        Task {
+                            _ = try? await dependencies.authService.signIn(email: "alex@example.com", password: "password")
+                        }
+                    },
                     onSignIn: {
-                        // Advance to guest or test sign in for immediate interactivity
                         Task {
                             _ = try? await dependencies.authService.signIn(email: "alex@example.com", password: "password")
                         }
