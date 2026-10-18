@@ -123,33 +123,41 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
         }
     }
 
-    /// Evaluates an individual frame, useful for frame-by-frame feeds and tests.
+    /// Evaluates an individual frame, catching errors and resetting gracefully for continuous camera streaming.
     public func processFrame(_ sampleBuffer: CMSampleBuffer) async {
         do {
-            let pose = try await handPoseDetector.detectPose(in: sampleBuffer)
-            if Task.isCancelled { return }
-
-            let classification: SignClassification?
-            if let pose {
-                classification = try? signClassifier.classify(pose: pose)
-            } else {
-                classification = nil
-            }
-
-            let newState = stabilityFilter.process(classification: classification)
-            broadcast(state: newState, pose: pose, classification: classification)
+            _ = try await evaluateFrame(sampleBuffer)
         } catch {
             let newState = stabilityFilter.process(classification: nil)
             broadcast(state: newState, pose: nil, classification: nil)
         }
     }
 
-    /// Evaluates a detected pose directly (e.g. in tests or when already extracted).
+    /// Evaluates an individual frame, propagating errors thrown by detector or classifier.
+    @discardableResult
+    public func evaluateFrame(_ sampleBuffer: CMSampleBuffer) async throws -> RecognitionState {
+        let pose = try await handPoseDetector.detectPose(in: sampleBuffer)
+        return try evaluatePose(pose)
+    }
+
+    /// Evaluates a detected pose directly, handling errors gracefully.
     @discardableResult
     public func processPose(_ pose: HandPose?) -> RecognitionState {
+        do {
+            return try evaluatePose(pose)
+        } catch {
+            let newState = stabilityFilter.process(classification: nil)
+            broadcast(state: newState, pose: pose, classification: nil)
+            return newState
+        }
+    }
+
+    /// Evaluates a detected pose directly, propagating any classifier error.
+    @discardableResult
+    public func evaluatePose(_ pose: HandPose?) throws -> RecognitionState {
         let classification: SignClassification?
         if let pose {
-            classification = try? signClassifier.classify(pose: pose)
+            classification = try signClassifier.classify(pose: pose)
         } else {
             classification = nil
         }

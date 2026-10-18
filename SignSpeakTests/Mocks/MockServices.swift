@@ -282,3 +282,34 @@ public final class MockSignRecognitionService: SignRecognitionServicing, @unchec
     }
 }
 
+/// Controllable mock clock for deterministic time manipulation in tests.
+public final class ControllableClock: DateProviding, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _now: Date
+    public var calendar: Calendar
+
+    public var now: Date {
+        lock.lock()
+        defer { lock.unlock() }
+        return _now
+    }
+
+    public init(now: Date = Date(timeIntervalSince1970: 1000), calendar: Calendar = .current) {
+        self._now = now
+        self.calendar = calendar
+    }
+
+    public func advance(by seconds: TimeInterval) {
+        lock.lock()
+        defer { lock.unlock() }
+        _now = _now.addingTimeInterval(seconds)
+    }
+
+    public func set(to date: Date) {
+        lock.lock()
+        defer { lock.unlock() }
+        _now = date
+    }
+}
+
+

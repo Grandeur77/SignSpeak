@@ -2,194 +2,290 @@ import Foundation
 import Testing
 @testable import SignSpeak
 
-@Suite("Temporal Stability Filter & Thresholding")
+@Suite("RecognitionStabiliser & Stability Filter Suite")
 struct StabilityFilterTests {
-    @Test("Rejects predictions below confidence threshold")
-    func rejectsBelowThreshold() {
-        let baseDate = Date(timeIntervalSince1970: 1000)
-        let filter = StabilityFilter(
+    @Test(
+        "Confidence below threshold results in lowConfidence state and is not recognized",
+        arguments: [0.0, 0.25, 0.50, 0.70, 0.84, 0.849]
+    )
+    func belowThresholdIsIgnored(confidence: Double) {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 1000))
+        let stabiliser = RecognitionStabiliser(
             confidenceThreshold: 0.85,
-            holdDuration: 1.0
+            holdDuration: 1.0,
+            dateProvider: clock
         )
 
-        let lowConfClassification = SignClassification(
+        let classification = SignClassification(
             label: "A",
-            confidence: 0.84,
-            candidates: [SignCandidate(label: "A", confidence: 0.84)]
+            confidence: confidence,
+            candidates: [SignCandidate(label: "A", confidence: confidence)]
         )
 
-        let state = filter.process(classification: lowConfClassification, at: baseDate)
-        #expect(state == .lowConfidence(label: "A", confidence: 0.84, runnerUp: nil))
+        let state = stabiliser.process(classification: classification)
+        #expect(state == .lowConfidence(label: "A", confidence: confidence, runnerUp: nil))
         #expect(state.progress == 0.0)
         #expect(!state.isRecognized)
+        #expect(state.confidence == confidence)
     }
 
-    @Test("Requires full 1.0s continuous hold to confirm recognition")
-    func requiresFullHoldDuration() {
-        let baseDate = Date(timeIntervalSince1970: 1000)
-        let filter = StabilityFilter(
+    @Test(
+        "Exact threshold boundary determines lowConfidence vs detecting",
+        arguments: [
+            (0.8499, false),
+            (0.8500, true),
+            (0.8501, true)
+        ]
+    )
+    func exactThresholdBoundary(confidence: Double, shouldStartHold: Bool) {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 1000))
+        let stabiliser = RecognitionStabiliser(
             confidenceThreshold: 0.85,
-            holdDuration: 1.0
+            holdDuration: 1.0,
+            dateProvider: clock
         )
 
-        let validClassification = SignClassification(
-            label: "F",
-            confidence: 0.94,
+        let classification = SignClassification(label: "B", confidence: confidence)
+        let state = stabiliser.process(classification: classification)
+
+        if shouldStartHold {
+            #expect(state == .detecting(label: "B", confidence: confidence, progress: 0.0, runnerUp: nil))
+            #expect(!state.isRecognized)
+        } else {
+            #expect(state == .lowConfidence(label: "B", confidence: confidence, runnerUp: nil))
+            #expect(state.progress == 0.0)
+            #expect(!state.isRecognized)
+        }
+    }
+
+    @Test(
+        "Label held for less than 1.0s remains detecting and is not recognized",
+        arguments: [0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99]
+    )
+    func labelHeldUnderOneSecondIsNotRecognized(holdSeconds: Double) {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 2000))
+        let stabiliser = RecognitionStabiliser(
+            confidenceThreshold: 0.85,
+            holdDuration: 1.0,
+            dateProvider: clock
+        )
+
+        let classification = SignClassification(label: "C", confidence: 0.95)
+
+        // Initial detection at t = 0
+        _ = stabiliser.process(classification: classification)
+
+        // Advance clock to sub-second duration
+        clock.advance(by: holdSeconds)
+        let state = stabiliser.process(classification: classification)
+
+        #expect(!state.isRecognized)
+        #expect(state.label == "C")
+        #expect(abs(state.progress - holdSeconds) < 0.001)
+
+        if case .detecting(let label, let conf, let prog, _) = state {
+            #expect(label == "C")
+            #expect(conf == 0.95)
+            #expect(abs(prog - holdSeconds) < 0.001)
+        } else {
+            Issue.record("Expected state to be .detecting for hold time \(holdSeconds)s")
+        }
+    }
+
+    @Test(
+        "Label held for 1.0s or longer transitions to recognized state",
+        arguments: [1.0, 1.05, 1.25, 1.5, 2.0, 5.0]
+    )
+    func labelHeldOneSecondOrMoreIsRecognized(holdSeconds: Double) {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 3000))
+        let stabiliser = RecognitionStabiliser(
+            confidenceThreshold: 0.85,
+            holdDuration: 1.0,
+            dateProvider: clock
+        )
+
+        let classification = SignClassification(
+            label: "D",
+            confidence: 0.96,
             candidates: [
-                SignCandidate(label: "F", confidence: 0.94),
-                SignCandidate(label: "E", confidence: 0.05)
+                SignCandidate(label: "D", confidence: 0.96),
+                SignCandidate(label: "F", confidence: 0.03)
             ]
         )
 
-        // t = 0.0s -> Detecting with progress = 0
-        let state0 = filter.process(classification: validClassification, at: baseDate)
-        #expect(state0 == .detecting(label: "F", confidence: 0.94, progress: 0.0, runnerUp: SignCandidate(label: "E", confidence: 0.05)))
-        #expect(!state0.isRecognized)
+        // Initial detection at t = 0
+        _ = stabiliser.process(classification: classification)
 
-        // t = 0.5s -> Detecting with progress = 0.5
-        let state1 = filter.process(classification: validClassification, at: baseDate.addingTimeInterval(0.5))
-        #expect(state1 == .detecting(label: "F", confidence: 0.94, progress: 0.5, runnerUp: SignCandidate(label: "E", confidence: 0.05)))
-        #expect(!state1.isRecognized)
+        // Advance clock past 1.0s hold threshold
+        clock.advance(by: holdSeconds)
+        let state = stabiliser.process(classification: classification)
 
-        // t = 1.0s -> Recognized with progress = 1.0
-        let state2 = filter.process(classification: validClassification, at: baseDate.addingTimeInterval(1.0))
-        #expect(state2 == .recognized(label: "F", confidence: 0.94, runnerUp: SignCandidate(label: "E", confidence: 0.05)))
-        #expect(state2.isRecognized)
-        #expect(state2.progress == 1.0)
-
-        // t = 1.5s -> Continues to remain recognized
-        let state3 = filter.process(classification: validClassification, at: baseDate.addingTimeInterval(1.5))
-        #expect(state3.isRecognized)
+        #expect(state.isRecognized)
+        #expect(state.progress == 1.0)
+        #expect(state.label == "D")
+        #expect(state == .recognized(label: "D", confidence: 0.96, runnerUp: SignCandidate(label: "F", confidence: 0.03)))
     }
 
-    @Test("Switching sign label resets the hold timer")
-    func labelSwitchResetsTimer() {
-        let baseDate = Date(timeIntervalSince1970: 1000)
-        let filter = StabilityFilter(
+    @Test("Label switching mid-hold resets the timer to 0.0s for the new sign")
+    func labelSwitchMidHoldResetsTimer() {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 4000))
+        let stabiliser = RecognitionStabiliser(
             confidenceThreshold: 0.85,
-            holdDuration: 1.0
+            holdDuration: 1.0,
+            dateProvider: clock
         )
 
         let signA = SignClassification(label: "A", confidence: 0.90)
         let signB = SignClassification(label: "B", confidence: 0.92)
 
-        // Hold A for 0.6s
-        _ = filter.process(classification: signA, at: baseDate)
-        let stateA = filter.process(classification: signA, at: baseDate.addingTimeInterval(0.6))
+        // Hold Sign A for 0.8 seconds (80% towards lock-in)
+        _ = stabiliser.process(classification: signA)
+        clock.advance(by: 0.8)
+        let stateA = stabiliser.process(classification: signA)
         #expect(stateA.label == "A")
-        #expect(abs(stateA.progress - 0.6) < 0.001)
+        #expect(abs(stateA.progress - 0.8) < 0.001)
+        #expect(!stateA.isRecognized)
 
-        // Switch to B at 0.7s -> Timer must reset to 0.0s for B
-        let stateB0 = filter.process(classification: signB, at: baseDate.addingTimeInterval(0.7))
+        // Switch to Sign B -> timer must immediately reset to 0.0 for B
+        clock.advance(by: 0.05)
+        let stateB0 = stabiliser.process(classification: signB)
         #expect(stateB0.label == "B")
         #expect(abs(stateB0.progress - 0.0) < 0.001)
+        #expect(!stateB0.isRecognized)
 
-        // Advance to 1.2s (0.5s of B held) -> progress = 0.5
-        let stateB1 = filter.process(classification: signB, at: baseDate.addingTimeInterval(1.2))
+        // Advance by 0.5s for Sign B -> progress must be 0.5, NOT 1.35
+        clock.advance(by: 0.5)
+        let stateB1 = stabiliser.process(classification: signB)
         #expect(stateB1.label == "B")
         #expect(abs(stateB1.progress - 0.5) < 0.001)
         #expect(!stateB1.isRecognized)
 
-        // Advance to 1.7s (1.0s of B held) -> recognized
-        let stateB2 = filter.process(classification: signB, at: baseDate.addingTimeInterval(1.7))
+        // Advance remaining 0.5s for Sign B (total 1.0s of B) -> confirmed recognized
+        clock.advance(by: 0.5)
+        let stateB2 = stabiliser.process(classification: signB)
         #expect(stateB2 == .recognized(label: "B", confidence: 0.92, runnerUp: nil))
+        #expect(stateB2.isRecognized)
+        #expect(stateB2.progress == 1.0)
     }
 
-    @Test("Dropping hand (nil classification) resets the hold timer")
-    func droppingHandResetsTimer() {
-        let baseDate = Date(timeIntervalSince1970: 1000)
-        let filter = StabilityFilter(
-            confidenceThreshold: 0.85,
-            holdDuration: 1.0
-        )
-
-        let signC = SignClassification(label: "C", confidence: 0.95)
-
-        // Hold C for 0.8s
-        _ = filter.process(classification: signC, at: baseDate)
-        let held = filter.process(classification: signC, at: baseDate.addingTimeInterval(0.8))
-        #expect(abs(held.progress - 0.8) < 0.001)
-
-        // Drop hand (nil)
-        let noHand = filter.process(classification: nil, at: baseDate.addingTimeInterval(0.9))
-        #expect(noHand == .noHand)
-
-        // Resume C -> timer restarts from 0
-        let restarted = filter.process(classification: signC, at: baseDate.addingTimeInterval(1.0))
-        #expect(restarted.label == "C")
-        #expect(abs(restarted.progress - 0.0) < 0.001)
-    }
-
-    @Test("Background class is never recognized even with 99% confidence")
-    func backgroundIsNeverRecognized() {
-        let baseDate = Date(timeIntervalSince1970: 1000)
-        let filter = StabilityFilter(
+    @Test("No-hand (nil classification) resets the hold timer")
+    func noHandResetsHoldTimer() {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 5000))
+        let stabiliser = RecognitionStabiliser(
             confidenceThreshold: 0.85,
             holdDuration: 1.0,
-            backgroundLabel: "Background"
+            dateProvider: clock
+        )
+
+        let signE = SignClassification(label: "E", confidence: 0.91)
+
+        // Hold Sign E for 0.9s
+        _ = stabiliser.process(classification: signE)
+        clock.advance(by: 0.9)
+        let stateE = stabiliser.process(classification: signE)
+        #expect(abs(stateE.progress - 0.9) < 0.001)
+
+        // Hand drops out of camera frame
+        clock.advance(by: 0.1)
+        let noHandState = stabiliser.process(classification: nil)
+        #expect(noHandState == .noHand)
+        #expect(noHandState.progress == 0.0)
+        #expect(!noHandState.isRecognized)
+
+        // Hand reappears with Sign E -> hold timer restarts from 0.0s
+        clock.advance(by: 0.1)
+        let restartedState = stabiliser.process(classification: signE)
+        #expect(restartedState.label == "E")
+        #expect(abs(restartedState.progress - 0.0) < 0.001)
+        #expect(!restartedState.isRecognized)
+    }
+
+    @Test(
+        "Background class is never recognized regardless of confidence or hold duration",
+        arguments: [
+            (0.85, 1.0),
+            (0.95, 2.0),
+            (0.99, 5.0),
+            (1.00, 10.0)
+        ]
+    )
+    func backgroundClassNeverRecognized(confidence: Double, duration: Double) {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 6000))
+        let stabiliser = RecognitionStabiliser(
+            confidenceThreshold: 0.85,
+            holdDuration: 1.0,
+            backgroundLabel: "Background",
+            dateProvider: clock
         )
 
         let bgClassification = SignClassification(
             label: "Background",
-            confidence: 0.99,
+            confidence: confidence,
             candidates: [
-                SignCandidate(label: "Background", confidence: 0.99),
+                SignCandidate(label: "Background", confidence: confidence),
                 SignCandidate(label: "A", confidence: 0.01)
             ]
         )
 
-        // Send background multiple times past hold duration
-        let s1 = filter.process(classification: bgClassification, at: baseDate)
-        let s2 = filter.process(classification: bgClassification, at: baseDate.addingTimeInterval(2.0))
+        // Send background frame at start
+        let initial = stabiliser.process(classification: bgClassification)
+        #expect(initial == .lowConfidence(label: "Background", confidence: confidence, runnerUp: nil))
+        #expect(!initial.isRecognized)
 
-        #expect(s1 == .lowConfidence(label: "Background", confidence: 0.99, runnerUp: nil))
-        #expect(s2 == .lowConfidence(label: "Background", confidence: 0.99, runnerUp: nil))
-        #expect(!s2.isRecognized)
+        // Advance clock well past required hold duration
+        clock.advance(by: duration)
+        let finalState = stabiliser.process(classification: bgClassification)
+        #expect(finalState == .lowConfidence(label: "Background", confidence: confidence, runnerUp: nil))
+        #expect(!finalState.isRecognized)
+        #expect(finalState.progress == 0.0)
     }
 
-    @Test("Extracts runner-up candidate excluding background")
-    func extractsRunnerUpCandidate() {
-        let baseDate = Date(timeIntervalSince1970: 1000)
-        let filter = StabilityFilter(confidenceThreshold: 0.85, holdDuration: 1.0)
+    @Test("Low confidence state correctly preserves label and runner-up candidate")
+    func lowConfidencePreservesLabelAndRunnerUp() {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 7000))
+        let stabiliser = RecognitionStabiliser(
+            confidenceThreshold: 0.85,
+            holdDuration: 1.0,
+            dateProvider: clock
+        )
 
         let classification = SignClassification(
             label: "F",
-            confidence: 0.92,
+            confidence: 0.60,
             candidates: [
-                SignCandidate(label: "F", confidence: 0.92),
-                SignCandidate(label: "Background", confidence: 0.05),
-                SignCandidate(label: "E", confidence: 0.03)
+                SignCandidate(label: "F", confidence: 0.60),
+                SignCandidate(label: "E", confidence: 0.25),
+                SignCandidate(label: "Background", confidence: 0.15)
             ]
         )
 
-        let state = filter.process(classification: classification, at: baseDate)
+        let state = stabiliser.process(classification: classification)
+        #expect(state == .lowConfidence(label: "F", confidence: 0.60, runnerUp: SignCandidate(label: "E", confidence: 0.25)))
+        #expect(state.label == "F")
+        #expect(state.confidence == 0.60)
         #expect(state.runnerUp?.label == "E")
-        #expect(state.runnerUp?.confidence == 0.03)
+        #expect(state.runnerUp?.confidence == 0.25)
     }
 
-    @Test("Injected DateProviding clock advances deterministically")
-    func injectedDateProviderAdvancesDeterministically() {
-        var mockClock = FixedDateProvider(now: Date(timeIntervalSince1970: 5000))
-        let filter = StabilityFilter(
+    @Test("Explicit reset clears all internal state back to noHand")
+    func explicitResetClearsState() {
+        let clock = ControllableClock(now: Date(timeIntervalSince1970: 8000))
+        let stabiliser = RecognitionStabiliser(
             confidenceThreshold: 0.85,
             holdDuration: 1.0,
-            dateProvider: mockClock
+            dateProvider: clock
         )
 
-        let signL = SignClassification(label: "L", confidence: 0.95)
+        let signK = SignClassification(label: "K", confidence: 0.95)
+        _ = stabiliser.process(classification: signK)
+        clock.advance(by: 0.7)
+        let active = stabiliser.process(classification: signK)
+        #expect(active.progress == 0.7)
 
-        // Process without passing explicit Date -> uses dateProvider.now
-        let s0 = filter.process(classification: signL)
-        #expect(s0.progress == 0.0)
+        stabiliser.reset()
 
-        mockClock.now = Date(timeIntervalSince1970: 5001)
-        let filterWithAdvancedClock = StabilityFilter(
-            confidenceThreshold: 0.85,
-            holdDuration: 1.0,
-            dateProvider: mockClock
-        )
-        // With explicit date
-        let s1 = filter.process(classification: signL, at: Date(timeIntervalSince1970: 5001))
-        #expect(s1.isRecognized)
+        // After reset, next evaluation starts from 0.0
+        let afterReset = stabiliser.process(classification: signK)
+        #expect(afterReset.progress == 0.0)
     }
 }

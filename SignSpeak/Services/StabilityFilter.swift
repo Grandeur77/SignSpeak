@@ -3,6 +3,8 @@ import Foundation
 /// Pure, deterministic temporal stability filter.
 /// Evaluates sequential Core ML predictions against a confidence threshold and hold duration,
 /// rejects non-sign/background classes, extracts runner-up candidates, and computes hold progress (0.0 ... 1.0).
+public typealias RecognitionStabiliser = StabilityFilter
+
 public final class StabilityFilter: @unchecked Sendable {
     public let confidenceThreshold: Double
     public let holdDuration: TimeInterval
