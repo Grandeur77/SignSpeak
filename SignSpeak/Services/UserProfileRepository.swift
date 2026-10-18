@@ -10,6 +10,7 @@ public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
     public var currentStreak: Int
     public var xp: Int
     public var level: Int
+    public var onboardingComplete: Bool
 
     public init(
         id: String,
@@ -19,7 +20,8 @@ public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
         dailyGoalMinutes: Int = 10,
         currentStreak: Int = 0,
         xp: Int = 0,
-        level: Int = 1
+        level: Int = 1,
+        onboardingComplete: Bool = false
     ) {
         self.id = id
         self.displayName = displayName
@@ -29,6 +31,7 @@ public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
         self.currentStreak = currentStreak
         self.xp = xp
         self.level = level
+        self.onboardingComplete = onboardingComplete
     }
 }
 

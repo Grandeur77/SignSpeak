@@ -7,7 +7,7 @@ struct SignSpeakApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView()
                 .environment(\.dependencies, dependencies)
         }
     }
