@@ -24,7 +24,7 @@ nonisolated struct AppDependencies: Sendable {
         dateProvider: SystemDateProvider(),
         cameraService: CameraService(),
         handPoseDetector: HandPoseDetector(),
-        signClassifier: StubSignClassifier(),
+        signClassifier: (try? SignClassifier()) ?? StubSignClassifier(),
         signRecognitionService: StubSignRecognitionService(),
         authService: StubAuthService(),
         userProfileRepository: StubUserProfileRepository(),

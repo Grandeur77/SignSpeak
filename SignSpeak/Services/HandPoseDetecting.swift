@@ -113,7 +113,7 @@ public protocol HandPoseDetecting: Sendable {
 public struct StubHandPoseDetector: HandPoseDetecting {
     public var confidenceThreshold: Float = 0.3
 
-    public init(confidenceThreshold: Float = 0.3) {
+    public nonisolated init(confidenceThreshold: Float = 0.3) {
         self.confidenceThreshold = confidenceThreshold
     }
 

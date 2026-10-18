@@ -8,6 +8,7 @@ import CoreMedia
 final class CameraTestViewModel {
     private let cameraService: any CameraServicing
     private let handPoseDetector: any HandPoseDetecting
+    private let signClassifier: any SignClassifying
     private var frameTask: Task<Void, Never>?
 
     var authorizationState: CameraAuthorizationState = .notDetermined
@@ -17,6 +18,7 @@ final class CameraTestViewModel {
     var isSimulator: Bool = false
     var isLeftHanded: Bool = false
     var detectedPose: HandPose?
+    var currentClassification: SignClassification?
 
     var isAuthorized: Bool {
         authorizationState == .authorized
@@ -28,10 +30,12 @@ final class CameraTestViewModel {
 
     init(
         cameraService: any CameraServicing,
-        handPoseDetector: any HandPoseDetecting = StubHandPoseDetector()
+        handPoseDetector: any HandPoseDetecting = StubHandPoseDetector(),
+        signClassifier: any SignClassifying = StubSignClassifier()
     ) {
         self.cameraService = cameraService
         self.handPoseDetector = handPoseDetector
+        self.signClassifier = signClassifier
         #if targetEnvironment(simulator)
         self.isSimulator = true
         #endif
@@ -76,6 +80,7 @@ final class CameraTestViewModel {
         await cameraService.stopSession()
         isSessionRunning = false
         detectedPose = nil
+        currentClassification = nil
     }
 
     func switchCamera() async {
@@ -113,6 +118,11 @@ final class CameraTestViewModel {
                     let pose = try await self.handPoseDetector.detectPose(in: sampleBuffer)
                     if !Task.isCancelled {
                         self.detectedPose = pose
+                        if let pose {
+                            self.currentClassification = try? self.signClassifier.classify(pose: pose)
+                        } else {
+                            self.currentClassification = nil
+                        }
                     }
                 } catch {
                     // Frame skipped gracefully

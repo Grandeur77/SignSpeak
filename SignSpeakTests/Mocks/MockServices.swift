@@ -212,3 +212,20 @@ public final class MockHandPoseDetector: HandPoseDetecting, @unchecked Sendable 
         return result
     }
 }
+
+/// Configurable mock sign classifier for testing inference results and error handling.
+public final class MockSignClassifier: SignClassifying, @unchecked Sendable {
+    public var stubbedResult: SignClassification?
+    public var shouldThrowError: Error?
+    public private(set) var classifyCallCount = 0
+
+    public init(stubbedResult: SignClassification? = nil) {
+        self.stubbedResult = stubbedResult
+    }
+
+    public func classify(pose: HandPose) throws -> SignClassification? {
+        classifyCallCount += 1
+        if let error = shouldThrowError { throw error }
+        return stubbedResult
+    }
+}

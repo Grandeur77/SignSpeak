@@ -16,7 +16,8 @@ struct CameraTestView: View {
         } else {
             _viewModel = State(initialValue: CameraTestViewModel(
                 cameraService: dependencies.cameraService,
-                handPoseDetector: dependencies.handPoseDetector
+                handPoseDetector: dependencies.handPoseDetector,
+                signClassifier: dependencies.signClassifier
             ))
         }
     }
@@ -185,21 +186,61 @@ struct CameraTestView: View {
                 .background(Color.black.opacity(0.6), in: Capsule())
             }
 
-            // Real-time Hand Detection Status Pill
-            HStack(spacing: Theme.Spacing.xs) {
-                Circle()
-                    .fill(viewModel.detectedPose != nil ? Color.success : Color.brandYellow)
-                    .frame(width: 8, height: 8)
-                Text(viewModel.detectedPose != nil ? "Hand detected • ASL ready" : "Searching for hand...")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
+            // Real-time Hand Detection & Core ML Sign Prediction
+            if let classification = viewModel.currentClassification {
+                VStack(spacing: 4) {
+                    HStack(spacing: Theme.Spacing.s) {
+                        Circle()
+                            .fill(classification.label == "Background" ? Color.brandYellow : Color.brandTurquoise)
+                            .frame(width: 10, height: 10)
+
+                        if classification.label == "Background" {
+                            Text("Background • No sign")
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                        } else {
+                            Text("Sign: \(classification.label)")
+                                .font(.appTitle2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.brandTurquoise)
+
+                            Text("(\(Int(classification.confidence * 100))%)")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+                    }
+
+                    // Runner-up hint if available
+                    if classification.candidates.count > 1, classification.label != "Background" {
+                        let runnerUp = classification.candidates[1]
+                        if runnerUp.confidence > 0.05 && runnerUp.label != "Background" {
+                            Text("Runner-up: \(runnerUp.label) (\(Int(runnerUp.confidence * 100))%)")
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                    }
+                }
+                .padding(.horizontal, Theme.Spacing.m)
+                .padding(.vertical, 8)
+                .background(Color.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 14))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Recognized sign: \(classification.label), confidence \(Int(classification.confidence * 100)) percent")
+            } else {
+                HStack(spacing: Theme.Spacing.xs) {
+                    Circle()
+                        .fill(viewModel.detectedPose != nil ? Color.success : Color.brandYellow)
+                        .frame(width: 8, height: 8)
+                    Text(viewModel.detectedPose != nil ? "Hand detected • Classifying..." : "Searching for hand...")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                }
+                .padding(.horizontal, Theme.Spacing.m)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.65), in: Capsule())
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(viewModel.detectedPose != nil ? "Hand detected, evaluating pose" : "Searching for hand gestures")
             }
-            .padding(.horizontal, Theme.Spacing.m)
-            .padding(.vertical, 6)
-            .background(Color.black.opacity(0.65), in: Capsule())
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(viewModel.detectedPose != nil ? "Hand detected and tracked" : "Searching for hand gestures")
         }
         .padding(.top, Theme.Spacing.s)
     }
