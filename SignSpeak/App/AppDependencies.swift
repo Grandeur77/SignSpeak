@@ -20,22 +20,41 @@ nonisolated struct AppDependencies: Sendable {
     var communityRepository: any CommunityRepository
 
     /// Production dependency container.
-    static let live = AppDependencies(
-        dateProvider: SystemDateProvider(),
-        cameraService: CameraService(),
-        handPoseDetector: StubHandPoseDetector(),
-        signClassifier: StubSignClassifier(),
-        signRecognitionService: StubSignRecognitionService(),
-        authService: StubAuthService(),
-        userProfileRepository: StubUserProfileRepository(),
-        progressRepository: StubProgressRepository(),
-        biometricAuthService: StubBiometricAuthService(),
-        notificationService: StubNotificationService(),
-        speechRecognitionService: StubSpeechRecognitionService(),
-        speechSynthesisService: StubSpeechSynthesisService(),
-        conversationRepository: StubConversationRepository(),
-        communityRepository: StubCommunityRepository()
-    )
+    static let live: AppDependencies = {
+        let dateProvider = SystemDateProvider()
+        let cameraService = CameraService()
+        let handPoseDetector = HandPoseDetector()
+        let signClassifier: any SignClassifying = (try? SignClassifier()) ?? StubSignClassifier()
+        let stabilityFilter = StabilityFilter(
+            confidenceThreshold: 0.85,
+            holdDuration: 1.0,
+            dateProvider: dateProvider
+        )
+        let signRecognitionService = SignRecognitionService(
+            cameraService: cameraService,
+            handPoseDetector: handPoseDetector,
+            signClassifier: signClassifier,
+            stabilityFilter: stabilityFilter,
+            dateProvider: dateProvider
+        )
+
+        return AppDependencies(
+            dateProvider: dateProvider,
+            cameraService: cameraService,
+            handPoseDetector: handPoseDetector,
+            signClassifier: signClassifier,
+            signRecognitionService: signRecognitionService,
+            authService: StubAuthService(),
+            userProfileRepository: StubUserProfileRepository(),
+            progressRepository: StubProgressRepository(),
+            biometricAuthService: StubBiometricAuthService(),
+            notificationService: StubNotificationService(),
+            speechRecognitionService: StubSpeechRecognitionService(),
+            speechSynthesisService: StubSpeechSynthesisService(),
+            conversationRepository: StubConversationRepository(),
+            communityRepository: StubCommunityRepository()
+        )
+    }()
 
     /// In-memory preview dependency container populated with realistic mock data.
     static let preview = AppDependencies(

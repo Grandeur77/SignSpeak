@@ -182,3 +182,134 @@ public final class MockSpeechSynthesisService: SpeechSynthesisServicing, @unchec
         isSpeaking = false
     }
 }
+
+/// Configurable mock hand pose detector for testing gesture recognition and tracking states.
+public final class MockHandPoseDetector: HandPoseDetecting, @unchecked Sendable {
+    private let lock = NSLock()
+    public var confidenceThreshold: Float = 0.3
+    public var stubbedPose: HandPose?
+    public var shouldThrowError: Error?
+    private var _detectPoseCallCount = 0
+
+    public var detectPoseCallCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return _detectPoseCallCount
+    }
+
+    public init(stubbedPose: HandPose? = nil) {
+        self.stubbedPose = stubbedPose
+    }
+
+    public nonisolated func detectPose(in sampleBuffer: CMSampleBuffer) async throws -> HandPose? {
+        lock.lock()
+        _detectPoseCallCount += 1
+        let error = shouldThrowError
+        let result = stubbedPose
+        lock.unlock()
+
+        if let error { throw error }
+        return result
+    }
+}
+
+/// Configurable mock sign classifier for testing inference results and error handling.
+public final class MockSignClassifier: SignClassifying, @unchecked Sendable {
+    public var stubbedResult: SignClassification?
+    public var shouldThrowError: Error?
+    public private(set) var classifyCallCount = 0
+
+    public init(stubbedResult: SignClassification? = nil) {
+        self.stubbedResult = stubbedResult
+    }
+
+    public func classify(pose: HandPose) throws -> SignClassification? {
+        classifyCallCount += 1
+        if let error = shouldThrowError { throw error }
+        return stubbedResult
+    }
+}
+
+/// Configurable mock sign recognition service for testing recognition lifecycle and state transitions.
+public final class MockSignRecognitionService: SignRecognitionServicing, @unchecked Sendable {
+    public var currentState: RecognitionState
+    public var confidenceThreshold: Double
+    public var holdDuration: TimeInterval
+    public private(set) var startRecognitionCallCount = 0
+    public private(set) var stopRecognitionCallCount = 0
+    public private(set) var resetCallCount = 0
+
+    public var continuation: AsyncStream<RecognitionState>.Continuation?
+    public lazy var stateStream: AsyncStream<RecognitionState> = {
+        AsyncStream { [weak self] continuation in
+            self?.continuation = continuation
+            continuation.yield(self?.currentState ?? .noHand)
+        }
+    }()
+
+    public init(
+        initialState: RecognitionState = .noHand,
+        confidenceThreshold: Double = 0.85,
+        holdDuration: TimeInterval = 1.0
+    ) {
+        self.currentState = initialState
+        self.confidenceThreshold = confidenceThreshold
+        self.holdDuration = holdDuration
+    }
+
+    public func emitState(_ state: RecognitionState) {
+        currentState = state
+        continuation?.yield(state)
+    }
+
+    public func startRecognition() async {
+        startRecognitionCallCount += 1
+    }
+
+    public func stopRecognition() async {
+        stopRecognitionCallCount += 1
+    }
+
+    public func reset() {
+        resetCallCount += 1
+        currentState = .noHand
+        continuation?.yield(.noHand)
+    }
+
+    @discardableResult
+    public func processPose(_ pose: HandPose?) -> RecognitionState {
+        currentState
+    }
+}
+
+/// Controllable mock clock for deterministic time manipulation in tests.
+public final class ControllableClock: DateProviding, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _now: Date
+    public var calendar: Calendar
+
+    public var now: Date {
+        lock.lock()
+        defer { lock.unlock() }
+        return _now
+    }
+
+    public init(now: Date = Date(timeIntervalSince1970: 1000), calendar: Calendar = .current) {
+        self._now = now
+        self.calendar = calendar
+    }
+
+    public func advance(by seconds: TimeInterval) {
+        lock.lock()
+        defer { lock.unlock() }
+        _now = _now.addingTimeInterval(seconds)
+    }
+
+    public func set(to date: Date) {
+        lock.lock()
+        defer { lock.unlock() }
+        _now = date
+    }
+}
+
+
