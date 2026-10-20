@@ -26,8 +26,17 @@ public protocol AuthServicing: Sendable {
     /// Authenticates via Google Sign-In (linked to Step 3.4).
     func signInWithGoogle() async throws -> AuthUser
 
+    /// Authenticates via Google Sign-In using validated OAuth tokens.
+    func signInWithGoogle(idToken: String, accessToken: String) async throws -> AuthUser
+
     /// Upgrades an anonymous guest account into a permanent email/password account.
     func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser
+
+    /// Links an anonymous guest account with a Google account using validated OAuth tokens.
+    func linkGoogle(idToken: String, accessToken: String) async throws -> AuthUser
+
+    /// High-level method to link the current guest account to Google.
+    func linkGoogle() async throws -> AuthUser
 
     /// Sends a password reset email to the specified address.
     func sendPasswordReset(email: String) async throws
@@ -175,6 +184,37 @@ public final class StubAuthService: AuthServicing, @unchecked Sendable {
         )
         notify(with: user)
         return user
+    }
+
+    public func signInWithGoogle(idToken: String, accessToken: String) async throws -> AuthUser {
+        let user = AuthUser(
+            id: "stub-google-token-user",
+            email: "google.token@example.com",
+            displayName: "Google User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkGoogle(idToken: String, accessToken: String) async throws -> AuthUser {
+        guard let current = currentUser else {
+            throw AuthError.noCurrentUser
+        }
+        let user = AuthUser(
+            id: current.id,
+            email: "google.linked@example.com",
+            displayName: "Google User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkGoogle() async throws -> AuthUser {
+        return try await linkGoogle(idToken: "mock-id-token", accessToken: "mock-access-token")
     }
 
     public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {

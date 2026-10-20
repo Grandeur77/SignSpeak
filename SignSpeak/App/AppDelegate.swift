@@ -12,4 +12,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         }
         return true
     }
+
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        #if canImport(GoogleSignIn)
+        if GIDSignIn.sharedInstance.handle(url) {
+            return true
+        }
+        #endif
+        return false
+    }
 }

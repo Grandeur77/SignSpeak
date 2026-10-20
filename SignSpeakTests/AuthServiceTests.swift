@@ -223,4 +223,54 @@ struct AuthServiceTests {
         try stub.signOut()
         #expect(stub.currentUser == nil)
     }
+
+    // MARK: - Google Sign-In & Linking Tests
+
+    @Test("MockAuthService executes Google sign-in and captures OAuth tokens")
+    func mockAuthServiceGoogleSignIn() async throws {
+        let auth = MockAuthService()
+
+        let user = try await auth.signInWithGoogle(idToken: "sample-id-token", accessToken: "sample-access-token")
+
+        #expect(auth.signInWithGoogleCallCount == 1)
+        #expect(auth.lastGoogleIdToken == "sample-id-token")
+        #expect(auth.lastGoogleAccessToken == "sample-access-token")
+        #expect(user.isAnonymous == false)
+        #expect(auth.currentUser == user)
+    }
+
+    @Test("MockAuthService links Google credential to anonymous guest account")
+    func mockAuthServiceGoogleGuestLinking() async throws {
+        let auth = MockAuthService()
+
+        // 1. Enter as guest
+        let guest = try await auth.signInAnonymously()
+        #expect(guest.isAnonymous == true)
+        let guestId = guest.id
+
+        // 2. Link Google account
+        let linkedUser = try await auth.linkGoogle(idToken: "google-id-token", accessToken: "google-access-token")
+
+        #expect(auth.linkGoogleCallCount == 1)
+        #expect(linkedUser.id == guestId)
+        #expect(linkedUser.isAnonymous == false)
+        #expect(linkedUser.email == "google.linked@example.com")
+        #expect(auth.currentUser?.isAnonymous == false)
+    }
+
+    @Test("StubAuthService performs Google sign-in and guest linking")
+    func stubAuthServiceGoogleFlows() async throws {
+        let stub = StubAuthService()
+
+        let user = try await stub.signInWithGoogle()
+        #expect(user.email == "google.user@example.com")
+        #expect(user.isAnonymous == false)
+
+        _ = try await stub.signInAnonymously()
+        #expect(stub.currentUser?.isAnonymous == true)
+
+        let linked = try await stub.linkGoogle()
+        #expect(linked.isAnonymous == false)
+        #expect(stub.currentUser?.isAnonymous == false)
+    }
 }

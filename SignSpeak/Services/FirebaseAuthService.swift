@@ -1,6 +1,12 @@
 import Foundation
 import FirebaseAuth
 import FirebaseCore
+#if canImport(UIKit)
+import UIKit
+#endif
+#if canImport(GoogleSignIn)
+import GoogleSignIn
+#endif
 
 /// Production implementation of `AuthServicing` backed by Firebase Authentication.
 public final class FirebaseAuthService: AuthServicing, @unchecked Sendable {
@@ -133,8 +139,72 @@ public final class FirebaseAuthService: AuthServicing, @unchecked Sendable {
     }
 
     public func signInWithGoogle() async throws -> AuthUser {
-        // Will be wired to GoogleSignIn SDK in Step 3.4
+        #if canImport(GoogleSignIn)
+        let presentingVC = await getTopViewController()
+        guard let presentingVC else {
+            throw AuthError.unknown("No active view controller available for Google Sign-In.")
+        }
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
+            guard let idToken = result.user.idToken?.tokenString else {
+                throw AuthError.unknown("Missing Google ID token.")
+            }
+            let accessToken = result.user.accessToken.tokenString
+            return try await signInWithGoogle(idToken: idToken, accessToken: accessToken)
+        } catch {
+            throw AuthError.from(error)
+        }
+        #else
         throw AuthError.operationNotAllowed
+        #endif
+    }
+
+    public func signInWithGoogle(idToken: String, accessToken: String) async throws -> AuthUser {
+        do {
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+            let result = try await auth.signIn(with: credential)
+            let mapped = Self.mapUser(result.user)!
+            notify(with: mapped)
+            return mapped
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
+    public func linkGoogle(idToken: String, accessToken: String) async throws -> AuthUser {
+        do {
+            guard let user = auth.currentUser else {
+                throw AuthError.noCurrentUser
+            }
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+            let result = try await user.link(with: credential)
+            let mapped = Self.mapUser(result.user)!
+            notify(with: mapped)
+            return mapped
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
+    public func linkGoogle() async throws -> AuthUser {
+        #if canImport(GoogleSignIn)
+        let presentingVC = await getTopViewController()
+        guard let presentingVC else {
+            throw AuthError.unknown("No active view controller available for Google Sign-In.")
+        }
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
+            guard let idToken = result.user.idToken?.tokenString else {
+                throw AuthError.unknown("Missing Google ID token.")
+            }
+            let accessToken = result.user.accessToken.tokenString
+            return try await linkGoogle(idToken: idToken, accessToken: accessToken)
+        } catch {
+            throw AuthError.from(error)
+        }
+        #else
+        throw AuthError.operationNotAllowed
+        #endif
     }
 
     public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {
@@ -235,4 +305,19 @@ public final class FirebaseAuthService: AuthServicing, @unchecked Sendable {
             throw AuthError.from(error)
         }
     }
+
+    #if canImport(UIKit)
+    @MainActor
+    private func getTopViewController() -> UIViewController? {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let root = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            return nil
+        }
+        var topController = root
+        while let presented = topController.presentedViewController {
+            topController = presented
+        }
+        return topController
+    }
+    #endif
 }

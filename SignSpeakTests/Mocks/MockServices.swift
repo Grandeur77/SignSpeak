@@ -93,6 +93,7 @@ public final class MockAuthService: AuthServicing, @unchecked Sendable {
     public private(set) var signInCallCount = 0
     public private(set) var signInAnonymouslyCallCount = 0
     public private(set) var signInWithGoogleCallCount = 0
+    public private(set) var linkGoogleCallCount = 0
     public private(set) var upgradeGuestCallCount = 0
     public private(set) var sendPasswordResetCallCount = 0
     public private(set) var sendEmailVerificationCallCount = 0
@@ -107,6 +108,8 @@ public final class MockAuthService: AuthServicing, @unchecked Sendable {
     public private(set) var lastSignInEmail: String?
     public private(set) var lastResetEmail: String?
     public private(set) var lastReauthenticatedPassword: String?
+    public private(set) var lastGoogleIdToken: String?
+    public private(set) var lastGoogleAccessToken: String?
 
     public var currentUser: AuthUser? {
         get {
@@ -260,6 +263,48 @@ public final class MockAuthService: AuthServicing, @unchecked Sendable {
         )
         notify(with: user)
         return user
+    }
+
+    public func signInWithGoogle(idToken: String, accessToken: String) async throws -> AuthUser {
+        signInWithGoogleCallCount += 1
+        lastGoogleIdToken = idToken
+        lastGoogleAccessToken = accessToken
+        if let error = shouldThrowError { throw error }
+
+        let user = AuthUser(
+            id: "mock-google-token-user",
+            email: "google.token@example.com",
+            displayName: "Google User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkGoogle(idToken: String, accessToken: String) async throws -> AuthUser {
+        linkGoogleCallCount += 1
+        lastGoogleIdToken = idToken
+        lastGoogleAccessToken = accessToken
+        if let error = shouldThrowError { throw error }
+
+        guard let current = currentUser else {
+            throw AuthError.noCurrentUser
+        }
+
+        let user = AuthUser(
+            id: current.id,
+            email: "google.linked@example.com",
+            displayName: "Google User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkGoogle() async throws -> AuthUser {
+        return try await linkGoogle(idToken: "mock-id-token", accessToken: "mock-access-token")
     }
 
     public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {
