@@ -70,7 +70,7 @@ public struct AppRootView: View {
                     .transition(.opacity)
 
             case .mainApp:
-                ContentView()
+                AppShellView()
                     .transition(.opacity)
             }
         }
