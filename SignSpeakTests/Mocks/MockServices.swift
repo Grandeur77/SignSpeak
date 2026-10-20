@@ -82,60 +82,244 @@ public final class MockCameraService: CameraServicing, @unchecked Sendable {
 
 /// Configurable mock authentication service for testing sign-in flows and session gates.
 public final class MockAuthService: AuthServicing, @unchecked Sendable {
-    public var currentUserId: String?
+    private let lock = NSLock()
+    private var _currentUser: AuthUser?
+    private var continuations: [UUID: AsyncStream<AuthUser?>.Continuation] = [:]
+
     public var shouldThrowError: Error?
+
+    // Spy call counters
+    public private(set) var signUpCallCount = 0
+    public private(set) var signInCallCount = 0
+    public private(set) var signInAnonymouslyCallCount = 0
+    public private(set) var signInWithGoogleCallCount = 0
+    public private(set) var upgradeGuestCallCount = 0
+    public private(set) var sendPasswordResetCallCount = 0
+    public private(set) var sendEmailVerificationCallCount = 0
+    public private(set) var reauthenticateCallCount = 0
+    public private(set) var reloadUserCallCount = 0
     public private(set) var signOutCallCount = 0
     public private(set) var deleteAccountCallCount = 0
 
-    public init(currentUserId: String? = nil) {
-        self.currentUserId = currentUserId
+    // Spy parameter captures
+    public private(set) var lastSignUpName: String?
+    public private(set) var lastSignUpEmail: String?
+    public private(set) var lastSignInEmail: String?
+    public private(set) var lastResetEmail: String?
+    public private(set) var lastReauthenticatedPassword: String?
+
+    public var currentUser: AuthUser? {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _currentUser
+        }
+        set {
+            notify(with: newValue)
+        }
+    }
+
+    public var currentUserId: String? {
+        get { currentUser?.id }
+        set {
+            if let newValue {
+                currentUser = AuthUser(
+                    id: newValue,
+                    email: "\(newValue)@example.com",
+                    displayName: "Mock User",
+                    isEmailVerified: true,
+                    isAnonymous: false
+                )
+            } else {
+                currentUser = nil
+            }
+        }
+    }
+
+    public var userStream: AsyncStream<AuthUser?> {
+        AsyncStream { [weak self] continuation in
+            guard let self else {
+                continuation.finish()
+                return
+            }
+
+            let id = UUID()
+            self.lock.lock()
+            self.continuations[id] = continuation
+            continuation.yield(self._currentUser)
+            self.lock.unlock()
+
+            continuation.onTermination = { [weak self] _ in
+                guard let self else { return }
+                self.lock.lock()
+                self.continuations.removeValue(forKey: id)
+                self.lock.unlock()
+            }
+        }
     }
 
     public var authStateStream: AsyncStream<String?> {
         AsyncStream { continuation in
-            continuation.yield(self.currentUserId)
-            continuation.finish()
+            let task = Task {
+                for await user in self.userStream {
+                    continuation.yield(user?.id)
+                }
+                continuation.finish()
+            }
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
         }
     }
 
-    public func signIn(email: String, password: String) async throws -> String {
-        if let error = shouldThrowError { throw error }
-        let uid = "mock-user-\(email)"
-        currentUserId = uid
-        return uid
+    public init(currentUserId: String? = nil, currentUser: AuthUser? = nil) {
+        if let currentUser {
+            self._currentUser = currentUser
+        } else if let currentUserId {
+            self._currentUser = AuthUser(
+                id: currentUserId,
+                email: "\(currentUserId)@example.com",
+                displayName: "Mock User",
+                isEmailVerified: true,
+                isAnonymous: false
+            )
+        } else {
+            self._currentUser = nil
+        }
     }
 
-    public func signUp(email: String, password: String) async throws -> String {
-        if let error = shouldThrowError { throw error }
-        let uid = "mock-user-\(email)"
-        currentUserId = uid
-        return uid
+    public func notify(with user: AuthUser?) {
+        lock.lock()
+        _currentUser = user
+        let currentContinuations = Array(continuations.values)
+        lock.unlock()
+
+        for continuation in currentContinuations {
+            continuation.yield(user)
+        }
     }
 
-    public func signInAnonymously() async throws -> String {
+    public func signUp(name: String, email: String, password: String) async throws -> AuthUser {
+        signUpCallCount += 1
+        lastSignUpName = name
+        lastSignUpEmail = email
         if let error = shouldThrowError { throw error }
-        let uid = "mock-guest-user"
-        currentUserId = uid
-        return uid
+
+        let user = AuthUser(
+            id: "mock-user-\(email)",
+            email: email,
+            displayName: name.isEmpty ? "New User" : name,
+            isEmailVerified: false,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
     }
 
-    public func signInWithGoogle() async throws -> String {
+    public func signIn(email: String, password: String) async throws -> AuthUser {
+        signInCallCount += 1
+        lastSignInEmail = email
         if let error = shouldThrowError { throw error }
-        let uid = "mock-google-user"
-        currentUserId = uid
-        return uid
+
+        let user = AuthUser(
+            id: "mock-user-\(email)",
+            email: email,
+            displayName: "Mock User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func signInAnonymously() async throws -> AuthUser {
+        signInAnonymouslyCallCount += 1
+        if let error = shouldThrowError { throw error }
+
+        let user = AuthUser(
+            id: "mock-guest-user",
+            email: nil,
+            displayName: "Guest",
+            isEmailVerified: false,
+            isAnonymous: true
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func signInWithGoogle() async throws -> AuthUser {
+        signInWithGoogleCallCount += 1
+        if let error = shouldThrowError { throw error }
+
+        let user = AuthUser(
+            id: "mock-google-user",
+            email: "mock.google@example.com",
+            displayName: "Google User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {
+        upgradeGuestCallCount += 1
+        if let error = shouldThrowError { throw error }
+
+        let user = AuthUser(
+            id: currentUser?.id ?? "mock-user-\(email)",
+            email: email,
+            displayName: name.isEmpty ? "Upgraded User" : name,
+            isEmailVerified: false,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func sendPasswordReset(email: String) async throws {
+        sendPasswordResetCallCount += 1
+        lastResetEmail = email
+        if let error = shouldThrowError { throw error }
+    }
+
+    public func sendEmailVerification() async throws {
+        sendEmailVerificationCallCount += 1
+        if let error = shouldThrowError { throw error }
+    }
+
+    public func reauthenticate(password: String) async throws {
+        reauthenticateCallCount += 1
+        lastReauthenticatedPassword = password
+        if let error = shouldThrowError { throw error }
+    }
+
+    public func reloadUser() async throws -> AuthUser? {
+        reloadUserCallCount += 1
+        if let error = shouldThrowError { throw error }
+
+        guard let current = currentUser else { return nil }
+        let updated = AuthUser(
+            id: current.id,
+            email: current.email,
+            displayName: current.displayName,
+            isEmailVerified: true,
+            isAnonymous: current.isAnonymous
+        )
+        notify(with: updated)
+        return updated
     }
 
     public func signOut() throws {
-        if let error = shouldThrowError { throw error }
         signOutCallCount += 1
-        currentUserId = nil
+        if let error = shouldThrowError { throw error }
+        notify(with: nil)
     }
 
     public func deleteAccount() async throws {
-        if let error = shouldThrowError { throw error }
         deleteAccountCallCount += 1
-        currentUserId = nil
+        if let error = shouldThrowError { throw error }
+        notify(with: nil)
     }
 }
 

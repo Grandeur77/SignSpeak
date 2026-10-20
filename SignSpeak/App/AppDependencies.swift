@@ -44,7 +44,7 @@ nonisolated struct AppDependencies: Sendable {
             handPoseDetector: handPoseDetector,
             signClassifier: signClassifier,
             signRecognitionService: signRecognitionService,
-            authService: StubAuthService(),
+            authService: FirebaseAuthService(),
             userProfileRepository: StubUserProfileRepository(),
             progressRepository: StubProgressRepository(),
             biometricAuthService: StubBiometricAuthService(),

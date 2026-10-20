@@ -14,7 +14,7 @@ struct AppDependenciesTests {
         #expect(live.handPoseDetector is HandPoseDetector)
         #expect(live.signClassifier is SignClassifier)
         #expect(live.signRecognitionService is SignRecognitionService)
-        #expect(live.authService is StubAuthService)
+        #expect(live.authService is FirebaseAuthService)
         #expect(live.userProfileRepository is StubUserProfileRepository)
         #expect(live.progressRepository is StubProgressRepository)
         #expect(live.biometricAuthService is StubBiometricAuthService)
