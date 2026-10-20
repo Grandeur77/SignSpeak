@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Welcome landing screen for unauthenticated users matching Stitch design `cd04a4753a4b4cde9a1700c7542a3b5d`.
 /// Features a hero photo with subtle Deaf Flag sinuous waves, the Deaf & Hearing Unity badge,
-/// primary "Create account", secondary "Sign in", "Continue with Google", "Continue as guest",
+/// fully rounded pill/capsule buttons for "Create account" and "Sign in", "Continue as guest",
 /// and the transparent privacy assurance ("We only collect your name and email.").
 public struct WelcomeView: View {
     @Environment(\.dependencies) private var dependencies
@@ -12,7 +11,6 @@ public struct WelcomeView: View {
     public var onGoogleSignIn: (() async -> Void)?
     public var onGuestSignIn: (() async -> Void)?
 
-    @State private var isSigningInGoogle = false
     @State private var isSigningInGuest = false
     @State private var errorMessage: String?
 
@@ -38,12 +36,12 @@ public struct WelcomeView: View {
                 // MARK: - Overlapping App Logo Card
                 AppLogoArtwork()
                     .frame(width: 64, height: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 18)
                             .stroke(Color.white, lineWidth: 3)
                     )
-                    .shadow(color: Color.brandTurquoise.opacity(0.18), radius: 16, y: 8)
+                    .shadow(color: Color.brandTurquoise.opacity(0.18), radius: 14, y: 6)
                     .offset(y: -32)
                     .padding(.bottom, -20)
                     .accessibilityLabel("SignSpeak Logo")
@@ -96,7 +94,7 @@ public struct WelcomeView: View {
 
                 // MARK: - Action Buttons (matching Stitch screen cd04a4753a4b4cde9a1700c7542a3b5d)
                 VStack(spacing: 12) {
-                    // 1. Primary Action: "Create account ->"
+                    // 1. Primary Action: Compact Rounded "Create account ->" Capsule
                     Button {
                         if let onCreateAccount {
                             onCreateAccount()
@@ -112,18 +110,19 @@ public struct WelcomeView: View {
                                 .font(.system(size: 15, weight: .semibold))
                             Spacer()
                         }
-                        .foregroundStyle(Color.onPrimary)
+                        .foregroundStyle(Color.white)
+                        .frame(maxWidth: 300)
                         .frame(height: 52)
                         .background(
                             Color.brandNavy,
-                            in: RoundedRectangle(cornerRadius: Theme.Radius.button)
+                            in: Capsule()
                         )
-                        .shadow(color: Color.brandNavy.opacity(0.2), radius: 8, y: 4)
+                        .shadow(color: Color.brandNavy.opacity(0.25), radius: 10, y: 5)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Create an account")
 
-                    // 2. Secondary Action: "Sign in"
+                    // 2. Secondary Action: Compact Rounded "Sign in" Capsule
                     Button {
                         onSignIn?()
                     } label: {
@@ -134,54 +133,18 @@ public struct WelcomeView: View {
                                 .foregroundStyle(Color.brandNavy)
                             Spacer()
                         }
+                        .frame(maxWidth: 300)
                         .frame(height: 52)
                         .background(
-                            RoundedRectangle(cornerRadius: Theme.Radius.button)
-                                .fill(Color.cardBackground)
+                            Color.white,
+                            in: Capsule()
                         )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Theme.Radius.button)
-                                .stroke(Color.gray.opacity(0.25), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.04), radius: 4, y: 2)
+                        .shadow(color: Color.black.opacity(0.06), radius: 8, y: 3)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Sign in to existing account")
 
-                    // 3. Social: "Continue with Google"
-                    Button {
-                        handleGoogleSignIn()
-                    } label: {
-                        HStack(spacing: 10) {
-                            Spacer()
-                            if isSigningInGoogle {
-                                ProgressView()
-                                    .tint(.primary)
-                            } else {
-                                GoogleGlyph()
-                                    .frame(width: 18, height: 18)
-
-                                Text("Continue with Google")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundStyle(Color.textPrimary)
-                            }
-                            Spacer()
-                        }
-                        .frame(height: 48)
-                        .background(
-                            RoundedRectangle(cornerRadius: Theme.Radius.button)
-                                .fill(Color.cardBackground.opacity(0.9))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Theme.Radius.button)
-                                .stroke(Color.gray.opacity(0.18), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isSigningInGoogle || isSigningInGuest)
-                    .accessibilityLabel("Continue with Google")
-
-                    // 4. Tertiary Link: "Continue as guest"
+                    // 3. Tertiary Link: "Continue as guest"
                     Button {
                         handleGuestSignIn()
                     } label: {
@@ -191,28 +154,28 @@ public struct WelcomeView: View {
                                     .tint(Color.brandTurquoise)
                             } else {
                                 Text("Continue as guest")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(Color.brandTurquoise)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(Color(red: 0/255, green: 105/255, blue: 114/255))
                             }
                         }
                         .frame(minHeight: Theme.minTapTarget)
                     }
                     .buttonStyle(.plain)
-                    .disabled(isSigningInGoogle || isSigningInGuest)
+                    .disabled(isSigningInGuest)
 
-                    // 5. Privacy Trust Note
+                    // 4. Privacy Trust Note
                     HStack(spacing: 6) {
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 12))
+                        Image(systemName: "lock")
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(Color.textSecondary)
 
                         Text("We only collect your name and email.")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.system(size: 13, weight: .regular))
                             .foregroundStyle(Color.textSecondary)
                     }
                     .padding(.top, 2)
 
-                    // 6. Terms and Privacy Legal Note
+                    // 5. Terms and Privacy Legal Note
                     HStack(spacing: 4) {
                         Text("By continuing, you agree to SignSpeak's")
                             .foregroundStyle(Color.textSecondary)
@@ -234,11 +197,11 @@ public struct WelcomeView: View {
                     .padding(.horizontal, Theme.Spacing.m)
                 }
                 .padding(.horizontal, Theme.Spacing.l)
-                .padding(.top, Theme.Spacing.s)
+                .padding(.top, Theme.Spacing.m)
                 .padding(.bottom, Theme.Spacing.xl)
             }
         }
-        .background(Color.appBackground.ignoresSafeArea())
+        .background(Color(red: 247/255, green: 250/255, blue: 251/255).ignoresSafeArea())
         .ignoresSafeArea(edges: .top)
     }
 
@@ -264,14 +227,14 @@ public struct WelcomeView: View {
                     .fill(Color(red: 121/255, green: 238/255, blue: 253/255).opacity(0.40))
                     .frame(height: 30)
 
-                // Wave 3: Surface blend
+                // Wave 3: Surface blend (#f7fafb)
                 WaveShape(phase: 3.4, amplitude: 10, frequency: 1.3)
-                    .fill(Color.appBackground)
+                    .fill(Color(red: 247/255, green: 250/255, blue: 251/255))
                     .frame(height: 22)
 
                 // Subtle gradient transition
                 LinearGradient(
-                    colors: [Color.clear, Color.appBackground],
+                    colors: [Color.clear, Color(red: 247/255, green: 250/255, blue: 251/255)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -281,28 +244,6 @@ public struct WelcomeView: View {
     }
 
     // MARK: - Actions
-    private func handleGoogleSignIn() {
-        if let onGoogleSignIn {
-            Task {
-                isSigningInGoogle = true
-                errorMessage = nil
-                await onGoogleSignIn()
-                isSigningInGoogle = false
-            }
-        } else {
-            Task {
-                isSigningInGoogle = true
-                errorMessage = nil
-                do {
-                    _ = try await dependencies.authService.signInWithGoogle()
-                } catch {
-                    errorMessage = error.localizedDescription
-                }
-                isSigningInGoogle = false
-            }
-        }
-    }
-
     private func handleGuestSignIn() {
         if let onGuestSignIn {
             Task {
@@ -322,58 +263,6 @@ public struct WelcomeView: View {
                 }
                 isSigningInGuest = false
             }
-        }
-    }
-}
-
-/// Standalone multi-color Google "G" brand glyph.
-public struct GoogleGlyph: View {
-    public init() {}
-
-    public var body: some View {
-        Canvas { context, size in
-            let w = size.width
-            let h = size.height
-            let center = CGPoint(x: w / 2, y: h / 2)
-            let radius = min(w, h) / 2
-            let innerRadius = radius * 0.55
-
-            // Blue sector (Right/Top)
-            var bluePath = Path()
-            bluePath.addArc(center: center, radius: radius, startAngle: .degrees(-45), endAngle: .degrees(45), clockwise: false)
-            bluePath.addLine(to: center)
-            bluePath.closeSubpath()
-            context.fill(bluePath, with: .color(Color(red: 66/255, green: 133/255, blue: 244/255)))
-
-            // Green sector (Bottom Right)
-            var greenPath = Path()
-            greenPath.addArc(center: center, radius: radius, startAngle: .degrees(45), endAngle: .degrees(135), clockwise: false)
-            greenPath.addLine(to: center)
-            greenPath.closeSubpath()
-            context.fill(greenPath, with: .color(Color(red: 52/255, green: 168/255, blue: 83/255)))
-
-            // Yellow sector (Bottom Left)
-            var yellowPath = Path()
-            yellowPath.addArc(center: center, radius: radius, startAngle: .degrees(135), endAngle: .degrees(225), clockwise: false)
-            yellowPath.addLine(to: center)
-            yellowPath.closeSubpath()
-            context.fill(yellowPath, with: .color(Color(red: 251/255, green: 188/255, blue: 5/255)))
-
-            // Red sector (Top Left)
-            var redPath = Path()
-            redPath.addArc(center: center, radius: radius, startAngle: .degrees(225), endAngle: .degrees(315), clockwise: false)
-            redPath.addLine(to: center)
-            redPath.closeSubpath()
-            context.fill(redPath, with: .color(Color(red: 234/255, green: 67/255, blue: 53/255)))
-
-            // Inner circle knockout
-            var centerHole = Path()
-            centerHole.addEllipse(in: CGRect(x: center.x - innerRadius, y: center.y - innerRadius, width: innerRadius * 2, height: innerRadius * 2))
-            context.fill(centerHole, with: .color(.white))
-
-            // Blue horizontal bar
-            let barRect = CGRect(x: center.x, y: center.y - (radius - innerRadius) / 2, width: radius, height: radius - innerRadius)
-            context.fill(Path(barRect), with: .color(Color(red: 66/255, green: 133/255, blue: 244/255)))
         }
     }
 }
