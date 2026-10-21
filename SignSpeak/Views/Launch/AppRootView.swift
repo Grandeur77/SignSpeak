@@ -41,23 +41,11 @@ public struct AppRootView: View {
                     .transition(.opacity)
 
             case .welcome:
-                WelcomeView(
-                    onCreateAccount: {
-                        Task {
-                            _ = try? await dependencies.authService.signIn(email: "alex@example.com", password: "password")
-                        }
-                    },
-                    onSignIn: {
-                        Task {
-                            _ = try? await dependencies.authService.signIn(email: "alex@example.com", password: "password")
-                        }
-                    },
-                    onGoogleSignIn: {
-                        _ = try? await dependencies.authService.signInWithGoogle()
-                    },
-                    onGuestSignIn: {
-                        await router.continueAsGuest()
-                    }
+                AuthContainerView(
+                    viewModel: AuthViewModel(
+                        authService: dependencies.authService,
+                        biometricAuthService: dependencies.biometricAuthService
+                    )
                 )
                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))
 
