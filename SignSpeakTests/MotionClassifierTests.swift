@@ -5,7 +5,7 @@ import CoreML
 import CoreGraphics
 @testable import SignSpeak
 
-@Suite("Motion Sign Classifier & Window Buffer (Step 2.2)")
+@Suite("Motion Sign Recognition & Arbitration Tests (Steps 2.2 - 2.4)")
 @MainActor
 struct MotionClassifierTests {
     @Test("MotionSignClassifier initializes with 30 fps and 45-frame window")
@@ -185,6 +185,155 @@ struct MotionClassifierTests {
 
         #expect(mockMotionClassifier.classifyCallCount > 0)
         #expect(lastState.label == "J")
+        #expect(service.currentModelSource == RecognitionModelSource.motionModel)
+    }
+
+    @Test("SignRecognitionService throttles motion inference by motionInferenceStride to preserve CPU")
+    func motionInferenceThrottling() throws {
+        let mockCamera = MockCameraService()
+        let mockDetector = MockHandPoseDetector()
+        let staticResult = SignClassification(label: "I", confidence: 0.88, modelSource: .staticModel)
+        let mockStaticClassifier = MockSignClassifier(stubbedResult: staticResult)
+
+        let motionResult = SignClassification(label: "J", confidence: 0.95, modelSource: .motionModel)
+        let mockMotionClassifier = MockMotionSignClassifier(stubbedResult: motionResult)
+
+        let dateProvider = ControllableClock()
+        let stride = 3
+        let service = SignRecognitionService(
+            cameraService: mockCamera,
+            handPoseDetector: mockDetector,
+            signClassifier: mockStaticClassifier,
+            motionSignClassifier: mockMotionClassifier,
+            motionWindowBuffer: MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 10),
+            motionDisplacementThreshold: 0.15,
+            motionInferenceStride: stride,
+            dateProvider: dateProvider
+        )
+
+        // Stream 25 moving frames
+        for i in 0..<25 {
+            let x = 0.2 + (Double(i) * 0.03)
+            let pose = makeDummyPose(wristX: x, wristY: 0.5)
+            dateProvider.advance(by: 0.035)
+            _ = service.processPose(pose)
+        }
+
+        // Buffer fills at frame 10 (windowSize: 10).
+        // Frames with frameCount >= 10 and frameCount % 3 == 0 are:
+        // 12, 15, 18, 21, 24 -> exactly 5 motion inference calls.
+        #expect(mockMotionClassifier.classifyCallCount == 5)
+    }
+
+    @Test("Low confidence motion prediction falls back to static model")
+    func lowConfidenceMotionFallsBackToStatic() throws {
+        let mockCamera = MockCameraService()
+        let mockDetector = MockHandPoseDetector()
+        let staticResult = SignClassification(label: "I", confidence: 0.90, modelSource: .staticModel)
+        let mockStaticClassifier = MockSignClassifier(stubbedResult: staticResult)
+
+        // Motion prediction has low confidence (0.60 < 0.85 * 0.9 = 0.765)
+        let lowConfMotionResult = SignClassification(label: "J", confidence: 0.60, modelSource: .motionModel)
+        let mockMotionClassifier = MockMotionSignClassifier(stubbedResult: lowConfMotionResult)
+
+        let dateProvider = ControllableClock()
+        let service = SignRecognitionService(
+            cameraService: mockCamera,
+            handPoseDetector: mockDetector,
+            signClassifier: mockStaticClassifier,
+            motionSignClassifier: mockMotionClassifier,
+            motionWindowBuffer: MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 10),
+            motionDisplacementThreshold: 0.15,
+            motionInferenceStride: 1,
+            dateProvider: dateProvider
+        )
+
+        var lastState: RecognitionState = .noHand
+        for i in 0..<15 {
+            let x = 0.2 + (Double(i) * 0.04)
+            let pose = makeDummyPose(wristX: x, wristY: 0.5)
+            dateProvider.advance(by: 0.035)
+            lastState = service.processPose(pose)
+        }
+
+        #expect(mockMotionClassifier.classifyCallCount > 0)
+        #expect(service.currentModelSource == RecognitionModelSource.staticModel)
+        #expect(lastState.label == "I")
+    }
+
+    @Test("Pipeline resets motion buffer and displacement on noHand")
+    func pipelineResetsMotionBufferOnNoHand() throws {
+        let mockCamera = MockCameraService()
+        let mockDetector = MockHandPoseDetector()
+        let motionResult = SignClassification(label: "Hello", confidence: 0.95, modelSource: .motionModel)
+        let mockMotionClassifier = MockMotionSignClassifier(stubbedResult: motionResult)
+
+        let dateProvider = ControllableClock()
+        let service = SignRecognitionService(
+            cameraService: mockCamera,
+            handPoseDetector: mockDetector,
+            signClassifier: MockSignClassifier(),
+            motionSignClassifier: mockMotionClassifier,
+            motionWindowBuffer: MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 10),
+            motionDisplacementThreshold: 0.15,
+            motionInferenceStride: 1,
+            dateProvider: dateProvider
+        )
+
+        // Generate movement
+        for i in 0..<12 {
+            let x = 0.2 + (Double(i) * 0.04)
+            let pose = makeDummyPose(wristX: x, wristY: 0.5)
+            dateProvider.advance(by: 0.035)
+            _ = service.processPose(pose)
+        }
+        #expect(service.motionDisplacement > 0.15)
+
+        // Hand is removed (noHand)
+        let noHandState = service.processPose(nil)
+        #expect(noHandState == .noHand)
+        #expect(service.motionDisplacement == 0.0)
+    }
+
+    @Test("Motion sign advances through hold duration to confirmed lock-in state")
+    func motionSignAdvancesToRecognized() throws {
+        let mockCamera = MockCameraService()
+        let mockDetector = MockHandPoseDetector()
+        let motionResult = SignClassification(label: "Hello", confidence: 0.95, modelSource: .motionModel)
+        let mockMotionClassifier = MockMotionSignClassifier(stubbedResult: motionResult)
+
+        let dateProvider = ControllableClock()
+        let service = SignRecognitionService(
+            cameraService: mockCamera,
+            handPoseDetector: mockDetector,
+            signClassifier: MockSignClassifier(),
+            motionSignClassifier: mockMotionClassifier,
+            motionWindowBuffer: MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 10),
+            holdDuration: 1.0,
+            motionDisplacementThreshold: 0.15,
+            motionInferenceStride: 1,
+            dateProvider: dateProvider
+        )
+
+        // 1. Initial moving frames to fill buffer and trigger detecting
+        var state: RecognitionState = .noHand
+        for i in 0..<10 {
+            let x = 0.2 + (Double(i) * 0.03)
+            let pose = makeDummyPose(wristX: x, wristY: 0.5)
+            dateProvider.advance(by: 0.035)
+            state = service.processPose(pose)
+        }
+        #expect(state.progress < 1.0)
+        #expect(!state.isRecognized)
+
+        // 2. Advance clock past 1.0s hold duration while keeping sign active
+        dateProvider.advance(by: 1.1)
+        let pose = makeDummyPose(wristX: 0.6, wristY: 0.5)
+        state = service.processPose(pose)
+
+        #expect(state.isRecognized)
+        #expect(state.label == "Hello")
+        #expect(state.progress == 1.0)
         #expect(service.currentModelSource == RecognitionModelSource.motionModel)
     }
 
