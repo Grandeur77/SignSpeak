@@ -5,6 +5,7 @@ import SwiftUI
 /// and the Main App Shell as decided by the central `AppRouter`.
 public struct AppRootView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.scenePhase) private var scenePhase
     @State private var router: AppRouter?
 
     public init() {}
@@ -12,8 +13,26 @@ public struct AppRootView: View {
     public var body: some View {
         Group {
             if let router {
-                rootContent(for: router)
-                    .environment(router)
+                ZStack {
+                    rootContent(for: router)
+
+                    if router.isPrivacyCoverActive && router.isBiometricLockEnabled {
+                        PrivacyShieldView()
+                            .transition(.opacity)
+                            .zIndex(999)
+                    }
+                }
+                .environment(router)
+                .onChange(of: scenePhase) { _, newPhase in
+                    switch newPhase {
+                    case .background, .inactive:
+                        router.handleAppBackgrounded()
+                    case .active:
+                        router.handleAppForegrounded()
+                    @unknown default:
+                        break
+                    }
+                }
             } else {
                 SplashView()
             }

@@ -14,6 +14,23 @@ public enum AppRoute: Sendable, Equatable {
     case mainApp
 }
 
+/// Timeout options before requiring biometric re-authentication (53-security-face-id).
+public enum BiometricLockTimeout: Int, CaseIterable, Identifiable, Sendable {
+    case immediately = 0
+    case oneMinute = 60
+    case fiveMinutes = 300
+
+    public var id: Int { rawValue }
+
+    public var title: String {
+        switch self {
+        case .immediately: return "Immediately"
+        case .oneMinute: return "After 1 minute"
+        case .fiveMinutes: return "After 5 minutes"
+        }
+    }
+}
+
 /// Central routing view model evaluating auth state, onboarding progress, and biometric security locks.
 @Observable
 @MainActor
@@ -28,9 +45,61 @@ public final class AppRouter {
 
     public var currentRoute: AppRoute = .splash
     public var isBiometricAuthenticated: Bool = false
+    public var isPrivacyCoverActive: Bool = false
+    public private(set) var lastBackgroundedAt: Date?
+
     public var isBiometricLockEnabled: Bool {
         get { userDefaults.bool(forKey: "isFaceIDLockEnabled") }
         set { userDefaults.set(newValue, forKey: "isFaceIDLockEnabled") }
+    }
+
+    public var biometricType: BiometricType { biometricAuthService.biometricType }
+    public var isBiometricAvailable: Bool { biometricAuthService.isBiometricAvailable }
+    public var biometricName: String { biometricType.displayName }
+    public var biometricIcon: String { biometricType.iconName }
+
+    public var lockTimeout: BiometricLockTimeout {
+        get {
+            let seconds = userDefaults.integer(forKey: "faceIDLockTimeoutSeconds")
+            return BiometricLockTimeout(rawValue: seconds) ?? .immediately
+        }
+        set {
+            userDefaults.set(newValue.rawValue, forKey: "faceIDLockTimeoutSeconds")
+        }
+    }
+
+    public var protectConversationHistory: Bool {
+        get { userDefaults.object(forKey: "protectConversationHistory") as? Bool ?? true }
+        set { userDefaults.set(newValue, forKey: "protectConversationHistory") }
+    }
+
+    public var protectPracticeHistory: Bool {
+        get { userDefaults.object(forKey: "protectPracticeHistory") as? Bool ?? true }
+        set { userDefaults.set(newValue, forKey: "protectPracticeHistory") }
+    }
+
+    /// Records background entry timestamp and activates privacy cover in app switcher.
+    public func handleAppBackgrounded() {
+        if isBiometricLockEnabled {
+            lastBackgroundedAt = dateProvider.now
+            isPrivacyCoverActive = true
+        }
+    }
+
+    /// Evaluates lock timeout upon returning from background.
+    public func handleAppForegrounded() {
+        isPrivacyCoverActive = false
+        guard isBiometricLockEnabled, authService.currentUserId != nil else { return }
+
+        if let backgroundedAt = lastBackgroundedAt {
+            let elapsed = dateProvider.now.timeIntervalSince(backgroundedAt)
+            if elapsed >= Double(lockTimeout.rawValue) {
+                isBiometricAuthenticated = false
+                currentRoute = .faceIDLock
+            }
+        } else if !isBiometricAuthenticated {
+            currentRoute = .faceIDLock
+        }
     }
 
     @ObservationIgnored
@@ -116,11 +185,13 @@ public final class AppRouter {
 
     /// Attempts Face ID / Touch ID unlock when on .faceIDLock route.
     @discardableResult
-    public func unlockWithBiometrics() async -> Bool {
+    public func unlockWithBiometrics(allowPasscodeFallback: Bool = true) async -> Bool {
         do {
-            let success = try await biometricAuthService.authenticate(reason: "Unlock SignSpeak")
+            let reason = "Unlock SignSpeak"
+            let success = try await biometricAuthService.authenticate(reason: reason, allowPasscodeFallback: allowPasscodeFallback)
             if success {
                 isBiometricAuthenticated = true
+                lastBackgroundedAt = nil
                 await evaluateDestination()
                 return true
             }

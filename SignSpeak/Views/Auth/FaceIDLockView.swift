@@ -71,8 +71,8 @@ public struct FaceIDLockView: View {
                         .frame(width: 180, height: 180)
                         .foregroundStyle(Color.brandTurquoise.opacity(0.7))
 
-                    // Center Face ID Glyph
-                    Image(systemName: "faceid")
+                    // Center Biometric Glyph
+                    Image(systemName: router.biometricIcon)
                         .font(.system(size: 60, weight: .light))
                         .foregroundStyle(Color.brandTurquoise)
                         .shadow(color: Color.brandTurquoise.opacity(0.5), radius: 10)
@@ -92,15 +92,15 @@ public struct FaceIDLockView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, Theme.Spacing.l)
 
-                    // Privacy Assurance Pill
+                    // Privacy Assurance Pill (59-face-id-lock)
                     HStack(spacing: 6) {
-                        Image(systemName: "lock.shield.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color.brandTurquoise)
+                        Circle()
+                            .fill(Color.brandTurquoise)
+                            .frame(width: 6, height: 6)
 
-                        Text("Protected with Face ID")
+                        Text("End-to-End Encrypted Session")
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.85))
+                            .foregroundStyle(.white.opacity(0.9))
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
@@ -122,18 +122,18 @@ public struct FaceIDLockView: View {
 
                 // Actions
                 VStack(spacing: Theme.Spacing.m) {
-                    // Unlock with Face ID Button
+                    // Unlock with Biometrics Button
                     Button {
-                        triggerUnlock()
+                        triggerUnlock(allowPasscode: false)
                     } label: {
                         HStack(spacing: 8) {
                             if isAuthenticating {
                                 ProgressView()
                                     .tint(.black)
                             } else {
-                                Image(systemName: "faceid")
+                                Image(systemName: router.biometricIcon)
                                     .font(.system(size: 20, weight: .medium))
-                                Text("Unlock with Face ID")
+                                Text("Unlock with \(router.biometricName)")
                                     .font(.system(size: 17, weight: .semibold))
                             }
                         }
@@ -144,11 +144,11 @@ public struct FaceIDLockView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(isAuthenticating)
-                    .accessibilityLabel("Unlock with Face ID")
+                    .accessibilityLabel("Unlock with \(router.biometricName)")
 
                     // Fallback Button
                     Button {
-                        triggerUnlock()
+                        triggerUnlock(allowPasscode: true)
                     } label: {
                         Text("Use iPhone Passcode")
                             .font(.system(size: 15, weight: .medium))
@@ -162,17 +162,17 @@ public struct FaceIDLockView: View {
             }
         }
         .onAppear {
-            triggerUnlock()
+            triggerUnlock(allowPasscode: false)
         }
     }
 
-    private func triggerUnlock() {
+    private func triggerUnlock(allowPasscode: Bool = false) {
         guard !isAuthenticating else { return }
         isAuthenticating = true
         authFailed = false
 
         Task {
-            let success = await router.unlockWithBiometrics()
+            let success = await router.unlockWithBiometrics(allowPasscodeFallback: allowPasscode)
             isAuthenticating = false
             if !success {
                 authFailed = true

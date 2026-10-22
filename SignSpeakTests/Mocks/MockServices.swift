@@ -453,6 +453,10 @@ public final class MockBiometricAuthService: BiometricAuthServicing, @unchecked 
     }
 
     public func authenticate(reason: String) async throws -> Bool {
+        try await authenticate(reason: reason, allowPasscodeFallback: false)
+    }
+
+    public func authenticate(reason: String, allowPasscodeFallback: Bool) async throws -> Bool {
         authenticateCallCount += 1
         if let error = shouldThrowError { throw error }
         return authenticationResult

@@ -20,7 +20,7 @@ public struct SettingsRootView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Settings")
                             .font(.system(size: 26, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("Preferences and app security")
                             .font(.system(size: 14))
@@ -36,7 +36,7 @@ public struct SettingsRootView: View {
                 .padding(.horizontal, Theme.Spacing.l)
                 .padding(.top, Theme.Spacing.s)
 
-                // Section 1: Security & Biometrics
+                // Section 1: Security & Biometrics (53-security-face-id)
                 VStack(alignment: .leading, spacing: Theme.Spacing.s) {
                     Text("Security")
                         .font(.system(size: 13, weight: .bold))
@@ -44,25 +44,44 @@ public struct SettingsRootView: View {
                         .padding(.horizontal, Theme.Spacing.l)
 
                     VStack(spacing: 0) {
-                        Toggle(isOn: $isFaceIDLockEnabled) {
+                        NavigationLink {
+                            SecuritySettingsView()
+                        } label: {
                             HStack(spacing: 12) {
-                                Image(systemName: "faceid")
+                                Image(systemName: router.biometricIcon)
                                     .font(.system(size: 20))
                                     .foregroundStyle(Color.brandTurquoise)
 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Face ID Lock")
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundStyle(Color.textPrimary)
+                                    HStack(spacing: 6) {
+                                        Text("Biometric Security & \(router.biometricName)")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundStyle(Color.textPrimary)
 
-                                    Text("Require Face ID to open SignSpeak")
+                                        if router.isBiometricLockEnabled {
+                                            Text("ON")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(Color.brandTurquoise, in: Capsule())
+                                        }
+                                    }
+
+                                    Text(router.isBiometricLockEnabled ? "Requires \(router.biometricName) • \(router.lockTimeout.title)" : "Configure \(router.biometricName) and timeouts")
                                         .font(.system(size: 12))
                                         .foregroundStyle(Color.textSecondary)
                                 }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(Color.textSecondary)
                             }
+                            .padding(Theme.Spacing.m)
                         }
-                        .tint(Color.brandTurquoise)
-                        .padding(Theme.Spacing.m)
+                        .buttonStyle(.plain)
                     }
                     .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
                     .padding(.horizontal, Theme.Spacing.l)

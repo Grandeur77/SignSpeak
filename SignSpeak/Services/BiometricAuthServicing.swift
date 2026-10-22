@@ -5,6 +5,22 @@ public enum BiometricType: Sendable, Equatable {
     case none
     case touchID
     case faceID
+
+    public var displayName: String {
+        switch self {
+        case .faceID: return "Face ID"
+        case .touchID: return "Touch ID"
+        case .none: return "Passcode"
+        }
+    }
+
+    public var iconName: String {
+        switch self {
+        case .faceID: return "faceid"
+        case .touchID: return "touchid"
+        case .none: return "lock.fill"
+        }
+    }
 }
 
 /// Protocol abstracting LocalAuthentication (Face ID / Touch ID) gates.
@@ -17,6 +33,15 @@ public protocol BiometricAuthServicing: Sendable {
 
     /// Prompts the user for biometric authentication with a localized reason string.
     func authenticate(reason: String) async throws -> Bool
+
+    /// Prompts user with optional device passcode fallback when biometrics fail or on request.
+    func authenticate(reason: String, allowPasscodeFallback: Bool) async throws -> Bool
+}
+
+extension BiometricAuthServicing {
+    public func authenticate(reason: String) async throws -> Bool {
+        try await authenticate(reason: reason, allowPasscodeFallback: false)
+    }
 }
 
 /// Fallback biometric authentication service stub.
@@ -29,7 +54,7 @@ public struct StubBiometricAuthService: BiometricAuthServicing {
         self.biometricType = biometricType
     }
 
-    public func authenticate(reason: String) async throws -> Bool {
+    public func authenticate(reason: String, allowPasscodeFallback: Bool) async throws -> Bool {
         isBiometricAvailable
     }
 }
@@ -63,10 +88,11 @@ public final class LocalAuthenticationBiometricService: BiometricAuthServicing, 
         }
     }
 
-    public func authenticate(reason: String) async throws -> Bool {
+    public func authenticate(reason: String, allowPasscodeFallback: Bool) async throws -> Bool {
         let context = LAContext()
+        let policy: LAPolicy = allowPasscodeFallback ? .deviceOwnerAuthentication : .deviceOwnerAuthenticationWithBiometrics
         do {
-            return try await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)
+            return try await context.evaluatePolicy(policy, localizedReason: reason)
         } catch let laError as LAError where laError.code == .userCancel || laError.code == .appCancel {
             throw CancellationError()
         }
