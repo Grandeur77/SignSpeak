@@ -263,6 +263,23 @@ public struct SignUpView: View {
                 }
                 .padding(.vertical, Theme.Spacing.xs)
 
+                // MARK: - Apple Sign In Button
+                Button {
+                    Task { await viewModel.signInWithApple() }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "apple.logo")
+                            .font(.system(size: 20))
+                        Text("Continue with Apple")
+                            .font(.body.weight(.medium))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .foregroundStyle(.white)
+                    .background(Color.black, in: RoundedRectangle(cornerRadius: 16))
+                }
+                .accessibilityLabel("Continue with Apple")
+
                 // MARK: - Google Sign In Button
                 Button {
                     Task { await viewModel.signInWithGoogle() }

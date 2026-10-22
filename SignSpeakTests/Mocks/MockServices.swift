@@ -94,6 +94,8 @@ public final class MockAuthService: AuthServicing, @unchecked Sendable {
     public private(set) var signInAnonymouslyCallCount = 0
     public private(set) var signInWithGoogleCallCount = 0
     public private(set) var linkGoogleCallCount = 0
+    public private(set) var signInWithAppleCallCount = 0
+    public private(set) var linkAppleCallCount = 0
     public private(set) var upgradeGuestCallCount = 0
     public private(set) var sendPasswordResetCallCount = 0
     public private(set) var sendEmailVerificationCallCount = 0
@@ -110,6 +112,9 @@ public final class MockAuthService: AuthServicing, @unchecked Sendable {
     public private(set) var lastReauthenticatedPassword: String?
     public private(set) var lastGoogleIdToken: String?
     public private(set) var lastGoogleAccessToken: String?
+    public private(set) var lastAppleIdToken: String?
+    public private(set) var lastAppleRawNonce: String?
+    public private(set) var lastAppleFullName: PersonNameComponents?
 
     public var currentUser: AuthUser? {
         get {
@@ -305,6 +310,67 @@ public final class MockAuthService: AuthServicing, @unchecked Sendable {
 
     public func linkGoogle() async throws -> AuthUser {
         return try await linkGoogle(idToken: "mock-id-token", accessToken: "mock-access-token")
+    }
+
+    public func signInWithApple() async throws -> AuthUser {
+        signInWithAppleCallCount += 1
+        if let error = shouldThrowError { throw error }
+
+        let user = AuthUser(
+            id: "mock-apple-user",
+            email: "mock.apple@example.com",
+            displayName: "Apple User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser {
+        signInWithAppleCallCount += 1
+        lastAppleIdToken = idToken
+        lastAppleRawNonce = rawNonce
+        lastAppleFullName = fullName
+        if let error = shouldThrowError { throw error }
+
+        let displayName = fullName.flatMap { PersonNameComponentsFormatter().string(from: $0) } ?? "Apple User"
+        let user = AuthUser(
+            id: "mock-apple-user",
+            email: "mock.apple@example.com",
+            displayName: displayName,
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser {
+        linkAppleCallCount += 1
+        lastAppleIdToken = idToken
+        lastAppleRawNonce = rawNonce
+        lastAppleFullName = fullName
+        if let error = shouldThrowError { throw error }
+
+        guard let current = currentUser else {
+            throw AuthError.noCurrentUser
+        }
+
+        let displayName = fullName.flatMap { PersonNameComponentsFormatter().string(from: $0) } ?? "Apple User"
+        let user = AuthUser(
+            id: current.id,
+            email: "apple.linked@example.com",
+            displayName: displayName,
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkApple() async throws -> AuthUser {
+        return try await linkApple(idToken: "mock-apple-id-token", rawNonce: "mock-raw-nonce", fullName: nil)
     }
 
     public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {

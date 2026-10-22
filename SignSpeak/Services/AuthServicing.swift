@@ -38,6 +38,18 @@ public protocol AuthServicing: Sendable {
     /// High-level method to link the current guest account to Google.
     func linkGoogle() async throws -> AuthUser
 
+    /// Authenticates via Sign in with Apple using identity token and raw nonce.
+    func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser
+
+    /// Links an anonymous guest account with Apple using identity token and raw nonce.
+    func linkApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser
+
+    /// High-level method to authenticate with Apple using native presentation.
+    func signInWithApple() async throws -> AuthUser
+
+    /// High-level method to link current guest account to Apple using native presentation.
+    func linkApple() async throws -> AuthUser
+
     /// Sends a password reset email to the specified address.
     func sendPasswordReset(email: String) async throws
 
@@ -215,6 +227,51 @@ public final class StubAuthService: AuthServicing, @unchecked Sendable {
 
     public func linkGoogle() async throws -> AuthUser {
         return try await linkGoogle(idToken: "mock-id-token", accessToken: "mock-access-token")
+    }
+
+    public func signInWithApple() async throws -> AuthUser {
+        let user = AuthUser(
+            id: "stub-apple-user",
+            email: "apple.user@example.com",
+            displayName: "Apple User",
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser {
+        let displayName = fullName.flatMap { PersonNameComponentsFormatter().string(from: $0) } ?? "Apple User"
+        let user = AuthUser(
+            id: "stub-apple-user",
+            email: "apple.user@example.com",
+            displayName: displayName,
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser {
+        guard let current = currentUser else {
+            throw AuthError.noCurrentUser
+        }
+        let displayName = fullName.flatMap { PersonNameComponentsFormatter().string(from: $0) } ?? "Apple User"
+        let user = AuthUser(
+            id: current.id,
+            email: "apple.linked@example.com",
+            displayName: displayName,
+            isEmailVerified: true,
+            isAnonymous: false
+        )
+        notify(with: user)
+        return user
+    }
+
+    public func linkApple() async throws -> AuthUser {
+        return try await linkApple(idToken: "mock-apple-id-token", rawNonce: "mock-raw-nonce", fullName: nil)
     }
 
     public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {

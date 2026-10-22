@@ -273,4 +273,83 @@ struct AuthServiceTests {
         #expect(linked.isAnonymous == false)
         #expect(stub.currentUser?.isAnonymous == false)
     }
+
+    // MARK: - Sign in with Apple Tests
+
+    @Test("AppleAuthHelper generates nonces and deterministic SHA256 digests")
+    func appleAuthHelperCrypto() {
+        let nonce1 = AppleAuthHelper.randomNonceString(length: 32)
+        let nonce2 = AppleAuthHelper.randomNonceString(length: 32)
+
+        #expect(nonce1.count == 32)
+        #expect(nonce2.count == 32)
+        #expect(nonce1 != nonce2)
+
+        let hash1 = AppleAuthHelper.sha256(nonce1)
+        let hash2 = AppleAuthHelper.sha256(nonce1)
+        #expect(hash1.count == 64) // SHA256 produces 64 hex characters (32 bytes)
+        #expect(hash1 == hash2)
+    }
+
+    @Test("MockAuthService executes Apple sign-in and stores identity parameters")
+    func mockAuthServiceAppleSignIn() async throws {
+        let auth = MockAuthService()
+
+        var nameComponents = PersonNameComponents()
+        nameComponents.givenName = "Alex"
+        nameComponents.familyName = "Rivera"
+
+        let user = try await auth.signInWithApple(
+            idToken: "mock-apple-id-token",
+            rawNonce: "mock-apple-nonce",
+            fullName: nameComponents
+        )
+
+        #expect(auth.signInWithAppleCallCount == 1)
+        #expect(auth.lastAppleIdToken == "mock-apple-id-token")
+        #expect(auth.lastAppleRawNonce == "mock-apple-nonce")
+        #expect(auth.lastAppleFullName?.givenName == "Alex")
+        #expect(user.displayName == "Alex Rivera")
+        #expect(user.isAnonymous == false)
+        #expect(auth.currentUser == user)
+    }
+
+    @Test("MockAuthService links Apple credential to active guest account")
+    func mockAuthServiceAppleGuestLinking() async throws {
+        let auth = MockAuthService()
+
+        // 1. Authenticate as guest
+        let guest = try await auth.signInAnonymously()
+        #expect(guest.isAnonymous == true)
+        let guestId = guest.id
+
+        // 2. Link Apple account
+        let linked = try await auth.linkApple(
+            idToken: "apple-token",
+            rawNonce: "apple-nonce",
+            fullName: nil
+        )
+
+        #expect(auth.linkAppleCallCount == 1)
+        #expect(linked.id == guestId)
+        #expect(linked.isAnonymous == false)
+        #expect(linked.email == "apple.linked@example.com")
+        #expect(auth.currentUser?.isAnonymous == false)
+    }
+
+    @Test("StubAuthService performs Apple sign-in and guest linking")
+    func stubAuthServiceAppleFlows() async throws {
+        let stub = StubAuthService()
+
+        let user = try await stub.signInWithApple()
+        #expect(user.email == "apple.user@example.com")
+        #expect(user.isAnonymous == false)
+
+        _ = try await stub.signInAnonymously()
+        #expect(stub.currentUser?.isAnonymous == true)
+
+        let linked = try await stub.linkApple()
+        #expect(linked.isAnonymous == false)
+        #expect(stub.currentUser?.isAnonymous == false)
+    }
 }

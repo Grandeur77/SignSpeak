@@ -240,4 +240,46 @@ struct AuthViewModelTests {
         #expect(auth.signInWithGoogleCallCount == 1)
         #expect(vm.isLoading == false)
     }
+
+    @Test("Apple sign-in invokes auth service Apple provider")
+    func appleSignInTrigger() async {
+        let auth = MockAuthService()
+        let biometric = MockBiometricAuthService()
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric)
+
+        await vm.signInWithApple()
+
+        #expect(auth.signInWithAppleCallCount == 1)
+        #expect(vm.isLoading == false)
+        #expect(vm.generalErrorMessage == nil)
+    }
+
+    @Test("Apple sign-in user cancellation does not set general error message")
+    func appleSignInCancellation() async {
+        let auth = MockAuthService()
+        auth.shouldThrowError = CancellationError()
+        let biometric = MockBiometricAuthService()
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric)
+
+        await vm.signInWithApple()
+
+        #expect(auth.signInWithAppleCallCount == 1)
+        #expect(vm.isLoading == false)
+        #expect(vm.generalErrorMessage == nil)
+    }
+
+    @Test("Apple sign-in failure sets general error message")
+    func appleSignInFailure() async {
+        let auth = MockAuthService()
+        auth.shouldThrowError = AuthError.networkError
+        let biometric = MockBiometricAuthService()
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric)
+
+        await vm.signInWithApple()
+
+        #expect(auth.signInWithAppleCallCount == 1)
+        #expect(vm.isLoading == false)
+        #expect(vm.generalErrorMessage != nil)
+    }
 }
+

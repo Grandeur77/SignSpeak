@@ -13,7 +13,7 @@ public final class FirebaseAuthService: AuthServicing, @unchecked Sendable {
     private let auth: Auth
     private let lock = NSLock()
     private var _currentUser: AuthUser?
-    private var continuations: [UUID: AsyncStream<AuthUser?>.Continuation] = [:]
+    nonisolated(unsafe) private var continuations: [UUID: AsyncStream<AuthUser?>.Continuation] = [:]
     private var authListenerHandle: AuthStateDidChangeListenerHandle?
 
     public var currentUser: AuthUser? {
@@ -207,6 +207,77 @@ public final class FirebaseAuthService: AuthServicing, @unchecked Sendable {
         #endif
     }
 
+    public func signInWithApple() async throws -> AuthUser {
+        let coordinator = await MainActor.run { AppleSignInCoordinator() }
+        do {
+            let authData = try await coordinator.requestAppleAuthorization()
+            return try await signInWithApple(idToken: authData.idToken, rawNonce: authData.rawNonce, fullName: authData.fullName)
+        } catch is CancellationError {
+            throw AuthError.unknown("Sign in was cancelled.")
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
+    public func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser {
+        do {
+            let credential = OAuthProvider.appleCredential(withIDToken: idToken, rawNonce: rawNonce, fullName: fullName)
+            let result = try await auth.signIn(with: credential)
+
+            if let fullName {
+                let nameString = PersonNameComponentsFormatter().string(from: fullName).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !nameString.isEmpty {
+                    let changeRequest = result.user.createProfileChangeRequest()
+                    changeRequest.displayName = nameString
+                    try await changeRequest.commitChanges()
+                }
+            }
+
+            let mapped = Self.mapUser(result.user)!
+            notify(with: mapped)
+            return mapped
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
+    public func linkApple() async throws -> AuthUser {
+        let coordinator = await MainActor.run { AppleSignInCoordinator() }
+        do {
+            let authData = try await coordinator.requestAppleAuthorization()
+            return try await linkApple(idToken: authData.idToken, rawNonce: authData.rawNonce, fullName: authData.fullName)
+        } catch is CancellationError {
+            throw AuthError.unknown("Linking was cancelled.")
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
+    public func linkApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws -> AuthUser {
+        do {
+            guard let user = auth.currentUser else {
+                throw AuthError.noCurrentUser
+            }
+            let credential = OAuthProvider.appleCredential(withIDToken: idToken, rawNonce: rawNonce, fullName: fullName)
+            let result = try await user.link(with: credential)
+
+            if let fullName {
+                let nameString = PersonNameComponentsFormatter().string(from: fullName).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !nameString.isEmpty {
+                    let changeRequest = result.user.createProfileChangeRequest()
+                    changeRequest.displayName = nameString
+                    try await changeRequest.commitChanges()
+                }
+            }
+
+            let mapped = Self.mapUser(result.user)!
+            notify(with: mapped)
+            return mapped
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
     public func upgradeGuest(name: String, email: String, password: String) async throws -> AuthUser {
         do {
             guard let user = auth.currentUser else {
@@ -305,19 +376,19 @@ public final class FirebaseAuthService: AuthServicing, @unchecked Sendable {
             throw AuthError.from(error)
         }
     }
-
-    #if canImport(UIKit)
-    @MainActor
-    private func getTopViewController() -> UIViewController? {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let root = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
-            return nil
-        }
-        var topController = root
-        while let presented = topController.presentedViewController {
-            topController = presented
-        }
-        return topController
-    }
-    #endif
 }
+
+#if canImport(UIKit)
+@MainActor
+private func getTopViewController() -> UIViewController? {
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let root = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+        return nil
+    }
+    var topController = root
+    while let presented = topController.presentedViewController {
+        topController = presented
+    }
+    return topController
+}
+#endif

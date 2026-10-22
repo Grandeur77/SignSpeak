@@ -269,6 +269,21 @@ public final class AuthViewModel {
         }
     }
 
+    /// Authenticates with Apple using native identity sheet.
+    public func signInWithApple() async {
+        isLoading = true
+        clearErrors()
+        do {
+            _ = try await authService.signInWithApple()
+            isLoading = false
+        } catch is CancellationError {
+            isLoading = false
+        } catch {
+            isLoading = false
+            generalErrorMessage = AuthError.from(error).localizedDescription
+        }
+    }
+
     /// Authenticates anonymously as a guest signer.
     public func continueAsGuest() async {
         isLoading = true
