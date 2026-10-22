@@ -117,6 +117,77 @@ struct MotionClassifierTests {
         #expect(buffer.movementDisplacement > 0.4)
     }
 
+    @Test("SignRecognitionService arbitrates: static sign wins when hand is stationary")
+    func staticModelWinsWhenStationary() throws {
+        let mockCamera = MockCameraService()
+        let mockDetector = MockHandPoseDetector()
+        let staticResult = SignClassification(label: "A", confidence: 0.92, modelSource: .staticModel)
+        let mockStaticClassifier = MockSignClassifier(stubbedResult: staticResult)
+
+        let motionResult = SignClassification(label: "J", confidence: 0.95, modelSource: .motionModel)
+        let mockMotionClassifier = MockMotionSignClassifier(stubbedResult: motionResult)
+
+        let dateProvider = ControllableClock()
+        let service = SignRecognitionService(
+            cameraService: mockCamera,
+            handPoseDetector: mockDetector,
+            signClassifier: mockStaticClassifier,
+            motionSignClassifier: mockMotionClassifier,
+            motionWindowBuffer: MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 10),
+            motionDisplacementThreshold: 0.15,
+            dateProvider: dateProvider
+        )
+
+        // Stationary hand poses
+        var lastState: RecognitionState = .noHand
+        for _ in 0..<15 {
+            let pose = makeDummyPose(wristX: 0.5, wristY: 0.5)
+            dateProvider.advance(by: 0.035)
+            lastState = service.processPose(pose)
+        }
+
+        #expect(mockStaticClassifier.classifyCallCount > 0)
+        #expect(mockMotionClassifier.classifyCallCount == 0) // Motion classifier skipped because displacement is 0.0
+        #expect(lastState.label == "A")
+        #expect(service.currentModelSource == RecognitionModelSource.staticModel)
+    }
+
+    @Test("SignRecognitionService arbitrates: motion sign wins when hand movement exceeds threshold")
+    func motionModelWinsWhenMoving() throws {
+        let mockCamera = MockCameraService()
+        let mockDetector = MockHandPoseDetector()
+        let staticResult = SignClassification(label: "I", confidence: 0.88, modelSource: .staticModel)
+        let mockStaticClassifier = MockSignClassifier(stubbedResult: staticResult)
+
+        let motionResult = SignClassification(label: "J", confidence: 0.95, modelSource: .motionModel)
+        let mockMotionClassifier = MockMotionSignClassifier(stubbedResult: motionResult)
+
+        let dateProvider = ControllableClock()
+        let service = SignRecognitionService(
+            cameraService: mockCamera,
+            handPoseDetector: mockDetector,
+            signClassifier: mockStaticClassifier,
+            motionSignClassifier: mockMotionClassifier,
+            motionWindowBuffer: MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 10),
+            motionDisplacementThreshold: 0.15,
+            motionInferenceStride: 1,
+            dateProvider: dateProvider
+        )
+
+        // Moving hand poses (displacement > 0.15)
+        var lastState: RecognitionState = .noHand
+        for i in 0..<15 {
+            let x = 0.2 + (Double(i) * 0.04)
+            let pose = makeDummyPose(wristX: x, wristY: 0.5)
+            dateProvider.advance(by: 0.035)
+            lastState = service.processPose(pose)
+        }
+
+        #expect(mockMotionClassifier.classifyCallCount > 0)
+        #expect(lastState.label == "J")
+        #expect(service.currentModelSource == RecognitionModelSource.motionModel)
+    }
+
     // MARK: - Helper
 
     private func makeDummyPose(wristX: Double, wristY: Double) -> HandPose {

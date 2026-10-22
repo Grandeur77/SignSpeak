@@ -558,6 +558,8 @@ public final class MockMotionSignClassifier: MotionSignClassifying, @unchecked S
 /// Configurable mock sign recognition service for testing recognition lifecycle and state transitions.
 public final class MockSignRecognitionService: SignRecognitionServicing, @unchecked Sendable {
     public var currentState: RecognitionState
+    public var currentClassification: SignClassification? = nil
+    public var currentModelSource: RecognitionModelSource = .none
     public var confidenceThreshold: Double
     public var holdDuration: TimeInterval
     public private(set) var startRecognitionCallCount = 0

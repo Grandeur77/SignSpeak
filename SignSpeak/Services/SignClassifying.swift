@@ -12,16 +12,30 @@ public struct SignCandidate: Sendable, Equatable {
     }
 }
 
+/// Origin model producing the classification.
+public enum RecognitionModelSource: String, Sendable, Equatable {
+    case staticModel = "Static Model"
+    case motionModel = "Motion Model"
+    case none = "None"
+}
+
 /// Prediction output from the Core ML hand-sign classifier.
 public struct SignClassification: Sendable, Equatable {
     public let label: String
     public let confidence: Double
     public let candidates: [SignCandidate]
+    public let modelSource: RecognitionModelSource
 
-    public init(label: String, confidence: Double, candidates: [SignCandidate] = []) {
+    public init(
+        label: String,
+        confidence: Double,
+        candidates: [SignCandidate] = [],
+        modelSource: RecognitionModelSource = .staticModel
+    ) {
         self.label = label
         self.confidence = confidence
         self.candidates = candidates
+        self.modelSource = modelSource
     }
 }
 

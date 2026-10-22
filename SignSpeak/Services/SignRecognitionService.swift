@@ -2,13 +2,19 @@ import Foundation
 import CoreMedia
 
 /// Production sign recognition coordinator pipeline.
-/// Pipes camera frames -> Vision Hand Pose -> Core ML Classifier -> Stability Filter.
+/// Pipes camera frames -> Vision Hand Pose -> Combined Static/Motion Classifiers -> Stability Filter.
+/// Dynamically arbitrates between static hand-pose model and temporal motion model based on movement displacement.
 /// Emits state transitions over an `AsyncStream<RecognitionState>`.
 public final class SignRecognitionService: SignRecognitionServicing, @unchecked Sendable {
     private let cameraService: any CameraServicing
     private let handPoseDetector: any HandPoseDetecting
     private let signClassifier: any SignClassifying
+    private let motionSignClassifier: (any MotionSignClassifying)?
+    private let motionWindowBuffer: MotionWindowBuffer
+    public let motionDisplacementThreshold: Double
+    public let motionInferenceStride: Int
     private let stabilityFilter: StabilityFilter
+    private let dateProvider: any DateProviding
     private let lock = NSLock()
 
     private var activeTask: Task<Void, Never>?
@@ -16,6 +22,7 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
     private var _currentState: RecognitionState = .noHand
     private var _currentPose: HandPose?
     private var _currentClassification: SignClassification?
+    private var frameCount: Int = 0
 
     public var currentState: RecognitionState {
         lock.lock()
@@ -35,12 +42,22 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
         return _currentClassification
     }
 
+    public var currentModelSource: RecognitionModelSource {
+        lock.lock()
+        defer { lock.unlock() }
+        return _currentClassification?.modelSource ?? .none
+    }
+
     public var confidenceThreshold: Double {
         stabilityFilter.confidenceThreshold
     }
 
     public var holdDuration: TimeInterval {
         stabilityFilter.holdDuration
+    }
+
+    public var motionDisplacement: Double {
+        motionWindowBuffer.movementDisplacement
     }
 
     public var stateStream: AsyncStream<RecognitionState> {
@@ -60,7 +77,7 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
         }
     }
 
-    private func removeContinuation(for id: UUID) {
+    nonisolated private func removeContinuation(for id: UUID) {
         lock.lock()
         continuations.removeValue(forKey: id)
         lock.unlock()
@@ -70,14 +87,23 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
         cameraService: any CameraServicing,
         handPoseDetector: any HandPoseDetecting,
         signClassifier: any SignClassifying,
+        motionSignClassifier: (any MotionSignClassifying)? = nil,
+        motionWindowBuffer: MotionWindowBuffer = MotionWindowBuffer(targetFrameRate: 30.0, windowSize: 45),
         stabilityFilter: StabilityFilter? = nil,
         confidenceThreshold: Double = 0.85,
         holdDuration: TimeInterval = 1.0,
+        motionDisplacementThreshold: Double = 0.15,
+        motionInferenceStride: Int = 3,
         dateProvider: any DateProviding = SystemDateProvider()
     ) {
         self.cameraService = cameraService
         self.handPoseDetector = handPoseDetector
         self.signClassifier = signClassifier
+        self.motionSignClassifier = motionSignClassifier
+        self.motionWindowBuffer = motionWindowBuffer
+        self.motionDisplacementThreshold = motionDisplacementThreshold
+        self.motionInferenceStride = motionInferenceStride
+        self.dateProvider = dateProvider
         self.stabilityFilter = stabilityFilter ?? StabilityFilter(
             confidenceThreshold: confidenceThreshold,
             holdDuration: holdDuration,
@@ -112,6 +138,8 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
     public func reset() {
         lock.lock()
         stabilityFilter.reset()
+        motionWindowBuffer.reset()
+        frameCount = 0
         _currentState = .noHand
         _currentPose = nil
         _currentClassification = nil
@@ -152,13 +180,50 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
         }
     }
 
-    /// Evaluates a detected pose directly, propagating any classifier error.
+    /// Evaluates a detected pose with combined static & motion classifier arbitration.
     @discardableResult
     public func evaluatePose(_ pose: HandPose?) throws -> RecognitionState {
         let classification: SignClassification?
+
         if let pose {
-            classification = try signClassifier.classify(pose: pose)
+            let timestamp = dateProvider.now.timeIntervalSince1970
+            motionWindowBuffer.append(pose: pose, timestamp: timestamp)
+            frameCount += 1
+
+            let displacement = motionWindowBuffer.movementDisplacement
+            var motionClassification: SignClassification? = nil
+
+            // 1. Evaluate motion sequence model when movement is detected and buffer is filled
+            if displacement >= motionDisplacementThreshold,
+               motionWindowBuffer.isFull,
+               (frameCount % motionInferenceStride == 0),
+               let motionClassifier = motionSignClassifier {
+                motionClassification = try? motionClassifier.classify(window: motionWindowBuffer.keypointWindow)
+            }
+
+            // 2. Arbitration: Motion wins when movement exceeds threshold and returns high confidence
+            if let motionResult = motionClassification, motionResult.confidence >= (confidenceThreshold * 0.9) {
+                classification = SignClassification(
+                    label: motionResult.label,
+                    confidence: motionResult.confidence,
+                    candidates: motionResult.candidates,
+                    modelSource: .motionModel
+                )
+            } else {
+                // Static model wins
+                if let staticResult = try signClassifier.classify(pose: pose) {
+                    classification = SignClassification(
+                        label: staticResult.label,
+                        confidence: staticResult.confidence,
+                        candidates: staticResult.candidates,
+                        modelSource: .staticModel
+                    )
+                } else {
+                    classification = nil
+                }
+            }
         } else {
+            motionWindowBuffer.reset()
             classification = nil
         }
 

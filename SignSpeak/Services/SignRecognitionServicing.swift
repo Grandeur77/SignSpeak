@@ -84,6 +84,12 @@ public protocol SignRecognitionServicing: Sendable {
     /// Current recognition state snapshot.
     var currentState: RecognitionState { get }
 
+    /// Current classification metadata if a pose was evaluated.
+    var currentClassification: SignClassification? { get }
+
+    /// Origin model producing the current prediction.
+    var currentModelSource: RecognitionModelSource { get }
+
     /// Minimum confidence threshold (0.0 ... 1.0) required to initiate or advance confirmation hold.
     var confidenceThreshold: Double { get }
 
@@ -106,6 +112,8 @@ public protocol SignRecognitionServicing: Sendable {
 
 /// Fallback sign recognition service stub.
 public final class StubSignRecognitionService: SignRecognitionServicing, @unchecked Sendable {
+    public var currentClassification: SignClassification? = nil
+    public var currentModelSource: RecognitionModelSource = .none
     public var stateStream: AsyncStream<RecognitionState> {
         AsyncStream { continuation in
             continuation.yield(self.currentState)

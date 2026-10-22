@@ -39,6 +39,7 @@ public struct AppDependencies: Sendable {
             cameraService: cameraService,
             handPoseDetector: handPoseDetector,
             signClassifier: signClassifier,
+            motionSignClassifier: motionSignClassifier,
             stabilityFilter: stabilityFilter,
             dateProvider: dateProvider
         )
