@@ -61,3 +61,34 @@ public struct StubSignClassifier: SignClassifying {
         stubbedResult
     }
 }
+
+/// Protocol for dynamic motion sign classification from temporal sequences of hand poses.
+public protocol MotionSignClassifying: Sendable {
+    /// Frame rate expected by the action classifier (typically 30.0 fps).
+    var targetFrameRate: Double { get }
+    /// Number of sequential frames required in the temporal prediction window (e.g. 45 frames = 1.5s).
+    var predictionWindow: Int { get }
+    /// Evaluates a sliding temporal window of HandPose keypoints (MLMultiArray) and outputs the predicted action.
+    func classify(window: [MLMultiArray]) throws -> SignClassification?
+}
+
+/// Fallback motion sign classifier stub.
+public struct StubMotionSignClassifier: MotionSignClassifying {
+    public var targetFrameRate: Double
+    public var predictionWindow: Int
+    public var stubbedResult: SignClassification?
+
+    public init(
+        targetFrameRate: Double = 30.0,
+        predictionWindow: Int = 45,
+        stubbedResult: SignClassification? = nil
+    ) {
+        self.targetFrameRate = targetFrameRate
+        self.predictionWindow = predictionWindow
+        self.stubbedResult = stubbedResult
+    }
+
+    public func classify(window: [MLMultiArray]) throws -> SignClassification? {
+        stubbedResult
+    }
+}

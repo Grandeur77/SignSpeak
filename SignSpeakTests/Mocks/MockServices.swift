@@ -35,6 +35,7 @@
 import Foundation
 import AVFoundation
 import CoreMedia
+import CoreML
 @testable import SignSpeak
 
 /// Configurable mock camera service for testing camera lifecycle and permission transitions.
@@ -523,6 +524,31 @@ public final class MockSignClassifier: SignClassifying, @unchecked Sendable {
     }
 
     public func classify(pose: HandPose) throws -> SignClassification? {
+        classifyCallCount += 1
+        if let error = shouldThrowError { throw error }
+        return stubbedResult
+    }
+}
+
+/// Configurable mock motion sign classifier for testing dynamic action sequences.
+public final class MockMotionSignClassifier: MotionSignClassifying, @unchecked Sendable {
+    public var targetFrameRate: Double
+    public var predictionWindow: Int
+    public var stubbedResult: SignClassification?
+    public var shouldThrowError: Error?
+    public private(set) var classifyCallCount = 0
+
+    public init(
+        targetFrameRate: Double = 30.0,
+        predictionWindow: Int = 45,
+        stubbedResult: SignClassification? = nil
+    ) {
+        self.targetFrameRate = targetFrameRate
+        self.predictionWindow = predictionWindow
+        self.stubbedResult = stubbedResult
+    }
+
+    public func classify(window: [MLMultiArray]) throws -> SignClassification? {
         classifyCallCount += 1
         if let error = shouldThrowError { throw error }
         return stubbedResult

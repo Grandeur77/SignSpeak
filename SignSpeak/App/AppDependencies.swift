@@ -8,6 +8,7 @@ public struct AppDependencies: Sendable {
     var cameraService: any CameraServicing
     var handPoseDetector: any HandPoseDetecting
     var signClassifier: any SignClassifying
+    var motionSignClassifier: any MotionSignClassifying
     var signRecognitionService: any SignRecognitionServicing
     var authService: any AuthServicing
     var userProfileRepository: any UserProfileRepository
@@ -28,6 +29,7 @@ public struct AppDependencies: Sendable {
         let cameraService = CameraService()
         let handPoseDetector = HandPoseDetector()
         let signClassifier: any SignClassifying = (try? SignClassifier()) ?? StubSignClassifier()
+        let motionSignClassifier: any MotionSignClassifying = MotionSignClassifier()
         let stabilityFilter = StabilityFilter(
             confidenceThreshold: 0.85,
             holdDuration: 1.0,
@@ -46,6 +48,7 @@ public struct AppDependencies: Sendable {
             cameraService: cameraService,
             handPoseDetector: handPoseDetector,
             signClassifier: signClassifier,
+            motionSignClassifier: motionSignClassifier,
             signRecognitionService: signRecognitionService,
             authService: FirebaseAuthService(),
             userProfileRepository: FirestoreProfileRepository(),
@@ -68,6 +71,7 @@ public struct AppDependencies: Sendable {
         cameraService: StubCameraService(),
         handPoseDetector: StubHandPoseDetector(),
         signClassifier: StubSignClassifier(),
+        motionSignClassifier: StubMotionSignClassifier(),
         signRecognitionService: StubSignRecognitionService(),
         authService: StubAuthService(initialUserId: "preview-user-123"),
         userProfileRepository: StubUserProfileRepository(initialProfiles: [
