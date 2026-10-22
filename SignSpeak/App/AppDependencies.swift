@@ -13,6 +13,7 @@ nonisolated struct AppDependencies: Sendable {
     var userProfileRepository: any UserProfileRepository
     var progressRepository: any ProgressRepository
     var biometricAuthService: any BiometricAuthServicing
+    var credentialVault: any CredentialVaultProtocol
     var notificationService: any NotificationServicing
     var speechRecognitionService: any SpeechRecognitionServicing
     var speechSynthesisService: any SpeechSynthesisServicing
@@ -47,7 +48,8 @@ nonisolated struct AppDependencies: Sendable {
             authService: FirebaseAuthService(),
             userProfileRepository: StubUserProfileRepository(),
             progressRepository: StubProgressRepository(),
-            biometricAuthService: StubBiometricAuthService(),
+            biometricAuthService: LocalAuthenticationBiometricService(),
+            credentialVault: KeychainCredentialVault(),
             notificationService: StubNotificationService(),
             speechRecognitionService: StubSpeechRecognitionService(),
             speechSynthesisService: StubSpeechSynthesisService(),
@@ -78,6 +80,7 @@ nonisolated struct AppDependencies: Sendable {
         ]),
         progressRepository: StubProgressRepository(),
         biometricAuthService: StubBiometricAuthService(isBiometricAvailable: true, biometricType: .faceID),
+        credentialVault: StubCredentialVault(hasStoredCredentials: true, storedEmail: "maya.k@icloud.com"),
         notificationService: StubNotificationService(),
         speechRecognitionService: StubSpeechRecognitionService(),
         speechSynthesisService: StubSpeechSynthesisService(),

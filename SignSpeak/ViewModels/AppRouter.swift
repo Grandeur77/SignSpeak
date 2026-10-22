@@ -21,6 +21,7 @@ public final class AppRouter {
     private let authService: any AuthServicing
     private let userProfileRepository: any UserProfileRepository
     private let biometricAuthService: any BiometricAuthServicing
+    public let credentialVault: any CredentialVaultProtocol
     private let dateProvider: any DateProviding
     private let userDefaults: UserDefaults
 
@@ -37,6 +38,7 @@ public final class AppRouter {
         authService: any AuthServicing,
         userProfileRepository: any UserProfileRepository,
         biometricAuthService: any BiometricAuthServicing,
+        credentialVault: (any CredentialVaultProtocol)? = nil,
         dateProvider: (any DateProviding)? = nil,
         userDefaults: UserDefaults = .standard,
         initialRoute: AppRoute = .splash
@@ -44,6 +46,7 @@ public final class AppRouter {
         self.authService = authService
         self.userProfileRepository = userProfileRepository
         self.biometricAuthService = biometricAuthService
+        self.credentialVault = credentialVault ?? KeychainCredentialVault(userDefaults: userDefaults)
         self.dateProvider = dateProvider ?? SystemDateProvider()
         self.userDefaults = userDefaults
         self.currentRoute = initialRoute
@@ -124,6 +127,7 @@ public final class AppRouter {
     /// Signs out the current user session and returns to Welcome screen.
     public func signOut() {
         try? authService.signOut()
+        try? credentialVault.clearCredentials()
         isBiometricAuthenticated = false
         currentRoute = .welcome
     }
@@ -142,6 +146,7 @@ public final class AppRouter {
                 if Task.isCancelled { break }
                 if userId == nil {
                     self.isBiometricAuthenticated = false
+                    try? self.credentialVault.clearCredentials()
                     self.currentRoute = .welcome
                 } else if self.currentRoute == .welcome {
                     await self.evaluateDestination()

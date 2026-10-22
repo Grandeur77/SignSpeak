@@ -607,4 +607,62 @@ public final class ControllableClock: DateProviding, @unchecked Sendable {
     }
 }
 
+/// Configurable mock credential vault for testing Face ID storage, retrieval, and invalidation.
+public final class MockCredentialVault: CredentialVaultProtocol, @unchecked Sendable {
+    private let lock = NSLock()
+    public var storedEmail: String?
+    public var storedPassword: String?
+    public var shouldThrowError: Error?
+    public var shouldThrowErrorOnRetrieve: Error?
+    public var shouldThrowErrorOnSave: Error?
+    public var shouldThrowErrorOnClear: Error?
+    public var shouldCancel: Bool = false
+    public private(set) var saveCallCount = 0
+    public private(set) var retrieveCallCount = 0
+    public private(set) var clearCallCount = 0
+
+    public var hasStoredCredentials: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return storedEmail != nil && storedPassword != nil
+    }
+
+    public init(storedEmail: String? = nil, storedPassword: String? = nil) {
+        self.storedEmail = storedEmail
+        self.storedPassword = storedPassword
+    }
+
+    public func saveCredentials(email: String, password: String) throws {
+        lock.lock()
+        defer { lock.unlock() }
+        saveCallCount += 1
+        if let error = shouldThrowErrorOnSave ?? shouldThrowError { throw error }
+        self.storedEmail = email
+        self.storedPassword = password
+    }
+
+    public func retrieveCredentials(promptReason: String) async throws -> (email: String, password: String)? {
+        lock.lock()
+        defer { lock.unlock() }
+        retrieveCallCount += 1
+        if shouldCancel { throw CancellationError() }
+        if let error = shouldThrowErrorOnRetrieve ?? shouldThrowError { throw error }
+        guard let email = storedEmail, let password = storedPassword else {
+            return nil
+        }
+        return (email: email, password: password)
+    }
+
+    public func clearCredentials() throws {
+        lock.lock()
+        defer { lock.unlock() }
+        clearCallCount += 1
+        storedEmail = nil
+        storedPassword = nil
+        if let error = shouldThrowErrorOnClear { throw error }
+    }
+}
+
+
+
 

@@ -294,7 +294,18 @@ public struct SignInView: View {
                 }
             }
         }
+        .alert("Enable Face ID?", isPresented: $viewModel.showFaceIDEnrollmentPrompt) {
+            Button("Enable Face ID") {
+                viewModel.enrollInFaceID()
+            }
+            Button("Not Now", role: .cancel) {
+                viewModel.declineFaceIDEnrollment()
+            }
+        } message: {
+            Text("Use Face ID for quick and secure sign-in next time.")
+        }
     }
+
 
     // MARK: - Face ID Shortcut Card
     private var faceIDShortcutCard: some View {

@@ -281,5 +281,109 @@ struct AuthViewModelTests {
         #expect(vm.isLoading == false)
         #expect(vm.generalErrorMessage != nil)
     }
+
+    // MARK: - Face ID & Credential Vault Tests
+
+    @Test("Successful email sign-in offers Face ID enrollment if biometrics are available")
+    func successfulSignInOffersFaceIDEnrollment() async {
+        let auth = MockAuthService()
+        let biometric = MockBiometricAuthService(isBiometricAvailable: true, biometricType: .faceID)
+        let vault = MockCredentialVault()
+        let defaults = makeIsolatedDefaults()
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric, credentialVault: vault, userDefaults: defaults)
+
+        vm.email = "maya.k@icloud.com"
+        vm.password = "SuperSecret123!"
+
+        await vm.signIn()
+
+        #expect(auth.signInCallCount == 1)
+        #expect(vm.showFaceIDEnrollmentPrompt == true)
+        #expect(vm.pendingFaceIDCredentials?.email == "maya.k@icloud.com")
+        #expect(vm.pendingFaceIDCredentials?.password == "SuperSecret123!")
+
+        // Enrolling saves credentials in vault
+        vm.enrollInFaceID()
+        #expect(vault.saveCallCount == 1)
+        #expect(vault.storedEmail == "maya.k@icloud.com")
+        #expect(vault.storedPassword == "SuperSecret123!")
+        #expect(vm.showFaceIDEnrollmentPrompt == false)
+        #expect(vm.canUseFaceID == true)
+    }
+
+    @Test("Declining Face ID enrollment dismisses prompt without saving credentials")
+    func declineFaceIDEnrollmentFlow() async {
+        let auth = MockAuthService()
+        let biometric = MockBiometricAuthService(isBiometricAvailable: true)
+        let vault = MockCredentialVault()
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric, credentialVault: vault)
+
+        vm.email = "maya.k@icloud.com"
+        vm.password = "SuperSecret123!"
+
+        await vm.signIn()
+
+        #expect(vm.showFaceIDEnrollmentPrompt == true)
+
+        vm.declineFaceIDEnrollment()
+        #expect(vm.showFaceIDEnrollmentPrompt == false)
+        #expect(vault.saveCallCount == 0)
+        #expect(vm.canUseFaceID == false)
+    }
+
+    @Test("Face ID sign-in retrieves credentials from vault and authenticates")
+    func faceIDSignInSuccess() async {
+        let auth = MockAuthService()
+        let biometric = MockBiometricAuthService(isBiometricAvailable: true)
+        let vault = MockCredentialVault(storedEmail: "maya.k@icloud.com", storedPassword: "SuperSecret123!")
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric, credentialVault: vault)
+
+        #expect(vm.canUseFaceID == true)
+        #expect(vm.savedFaceIDEmail == "maya.k@icloud.com")
+
+        await vm.signInWithFaceID()
+
+        #expect(vault.retrieveCallCount == 1)
+        #expect(auth.signInCallCount == 1)
+        #expect(auth.lastSignInEmail == "maya.k@icloud.com")
+        #expect(vm.email == "maya.k@icloud.com")
+        #expect(vm.isLoading == false)
+        #expect(vm.inlinePasswordError == nil)
+    }
+
+    @Test("Face ID cancellation silently dismisses without showing error")
+    func faceIDSignInCancellation() async {
+        let auth = MockAuthService()
+        let biometric = MockBiometricAuthService(isBiometricAvailable: true)
+        let vault = MockCredentialVault(storedEmail: "maya.k@icloud.com", storedPassword: "SuperSecret123!")
+        vault.shouldCancel = true
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric, credentialVault: vault)
+
+        await vm.signInWithFaceID()
+
+        #expect(vault.retrieveCallCount == 1)
+        #expect(auth.signInCallCount == 0)
+        #expect(vm.isLoading == false)
+        #expect(vm.inlinePasswordError == nil)
+        #expect(vm.generalErrorMessage == nil)
+    }
+
+    @Test("Biometrics changed error clears vault credentials and prompts for password")
+    func faceIDBiometricsChangedHandling() async {
+        let auth = MockAuthService()
+        let biometric = MockBiometricAuthService(isBiometricAvailable: true)
+        let vault = MockCredentialVault(storedEmail: "maya.k@icloud.com", storedPassword: "SuperSecret123!")
+        vault.shouldThrowErrorOnRetrieve = CredentialVaultError.biometricsChanged
+        let defaults = makeIsolatedDefaults()
+        let vm = AuthViewModel(authService: auth, biometricAuthService: biometric, credentialVault: vault, userDefaults: defaults)
+
+        await vm.signInWithFaceID()
+
+        #expect(vault.clearCallCount == 1)
+        #expect(vault.hasStoredCredentials == false)
+        #expect(vm.isLoading == false)
+        #expect(vm.inlinePasswordError?.contains("Biometric settings changed") == true)
+    }
 }
+
 

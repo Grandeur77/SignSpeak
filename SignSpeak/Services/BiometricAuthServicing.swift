@@ -33,3 +33,44 @@ public struct StubBiometricAuthService: BiometricAuthServicing {
         isBiometricAvailable
     }
 }
+
+#if canImport(LocalAuthentication)
+import LocalAuthentication
+
+/// Production biometric authentication service backed by Apple's `LocalAuthentication` framework.
+public final class LocalAuthenticationBiometricService: BiometricAuthServicing, @unchecked Sendable {
+    public init() {}
+
+    public var isBiometricAvailable: Bool {
+        let context = LAContext()
+        var error: NSError?
+        return context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
+    }
+
+    public var biometricType: BiometricType {
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            return .none
+        }
+        switch context.biometryType {
+        case .faceID:
+            return .faceID
+        case .touchID:
+            return .touchID
+        default:
+            return .none
+        }
+    }
+
+    public func authenticate(reason: String) async throws -> Bool {
+        let context = LAContext()
+        do {
+            return try await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason)
+        } catch let laError as LAError where laError.code == .userCancel || laError.code == .appCancel {
+            throw CancellationError()
+        }
+    }
+}
+#endif
+

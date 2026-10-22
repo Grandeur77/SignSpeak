@@ -24,6 +24,7 @@ public struct AppRootView: View {
                     authService: dependencies.authService,
                     userProfileRepository: dependencies.userProfileRepository,
                     biometricAuthService: dependencies.biometricAuthService,
+                    credentialVault: dependencies.credentialVault,
                     dateProvider: dependencies.dateProvider
                 )
                 router = newRouter
@@ -44,7 +45,8 @@ public struct AppRootView: View {
                 AuthContainerView(
                     viewModel: AuthViewModel(
                         authService: dependencies.authService,
-                        biometricAuthService: dependencies.biometricAuthService
+                        biometricAuthService: dependencies.biometricAuthService,
+                        credentialVault: dependencies.credentialVault
                     )
                 )
                 .transition(.asymmetric(insertion: .opacity, removal: .opacity))

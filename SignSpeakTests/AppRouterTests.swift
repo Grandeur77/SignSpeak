@@ -176,12 +176,14 @@ struct AppRouterTests {
         let profile = UserProfile(id: "active-user", displayName: "Casey", onboardingComplete: true)
         let profileRepo = StubUserProfileRepository(initialProfiles: [profile])
         let biometric = MockBiometricAuthService()
+        let vault = MockCredentialVault(storedEmail: "casey@example.com", storedPassword: "password123")
         let defaults = makeIsolatedDefaults()
 
         let router = AppRouter(
             authService: auth,
             userProfileRepository: profileRepo,
             biometricAuthService: biometric,
+            credentialVault: vault,
             userDefaults: defaults
         )
 
@@ -193,5 +195,8 @@ struct AppRouterTests {
         #expect(!router.isBiometricAuthenticated)
         #expect(router.currentRoute == .welcome)
         #expect(auth.currentUserId == nil)
+        #expect(vault.clearCallCount == 1)
+        #expect(vault.hasStoredCredentials == false)
     }
 }
+

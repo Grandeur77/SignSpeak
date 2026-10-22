@@ -30,6 +30,7 @@ public final class AuthViewModel {
 
     private let authService: any AuthServicing
     private let biometricAuthService: any BiometricAuthServicing
+    public let credentialVault: any CredentialVaultProtocol
     private let userDefaults: UserDefaults
 
     // MARK: - Form Inputs
@@ -63,6 +64,8 @@ public final class AuthViewModel {
     public var navigationPath: [NavigationDestination] = []
     public var showTermsSheet: Bool = false
     public var showPrivacySheet: Bool = false
+    public var showFaceIDEnrollmentPrompt: Bool = false
+    public var pendingFaceIDCredentials: (email: String, password: String)? = nil
 
     // MARK: - Resend Countdown Timer
 
@@ -73,11 +76,11 @@ public final class AuthViewModel {
     // MARK: - Biometrics
 
     public var canUseFaceID: Bool {
-        biometricAuthService.isBiometricAvailable
+        biometricAuthService.isBiometricAvailable && credentialVault.hasStoredCredentials
     }
 
     public var savedFaceIDEmail: String? {
-        userDefaults.string(forKey: "savedFaceIDEmail")
+        credentialVault.storedEmail ?? userDefaults.string(forKey: "savedFaceIDEmail")
     }
 
     // MARK: - Initializer
@@ -85,10 +88,12 @@ public final class AuthViewModel {
     public init(
         authService: any AuthServicing,
         biometricAuthService: any BiometricAuthServicing,
+        credentialVault: (any CredentialVaultProtocol)? = nil,
         userDefaults: UserDefaults = .standard
     ) {
         self.authService = authService
         self.biometricAuthService = biometricAuthService
+        self.credentialVault = credentialVault ?? KeychainCredentialVault(userDefaults: userDefaults)
         self.userDefaults = userDefaults
     }
 
@@ -183,9 +188,15 @@ public final class AuthViewModel {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
             _ = try await authService.signIn(email: trimmedEmail, password: password)
-            // Persist for Face ID shortcut next time
             userDefaults.set(trimmedEmail, forKey: "savedFaceIDEmail")
             isLoading = false
+
+            // Offer Face ID enrollment if biometric hardware is available and not already enrolled for this email
+            if biometricAuthService.isBiometricAvailable &&
+                (!credentialVault.hasStoredCredentials || credentialVault.storedEmail != trimmedEmail) {
+                pendingFaceIDCredentials = (email: trimmedEmail, password: password)
+                showFaceIDEnrollmentPrompt = true
+            }
         } catch {
             isLoading = false
             let mapped = AuthError.from(error)
@@ -195,6 +206,25 @@ public final class AuthViewModel {
                 generalErrorMessage = mapped.localizedDescription
             }
         }
+    }
+
+    /// Enrolls the user's credentials into the biometric Keychain vault upon prompt confirmation.
+    public func enrollInFaceID() {
+        guard let pending = pendingFaceIDCredentials else { return }
+        do {
+            try credentialVault.saveCredentials(email: pending.email, password: pending.password)
+            userDefaults.set(pending.email, forKey: "savedFaceIDEmail")
+        } catch {
+            // Silently retain password fallback if Keychain save encounters permission/hardware error
+        }
+        pendingFaceIDCredentials = nil
+        showFaceIDEnrollmentPrompt = false
+    }
+
+    /// Declines Face ID enrollment prompt.
+    public func declineFaceIDEnrollment() {
+        pendingFaceIDCredentials = nil
+        showFaceIDEnrollmentPrompt = false
     }
 
     /// Creates a new permanent user account.
@@ -304,20 +334,41 @@ public final class AuthViewModel {
         clearErrors()
 
         do {
-            let success = try await biometricAuthService.authenticate(reason: "Sign in to your SignSpeak account")
-            if success {
-                if let savedEmail = savedFaceIDEmail, !savedEmail.isEmpty {
-                    email = savedEmail
-                }
-                // Auto sign-in or session restoration handled by CredentialVault in Step 3.7
+            guard let credentials = try await credentialVault.retrieveCredentials(promptReason: "Sign in to your SignSpeak account") else {
                 isLoading = false
-            } else {
-                isLoading = false
+                inlinePasswordError = "No credentials saved. Please sign in with your password to enable Face ID."
+                return
+            }
+            email = credentials.email
+            _ = try await authService.signIn(email: credentials.email, password: credentials.password)
+            userDefaults.set(credentials.email, forKey: "savedFaceIDEmail")
+            isLoading = false
+        } catch is CancellationError {
+            isLoading = false
+        } catch let vaultError as CredentialVaultError {
+            isLoading = false
+            switch vaultError {
+            case .userCanceled:
+                break
+            case .biometricsChanged:
+                try? credentialVault.clearCredentials()
+                userDefaults.removeObject(forKey: "savedFaceIDEmail")
+                inlinePasswordError = "Biometric settings changed. Please sign in with your password to re-enable Face ID."
+            case .notFound:
+                inlinePasswordError = "No credentials saved. Please sign in with your password to enable Face ID."
+            default:
                 inlinePasswordError = "Face ID not recognized. Please sign in with your password."
             }
         } catch {
             isLoading = false
-            inlinePasswordError = "Face ID authentication failed. Please sign in with your password."
+            let mapped = AuthError.from(error)
+            if mapped == .wrongPassword || mapped == .userNotFound {
+                inlinePasswordError = "Saved password is no longer valid. Please sign in with your updated password."
+                try? credentialVault.clearCredentials()
+                userDefaults.removeObject(forKey: "savedFaceIDEmail")
+            } else {
+                generalErrorMessage = mapped.localizedDescription
+            }
         }
     }
 
