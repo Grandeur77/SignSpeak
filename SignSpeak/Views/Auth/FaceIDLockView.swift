@@ -137,7 +137,7 @@ public struct FaceIDLockView: View {
                                     .font(.system(size: 17, weight: .semibold))
                             }
                         }
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                         .background(Color.brandTurquoise, in: RoundedRectangle(cornerRadius: Theme.Radius.button))

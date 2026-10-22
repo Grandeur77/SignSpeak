@@ -53,7 +53,7 @@ public protocol SignClassifying: Sendable {
 public struct StubSignClassifier: SignClassifying {
     public var stubbedResult: SignClassification?
 
-    public init(stubbedResult: SignClassification? = nil) {
+    public nonisolated init(stubbedResult: SignClassification? = nil) {
         self.stubbedResult = stubbedResult
     }
 

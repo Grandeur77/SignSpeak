@@ -71,7 +71,7 @@ public struct AppShellView: View {
             }
             .tag(AppTab.settings)
         }
-        .tint(Color.brandNavy)
+        .tint(Color.brandTurquoise)
     }
 
     // MARK: - iPad Regular Shell (NavigationSplitView Sidebar)

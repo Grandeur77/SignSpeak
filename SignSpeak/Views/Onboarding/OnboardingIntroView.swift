@@ -130,7 +130,7 @@ public struct OnboardingIntroView: View {
 
                 Text("Learn with your camera")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Master sign language with instant, private AI feedback on your hand shape and motion.")

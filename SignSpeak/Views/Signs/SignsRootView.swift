@@ -21,7 +21,7 @@ public struct SignsRootView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Signs Directory")
                             .font(.system(size: 26, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("Explore ASL vocabulary and fingerspelling")
                             .font(.system(size: 14))
@@ -75,7 +75,7 @@ public struct SignsRootView: View {
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 7)
                                     .background(
-                                        selectedCategory == category ? Color.brandNavy : Color.cardBackground,
+                                        selectedCategory == category ? Color.primaryFill : Color.cardBackground,
                                         in: Capsule()
                                     )
                             }

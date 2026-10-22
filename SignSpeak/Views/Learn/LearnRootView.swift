@@ -21,7 +21,7 @@ public struct LearnRootView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Learn Hub")
                             .font(.system(size: 26, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("Interactive sign language curriculum")
                             .font(.system(size: 14))
@@ -59,7 +59,7 @@ public struct LearnRootView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Real-Time Camera Practice")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("Receive instant on-device feedback on hand orientation, fingerspelling shape, and accuracy.")
                             .font(.system(size: 14))
@@ -76,9 +76,9 @@ public struct LearnRootView: View {
                                 .font(.system(size: 16, weight: .semibold))
                             Spacer()
                         }
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color.onPrimary)
                         .frame(height: 50)
-                        .background(Color.brandNavy, in: Capsule())
+                        .background(Color.primaryFill, in: Capsule())
                     }
                     .buttonStyle(.plain)
                 }
@@ -96,7 +96,7 @@ public struct LearnRootView: View {
                         Text("Dataset Capture Tool")
                             .font(.system(size: 15, weight: .semibold))
                     }
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .background(Color.brandYellow.opacity(0.2), in: RoundedRectangle(cornerRadius: Theme.Radius.button))
@@ -109,7 +109,7 @@ public struct LearnRootView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     Text("Modules")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                         .padding(.horizontal, Theme.Spacing.l)
 
                     VStack(spacing: 12) {

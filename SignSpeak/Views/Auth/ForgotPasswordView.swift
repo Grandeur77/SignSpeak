@@ -23,26 +23,26 @@ public struct ForgotPasswordView: View {
                         .frame(width: 90, height: 90)
 
                     Circle()
-                        .fill(Color.white)
+                        .fill(Color.cardBackground)
                         .frame(width: 68, height: 68)
                         .shadow(color: Color.brandTurquoise.opacity(0.18), radius: 10, y: 4)
 
                     Image(systemName: "lock.fill")
                         .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
 
                     // "Secure" Floating Badge
                     HStack(spacing: 4) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.brandTurquoise)
                         Text("Secure")
                             .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.brandTurquoise)
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Color.white, in: Capsule())
+                    .background(Color.cardBackground, in: Capsule())
                     .overlay(
                         Capsule()
                             .strokeBorder(Color.brandTurquoise.opacity(0.4), lineWidth: 1)
@@ -57,7 +57,7 @@ public struct ForgotPasswordView: View {
                 VStack(spacing: 8) {
                     Text("Reset your password")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     Text("Enter your email and we'll send you a reset link.")
@@ -141,8 +141,8 @@ public struct ForgotPasswordView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .foregroundStyle(.white)
-                        .background(viewModel.isForgotPasswordValid ? Color.brandNavy : Color.brandNavy.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
+                        .foregroundStyle(Color.onPrimary)
+                        .background(viewModel.isForgotPasswordValid ? Color.primaryFill : Color.primaryFill.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
                     }
                     .disabled(!viewModel.isForgotPasswordValid || viewModel.isLoading)
                     .accessibilityLabel("Send reset link")
@@ -171,11 +171,11 @@ public struct ForgotPasswordView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "hand.wave")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textSecondary)
 
                     Text("Sign assistance available in-app")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textSecondary)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
@@ -213,7 +213,7 @@ public struct ForgotPasswordView: View {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                 }
             }
         }

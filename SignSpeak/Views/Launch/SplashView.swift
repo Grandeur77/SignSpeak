@@ -156,41 +156,12 @@ struct SplashView: View {
     }
 }
 
-/// Vector artwork for the SignSpeak App Icon depicting the ASL "I Love You" hand with signal arcs on a turquoise base.
+/// Artwork for the SignSpeak App Icon depicting the Deaf Flag Hand and Ear icon.
 struct AppLogoArtwork: View {
     var body: some View {
-        ZStack {
-            // Turquoise background
-            Color.brandTurquoise
-
-            // Bottom sand wave
-            VStack {
-                Spacer()
-                WaveShape(phase: 0.5, amplitude: 12, frequency: 1.0)
-                    .fill(Color.brandYellow)
-                    .frame(height: 38)
-            }
-
-            // Central "I Love You" hand silhouette & signal arcs
-            VStack(spacing: 2) {
-                // Signal transmission arcs
-                HStack(spacing: 3) {
-                    Spacer()
-                    Image(systemName: "wave.3.up")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color.brandYellow)
-                        .rotationEffect(.degrees(45))
-                        .padding(.trailing, 22)
-                }
-
-                // Stylized ILY hand gesture
-                Image(systemName: "hand.raised.fill")
-                    .font(.system(size: 44, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .shadow(color: Color.black.opacity(0.15), radius: 4, y: 2)
-            }
-            .padding(.bottom, 6)
-        }
+        Image("LaunchLogo")
+            .resizable()
+            .scaledToFill()
     }
 }
 

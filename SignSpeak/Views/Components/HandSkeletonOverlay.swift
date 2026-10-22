@@ -109,11 +109,11 @@ public struct HandSkeletonOverlay: View {
             // Lighting / Positioning Hint Banner (per 34-practice-no-hand.png)
             HStack(spacing: Theme.Spacing.s) {
                 Image(systemName: "sun.max.fill")
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
                 Text("Show your hand — ensure good lighting")
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
             }
             .padding(.horizontal, Theme.Spacing.m)
             .padding(.vertical, Theme.Spacing.s)

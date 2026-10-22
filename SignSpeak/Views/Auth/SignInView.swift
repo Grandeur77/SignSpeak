@@ -22,7 +22,7 @@ public struct SignInView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Welcome back")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     Text("Sign in to continue your practice")
@@ -176,7 +176,7 @@ public struct SignInView: View {
                     HStack(spacing: 8) {
                         if viewModel.isLoading {
                             ProgressView()
-                                .tint(.white)
+                                .tint(Color.onPrimary)
                         } else {
                             Text("Sign in")
                                 .font(.body.weight(.semibold))
@@ -186,8 +186,8 @@ public struct SignInView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .foregroundStyle(.white)
-                    .background(viewModel.isSignInValid ? Color.brandNavy : Color.brandNavy.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(Color.onPrimary)
+                    .background(viewModel.isSignInValid ? Color.primaryFill : Color.primaryFill.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
                 }
                 .disabled(!viewModel.isSignInValid || viewModel.isLoading)
                 .accessibilityLabel("Sign in")
@@ -221,6 +221,10 @@ public struct SignInView: View {
                     .frame(height: 52)
                     .foregroundStyle(.white)
                     .background(Color.black, in: RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                    )
                 }
                 .accessibilityLabel("Continue with Apple")
 
@@ -290,7 +294,7 @@ public struct SignInView: View {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                 }
             }
         }
@@ -316,7 +320,7 @@ public struct SignInView: View {
                 // Teal rounded badge with Face ID smiley
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white)
+                        .fill(Color.cardBackground)
                         .frame(width: 44, height: 44)
                         .shadow(color: Color.brandTurquoise.opacity(0.12), radius: 6, y: 2)
 
@@ -328,7 +332,7 @@ public struct SignInView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Sign in with Face ID")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text(viewModel.savedFaceIDEmail ?? "Instant gesture & biometric key")
                         .font(.caption)
@@ -341,7 +345,7 @@ public struct SignInView: View {
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(Color.textSecondary)
                     .frame(width: 28, height: 28)
-                    .background(Color.white, in: Circle())
+                    .background(Color.cardBackground, in: Circle())
             }
             .padding(14)
             .background(Color.brandTurquoise.opacity(0.12), in: RoundedRectangle(cornerRadius: 18))

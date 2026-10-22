@@ -12,7 +12,7 @@ public struct TermsOfServiceSheet: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     Text("Terms of Service")
                         .font(.title2.weight(.bold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text("Last updated: October 2026")
                         .font(.caption)
@@ -21,7 +21,7 @@ public struct TermsOfServiceSheet: View {
                     Group {
                         Text("1. Purpose & Learning Scope")
                             .font(.headline)
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("SignSpeak is designed to empower communication and education in American Sign Language (ASL). While our on-device machine learning models aim for high accuracy, automated recognition should not be relied upon as a substitute for certified human interpreters in critical legal, medical, or emergency contexts.")
                             .font(.subheadline)
@@ -29,7 +29,7 @@ public struct TermsOfServiceSheet: View {
 
                         Text("2. User Accounts & Fair Use")
                             .font(.headline)
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("You agree to use SignSpeak respectfully and preserve the integrity of our signing community. You are responsible for safeguarding your login credentials and ensuring any contributions align with community standards.")
                             .font(.subheadline)
@@ -37,7 +37,7 @@ public struct TermsOfServiceSheet: View {
 
                         Text("3. On-Device Processing Guarantee")
                             .font(.headline)
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("All camera vision frames, hand pose landmarks, audio streams, and acoustic classification run exclusively on your physical Apple device. No raw video or audio streams are transmitted to remote servers.")
                             .font(.subheadline)
@@ -75,7 +75,7 @@ public struct PrivacyPolicySheet: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     Text("Privacy & Deaf Data Ethics")
                         .font(.title2.weight(.bold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text("Last updated: October 2026")
                         .font(.caption)
@@ -84,7 +84,7 @@ public struct PrivacyPolicySheet: View {
                     Group {
                         Text("1. What We Store")
                             .font(.headline)
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("We only store your account identifier, name, email address, practice streaks, and learning statistics in secure cloud storage. This enables synchronization across your devices.")
                             .font(.subheadline)
@@ -92,7 +92,7 @@ public struct PrivacyPolicySheet: View {
 
                         Text("2. What Never Leaves Your iPhone")
                             .font(.headline)
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("Your live camera feed, hand landmarks, microphone input, sound emergency alerts, and biometric face prints are processed strictly on-device using Apple Core ML, Vision, and LocalAuthentication. Raw sensor data is discarded immediately after analysis.")
                             .font(.subheadline)
@@ -100,7 +100,7 @@ public struct PrivacyPolicySheet: View {
 
                         Text("3. Your Rights & Deletion")
                             .font(.headline)
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("You maintain full control of your information. You can export your progress records or permanently delete your account and all associated cloud data at any time directly within Settings.")
                             .font(.subheadline)

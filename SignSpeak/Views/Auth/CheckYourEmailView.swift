@@ -61,7 +61,7 @@ public struct CheckYourEmailView: View {
                 VStack(spacing: 8) {
                     Text("Check your email")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     HStack(spacing: 4) {
@@ -70,7 +70,7 @@ public struct CheckYourEmailView: View {
                             .foregroundStyle(Color.textSecondary)
                         Text(email)
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.brandTurquoise)
                     }
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.Spacing.l)
@@ -110,8 +110,8 @@ public struct CheckYourEmailView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .foregroundStyle(.white)
-                        .background(Color.brandNavy, in: RoundedRectangle(cornerRadius: 16))
+                        .foregroundStyle(Color.onPrimary)
+                        .background(Color.primaryFill, in: RoundedRectangle(cornerRadius: 16))
                     }
                     .accessibilityLabel("Open Mail app")
 
@@ -142,7 +142,7 @@ public struct CheckYourEmailView: View {
                 HStack(spacing: 14) {
                     ZStack {
                         Circle()
-                            .fill(Color.white)
+                            .fill(Color.cardBackground)
                             .frame(width: 44, height: 44)
                             .shadow(color: Color.black.opacity(0.06), radius: 6, y: 2)
                         Image(systemName: "video.fill")
@@ -153,7 +153,7 @@ public struct CheckYourEmailView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Deaf & Hard of Hearing")
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("Live video sign support ready")
                             .font(.caption)
@@ -166,10 +166,10 @@ public struct CheckYourEmailView: View {
                         // Open support FAQ
                     }
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.white, in: Capsule())
+                    .background(Color.cardBackground, in: Capsule())
                     .shadow(color: Color.black.opacity(0.06), radius: 4, y: 2)
                 }
                 .padding(Theme.Spacing.m)
@@ -189,7 +189,7 @@ public struct CheckYourEmailView: View {
                         Text("Back to sign in")
                             .font(.subheadline.weight(.semibold))
                     }
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                 }
                 .padding(.bottom, Theme.Spacing.l)
             }
@@ -206,7 +206,7 @@ public struct CheckYourEmailView: View {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                 }
             }
         }

@@ -23,6 +23,7 @@ public struct AppRootView: View {
                 let newRouter = AppRouter(
                     authService: dependencies.authService,
                     userProfileRepository: dependencies.userProfileRepository,
+                    publicProfileRepository: dependencies.publicProfileRepository,
                     biometricAuthService: dependencies.biometricAuthService,
                     credentialVault: dependencies.credentialVault,
                     dateProvider: dependencies.dateProvider

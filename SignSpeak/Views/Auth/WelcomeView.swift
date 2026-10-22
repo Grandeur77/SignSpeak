@@ -70,7 +70,7 @@ public struct WelcomeView: View {
                     // Title
                     Text("Communicate without\nbarriers")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                         .multilineTextAlignment(.center)
                         .accessibilityAddTraits(.isHeader)
 
@@ -110,14 +110,14 @@ public struct WelcomeView: View {
                                 .font(.system(size: 15, weight: .semibold))
                             Spacer()
                         }
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(Color.onPrimary)
                         .frame(maxWidth: 300)
                         .frame(height: 52)
                         .background(
-                            Color.brandNavy,
+                            Color.primaryFill,
                             in: Capsule()
                         )
-                        .shadow(color: Color.brandNavy.opacity(0.25), radius: 10, y: 5)
+                        .shadow(color: Color.primaryFill.opacity(0.25), radius: 10, y: 5)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Create an account")
@@ -130,16 +130,19 @@ public struct WelcomeView: View {
                             Spacer()
                             Text("Sign in")
                                 .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(Color.brandNavy)
+                                .foregroundStyle(Color.textPrimary)
                             Spacer()
                         }
                         .frame(maxWidth: 300)
                         .frame(height: 52)
                         .background(
-                            Color.white,
+                            Color.cardBackground,
                             in: Capsule()
                         )
-                        .shadow(color: Color.black.opacity(0.06), radius: 8, y: 3)
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.brandTurquoise.opacity(0.35), lineWidth: 1.5)
+                        )
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Sign in to existing account")

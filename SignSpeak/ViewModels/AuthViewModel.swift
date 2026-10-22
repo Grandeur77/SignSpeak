@@ -71,7 +71,8 @@ public final class AuthViewModel {
 
     public var resendCountdown: Int = 30
     public var isResendTimerActive: Bool = false
-    private nonisolated(unsafe) var countdownTask: Task<Void, Never>?
+    @ObservationIgnored
+    private var countdownTask: Task<Void, Never>?
 
     // MARK: - Biometrics
 

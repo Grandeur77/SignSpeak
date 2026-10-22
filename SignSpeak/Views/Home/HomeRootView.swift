@@ -97,7 +97,7 @@ public struct HomeRootView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("SignSpeak")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text("Home")
                         .font(.system(size: 11, weight: .medium))
@@ -114,7 +114,7 @@ public struct HomeRootView: View {
                     .foregroundStyle(Color.brandYellow)
                 Text("7")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
@@ -261,7 +261,7 @@ public struct HomeRootView: View {
             HStack {
                 Text("DAILY SIGN • ASL")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(Color.brandTurquoise.opacity(0.2), in: Capsule())
@@ -273,14 +273,14 @@ public struct HomeRootView: View {
                         .foregroundStyle(Color.brandYellow)
                     Text("+25 XP")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                 }
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Thank You")
                     .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
 
                 Text("Polite Expressions • 1 min")
                     .font(.system(size: 14))
@@ -299,9 +299,9 @@ public struct HomeRootView: View {
                         .font(.system(size: 14, weight: .semibold))
                     Spacer()
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.onPrimary)
                 .frame(height: 48)
-                .background(Color.brandNavy, in: Capsule())
+                .background(Color.primaryFill, in: Capsule())
             }
             .buttonStyle(.plain)
         }
@@ -350,7 +350,7 @@ public struct HomeRootView: View {
                         .font(.system(size: 15, weight: .bold))
                     Spacer()
                 }
-                .foregroundStyle(Color.brandNavy)
+                .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
                 .frame(height: 48)
                 .background(Color.brandYellow, in: Capsule())
             }
@@ -373,7 +373,7 @@ public struct HomeRootView: View {
                         .foregroundStyle(Color.brandTurquoise)
                     Text("Your Learning Journey")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                 }
 
                 Spacer()

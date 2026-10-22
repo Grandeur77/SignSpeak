@@ -20,6 +20,7 @@ public enum AppRoute: Sendable, Equatable {
 public final class AppRouter {
     private let authService: any AuthServicing
     private let userProfileRepository: any UserProfileRepository
+    private let publicProfileRepository: any PublicProfileRepository
     private let biometricAuthService: any BiometricAuthServicing
     public let credentialVault: any CredentialVaultProtocol
     private let dateProvider: any DateProviding
@@ -32,11 +33,13 @@ public final class AppRouter {
         set { userDefaults.set(newValue, forKey: "isFaceIDLockEnabled") }
     }
 
-    private nonisolated(unsafe) var authTask: Task<Void, Never>?
+    @ObservationIgnored
+    private var authTask: Task<Void, Never>?
 
     public init(
         authService: any AuthServicing,
         userProfileRepository: any UserProfileRepository,
+        publicProfileRepository: (any PublicProfileRepository)? = nil,
         biometricAuthService: any BiometricAuthServicing,
         credentialVault: (any CredentialVaultProtocol)? = nil,
         dateProvider: (any DateProviding)? = nil,
@@ -45,6 +48,7 @@ public final class AppRouter {
     ) {
         self.authService = authService
         self.userProfileRepository = userProfileRepository
+        self.publicProfileRepository = publicProfileRepository ?? StubPublicProfileRepository()
         self.biometricAuthService = biometricAuthService
         self.credentialVault = credentialVault ?? KeychainCredentialVault(userDefaults: userDefaults)
         self.dateProvider = dateProvider ?? SystemDateProvider()
@@ -84,12 +88,24 @@ public final class AppRouter {
             return
         }
 
-        // 2. Onboarding check
+        // 2. Onboarding check & Profile initialization on first sign-in
         do {
             let profile = try await userProfileRepository.fetchProfile(userId: userId)
-            if let profile, profile.onboardingComplete {
-                currentRoute = .mainApp
+            if let profile {
+                if profile.onboardingComplete {
+                    currentRoute = .mainApp
+                } else {
+                    currentRoute = .onboarding
+                }
             } else {
+                // First sign-in: create private profile and public profile
+                let authUser = authService.currentUser
+                let newProfile = try await userProfileRepository.createProfileIfNeeded(
+                    userId: userId,
+                    displayName: authUser?.displayName ?? "Learner",
+                    email: authUser?.email
+                )
+                try? await publicProfileRepository.syncFromPrivateProfile(newProfile)
                 currentRoute = .onboarding
             }
         } catch {
@@ -120,6 +136,7 @@ public final class AppRouter {
             var profile = (try? await userProfileRepository.fetchProfile(userId: userId)) ?? UserProfile(id: userId, displayName: "Learner")
             profile.onboardingComplete = true
             try? await userProfileRepository.saveProfile(profile)
+            try? await publicProfileRepository.syncFromPrivateProfile(profile)
         }
         currentRoute = .mainApp
     }

@@ -663,6 +663,161 @@ public final class MockCredentialVault: CredentialVaultProtocol, @unchecked Send
     }
 }
 
+/// Configurable mock private profile repository for testing profile fetching, saving, streak updates, and creation.
+public final class MockUserProfileRepository: UserProfileRepository, @unchecked Sendable {
+    private let lock = NSLock()
+    public var profiles: [String: UserProfile] = [:]
+    public var shouldThrowError: Error?
+    public private(set) var fetchCallCount = 0
+    public private(set) var saveCallCount = 0
+    public private(set) var updateStreakCallCount = 0
+    public private(set) var createProfileIfNeededCallCount = 0
+
+    public init(initialProfiles: [UserProfile] = []) {
+        for profile in initialProfiles {
+            profiles[profile.id] = profile
+        }
+    }
+
+    public func fetchProfile(userId: String) async throws -> UserProfile? {
+        lock.lock()
+        defer { lock.unlock() }
+        fetchCallCount += 1
+        if let error = shouldThrowError { throw error }
+        return profiles[userId]
+    }
+
+    public func saveProfile(_ profile: UserProfile) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        saveCallCount += 1
+        if let error = shouldThrowError { throw error }
+        profiles[profile.id] = profile
+    }
+
+    public func updateStreak(userId: String, streak: Int) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        updateStreakCallCount += 1
+        if let error = shouldThrowError { throw error }
+        profiles[userId]?.currentStreak = streak
+    }
+
+    @discardableResult
+    public func createProfileIfNeeded(userId: String, displayName: String, email: String?) async throws -> UserProfile {
+        lock.lock()
+        defer { lock.unlock() }
+        createProfileIfNeededCallCount += 1
+        if let error = shouldThrowError { throw error }
+        if let existing = profiles[userId] {
+            return existing
+        }
+        let cleanName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let newProfile = UserProfile(
+            id: userId,
+            displayName: cleanName.isEmpty ? "Learner" : cleanName,
+            email: email
+        )
+        profiles[userId] = newProfile
+        return newProfile
+    }
+}
+
+/// Configurable mock public profile repository for testing public profile synchronization and social cards.
+public final class MockPublicProfileRepository: PublicProfileRepository, @unchecked Sendable {
+    private let lock = NSLock()
+    public var publicProfiles: [String: PublicProfile] = [:]
+    public var shouldThrowError: Error?
+    public private(set) var fetchCallCount = 0
+    public private(set) var saveCallCount = 0
+    public private(set) var syncCallCount = 0
+
+    public init(initialProfiles: [PublicProfile] = []) {
+        for profile in initialProfiles {
+            publicProfiles[profile.id] = profile
+        }
+    }
+
+    public func fetchPublicProfile(userId: String) async throws -> PublicProfile? {
+        lock.lock()
+        defer { lock.unlock() }
+        fetchCallCount += 1
+        if let error = shouldThrowError { throw error }
+        return publicProfiles[userId]
+    }
+
+    public func savePublicProfile(_ profile: PublicProfile) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        saveCallCount += 1
+        if let error = shouldThrowError { throw error }
+        publicProfiles[profile.id] = profile
+    }
+
+    public func syncFromPrivateProfile(_ profile: UserProfile) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        syncCallCount += 1
+        if let error = shouldThrowError { throw error }
+        let existing = publicProfiles[profile.id]
+        let publicProfile = PublicProfile(
+            id: profile.id,
+            displayName: profile.displayName,
+            role: profile.role,
+            level: profile.level,
+            currentStreak: profile.currentStreak,
+            avatarUpdatedAt: existing?.avatarUpdatedAt,
+            followerCount: existing?.followerCount ?? 0,
+            followingCount: existing?.followingCount ?? 0
+        )
+        publicProfiles[profile.id] = publicProfile
+    }
+}
+
+/// Configurable mock avatar repository for testing image resizing, persistence, and deletion.
+public final class MockAvatarRepository: AvatarRepository, @unchecked Sendable {
+    private let lock = NSLock()
+    public var avatars: [String: UserAvatar] = [:]
+    public var shouldThrowError: Error?
+    public private(set) var fetchCallCount = 0
+    public private(set) var saveCallCount = 0
+    public private(set) var deleteCallCount = 0
+
+    public init(initialAvatars: [UserAvatar] = []) {
+        for avatar in initialAvatars {
+            avatars[avatar.id] = avatar
+        }
+    }
+
+    public func fetchAvatar(userId: String) async throws -> UserAvatar? {
+        lock.lock()
+        defer { lock.unlock() }
+        fetchCallCount += 1
+        if let error = shouldThrowError { throw error }
+        return avatars[userId]
+    }
+
+    public func saveAvatar(userId: String, imageData: Data) async throws -> UserAvatar {
+        lock.lock()
+        defer { lock.unlock() }
+        saveCallCount += 1
+        if let error = shouldThrowError { throw error }
+        let base64 = AvatarImageHelper.processAvatar(from: imageData) ?? imageData.base64EncodedString()
+        let avatar = UserAvatar(id: userId, jpegBase64: base64, updatedAt: Date())
+        avatars[userId] = avatar
+        return avatar
+    }
+
+    public func deleteAvatar(userId: String) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        deleteCallCount += 1
+        if let error = shouldThrowError { throw error }
+        avatars.removeValue(forKey: userId)
+    }
+}
+
+
 
 
 

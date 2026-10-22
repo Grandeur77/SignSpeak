@@ -179,11 +179,11 @@ struct CameraPermissionView: View {
                     Text("Hand Pose Detected • ASL Ready")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                 }
                 .padding(.horizontal, Theme.Spacing.m)
                 .padding(.vertical, 6)
-                .background(.white, in: Capsule())
+                .background(Color.cardBackground, in: Capsule())
             }
             .padding(Theme.Spacing.m)
         }

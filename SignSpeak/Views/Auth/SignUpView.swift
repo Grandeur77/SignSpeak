@@ -38,7 +38,7 @@ public struct SignUpView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Create your account")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     Text("Join our signing community today")
@@ -242,8 +242,8 @@ public struct SignUpView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .foregroundStyle(.white)
-                    .background(viewModel.isSignUpValid ? Color.brandNavy : Color.brandNavy.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
+                    .foregroundStyle(Color.onPrimary)
+                    .background(viewModel.isSignUpValid ? Color.primaryFill : Color.primaryFill.opacity(0.6), in: RoundedRectangle(cornerRadius: 16))
                 }
                 .disabled(!viewModel.isSignUpValid || viewModel.isLoading)
                 .accessibilityLabel("Create account")
@@ -277,6 +277,10 @@ public struct SignUpView: View {
                     .frame(height: 52)
                     .foregroundStyle(.white)
                     .background(Color.black, in: RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                    )
                 }
                 .accessibilityLabel("Continue with Apple")
 
@@ -334,7 +338,7 @@ public struct SignUpView: View {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
-                    .foregroundStyle(Color.brandNavy)
+                    .foregroundStyle(Color.textPrimary)
                 }
             }
         }

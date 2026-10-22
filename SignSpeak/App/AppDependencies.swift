@@ -3,7 +3,7 @@ import SwiftUI
 /// Central dependency-injection container for the SignSpeak app.
 /// The root application configures `AppDependencies.live`; previews and tests use `.preview` or dedicated mocks.
 /// View models receive their services explicitly through their initialisers.
-nonisolated struct AppDependencies: Sendable {
+public struct AppDependencies: Sendable {
     var dateProvider: any DateProviding
     var cameraService: any CameraServicing
     var handPoseDetector: any HandPoseDetecting
@@ -11,6 +11,8 @@ nonisolated struct AppDependencies: Sendable {
     var signRecognitionService: any SignRecognitionServicing
     var authService: any AuthServicing
     var userProfileRepository: any UserProfileRepository
+    var publicProfileRepository: any PublicProfileRepository
+    var avatarRepository: any AvatarRepository
     var progressRepository: any ProgressRepository
     var biometricAuthService: any BiometricAuthServicing
     var credentialVault: any CredentialVaultProtocol
@@ -46,7 +48,9 @@ nonisolated struct AppDependencies: Sendable {
             signClassifier: signClassifier,
             signRecognitionService: signRecognitionService,
             authService: FirebaseAuthService(),
-            userProfileRepository: StubUserProfileRepository(),
+            userProfileRepository: FirestoreProfileRepository(),
+            publicProfileRepository: FirestorePublicProfileRepository(),
+            avatarRepository: FirestoreAvatarRepository(),
             progressRepository: StubProgressRepository(),
             biometricAuthService: LocalAuthenticationBiometricService(),
             credentialVault: KeychainCredentialVault(),
@@ -78,6 +82,16 @@ nonisolated struct AppDependencies: Sendable {
                 level: 3
             )
         ]),
+        publicProfileRepository: StubPublicProfileRepository(initialProfiles: [
+            PublicProfile(
+                id: "preview-user-123",
+                displayName: "Alex Rivera",
+                role: "learner",
+                level: 3,
+                currentStreak: 5
+            )
+        ]),
+        avatarRepository: StubAvatarRepository(),
         progressRepository: StubProgressRepository(),
         biometricAuthService: StubBiometricAuthService(isBiometricAvailable: true, biometricType: .faceID),
         credentialVault: StubCredentialVault(hasStoredCredentials: true, storedEmail: "maya.k@icloud.com"),
