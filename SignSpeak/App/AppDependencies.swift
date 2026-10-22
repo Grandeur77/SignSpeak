@@ -22,6 +22,7 @@ public struct AppDependencies: Sendable {
     var speechSynthesisService: any SpeechSynthesisServicing
     var conversationRepository: any ConversationRepository
     var communityRepository: any CommunityRepository
+    var signCatalogService: any SignCatalogServicing
 
     /// Production dependency container.
     static let live: AppDependencies = {
@@ -29,7 +30,7 @@ public struct AppDependencies: Sendable {
         let cameraService = CameraService()
         let handPoseDetector = HandPoseDetector()
         let signClassifier: any SignClassifying = (try? SignClassifier()) ?? StubSignClassifier()
-        let motionSignClassifier: any MotionSignClassifying = MotionSignClassifier()
+        let motionSignClassifier: any MotionSignClassifying = MotionClassifier()
         let stabilityFilter = StabilityFilter(
             confidenceThreshold: 0.85,
             holdDuration: 1.0,
@@ -62,7 +63,8 @@ public struct AppDependencies: Sendable {
             speechRecognitionService: StubSpeechRecognitionService(),
             speechSynthesisService: StubSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),
-            communityRepository: StubCommunityRepository()
+            communityRepository: StubCommunityRepository(),
+            signCatalogService: SignCatalogService()
         )
     }()
 
@@ -111,7 +113,8 @@ public struct AppDependencies: Sendable {
                 body: "Completed the Alphabet chapter today! 🎉",
                 likeCount: 6
             )
-        ])
+        ]),
+        signCatalogService: SignCatalogService()
     )
 }
 

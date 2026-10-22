@@ -26,6 +26,7 @@ struct AppDependenciesTests {
         #expect(live.speechSynthesisService is StubSpeechSynthesisService)
         #expect(live.conversationRepository is StubConversationRepository)
         #expect(live.communityRepository is StubCommunityRepository)
+        #expect(live.signCatalogService is SignCatalogService)
     }
 
     @Test("Preview container populates mock data and fixed clock")
@@ -49,6 +50,7 @@ struct AppDependenciesTests {
         #expect(preview.speechSynthesisService is StubSpeechSynthesisService)
         #expect(preview.conversationRepository is StubConversationRepository)
         #expect(preview.communityRepository is StubCommunityRepository)
+        #expect(preview.signCatalogService is SignCatalogService)
 
         #expect(preview.dateProvider.now == Date(timeIntervalSince1970: 1_790_812_800))
         #expect(preview.authService.currentUserId == "preview-user-123")
