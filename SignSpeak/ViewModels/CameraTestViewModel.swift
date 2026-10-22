@@ -54,6 +54,10 @@ final class CameraTestViewModel {
         return recognitionState.confidence
     }
 
+    var activeModelSource: RecognitionModelSource {
+        currentClassification?.modelSource ?? .none
+    }
+
     var holdProgress: Double {
         recognitionState.progress
     }

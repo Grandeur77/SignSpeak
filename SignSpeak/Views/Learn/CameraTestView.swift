@@ -324,10 +324,19 @@ struct CameraTestView: View {
                 .frame(height: 8)
 
                 // Subtitle metadata
-                HStack {
+                HStack(spacing: 6) {
                     Text("Threshold: 85%")
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.6))
+
+                    Text("•")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.4))
+
+                    Text(viewModel.activeModelSource.rawValue)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(viewModel.activeModelSource == .motionModel ? Color.brandYellow : Color.brandTurquoise)
 
                     Spacer()
 

@@ -3,5 +3,8 @@ xcuserdata/
 DerivedData/
 build/
 *.xcuserstate
+Dataset/
+*Dataset/
+*.mov
 docs/
 

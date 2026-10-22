@@ -3,16 +3,20 @@ import SwiftUI
 /// Central dependency-injection container for the SignSpeak app.
 /// The root application configures `AppDependencies.live`; previews and tests use `.preview` or dedicated mocks.
 /// View models receive their services explicitly through their initialisers.
-nonisolated struct AppDependencies: Sendable {
+public struct AppDependencies: Sendable {
     var dateProvider: any DateProviding
     var cameraService: any CameraServicing
     var handPoseDetector: any HandPoseDetecting
     var signClassifier: any SignClassifying
+    var motionSignClassifier: any MotionSignClassifying
     var signRecognitionService: any SignRecognitionServicing
     var authService: any AuthServicing
     var userProfileRepository: any UserProfileRepository
+    var publicProfileRepository: any PublicProfileRepository
+    var avatarRepository: any AvatarRepository
     var progressRepository: any ProgressRepository
     var biometricAuthService: any BiometricAuthServicing
+    var credentialVault: any CredentialVaultProtocol
     var notificationService: any NotificationServicing
     var speechRecognitionService: any SpeechRecognitionServicing
     var speechSynthesisService: any SpeechSynthesisServicing
@@ -25,6 +29,7 @@ nonisolated struct AppDependencies: Sendable {
         let cameraService = CameraService()
         let handPoseDetector = HandPoseDetector()
         let signClassifier: any SignClassifying = (try? SignClassifier()) ?? StubSignClassifier()
+        let motionSignClassifier: any MotionSignClassifying = MotionSignClassifier()
         let stabilityFilter = StabilityFilter(
             confidenceThreshold: 0.85,
             holdDuration: 1.0,
@@ -34,6 +39,7 @@ nonisolated struct AppDependencies: Sendable {
             cameraService: cameraService,
             handPoseDetector: handPoseDetector,
             signClassifier: signClassifier,
+            motionSignClassifier: motionSignClassifier,
             stabilityFilter: stabilityFilter,
             dateProvider: dateProvider
         )
@@ -43,12 +49,16 @@ nonisolated struct AppDependencies: Sendable {
             cameraService: cameraService,
             handPoseDetector: handPoseDetector,
             signClassifier: signClassifier,
+            motionSignClassifier: motionSignClassifier,
             signRecognitionService: signRecognitionService,
-            authService: StubAuthService(),
-            userProfileRepository: StubUserProfileRepository(),
+            authService: FirebaseAuthService(),
+            userProfileRepository: FirestoreProfileRepository(),
+            publicProfileRepository: FirestorePublicProfileRepository(),
+            avatarRepository: FirestoreAvatarRepository(),
             progressRepository: StubProgressRepository(),
-            biometricAuthService: StubBiometricAuthService(),
-            notificationService: StubNotificationService(),
+            biometricAuthService: LocalAuthenticationBiometricService(),
+            credentialVault: KeychainCredentialVault(),
+            notificationService: LiveNotificationService(),
             speechRecognitionService: StubSpeechRecognitionService(),
             speechSynthesisService: StubSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),
@@ -62,6 +72,7 @@ nonisolated struct AppDependencies: Sendable {
         cameraService: StubCameraService(),
         handPoseDetector: StubHandPoseDetector(),
         signClassifier: StubSignClassifier(),
+        motionSignClassifier: StubMotionSignClassifier(),
         signRecognitionService: StubSignRecognitionService(),
         authService: StubAuthService(initialUserId: "preview-user-123"),
         userProfileRepository: StubUserProfileRepository(initialProfiles: [
@@ -76,8 +87,19 @@ nonisolated struct AppDependencies: Sendable {
                 level: 3
             )
         ]),
+        publicProfileRepository: StubPublicProfileRepository(initialProfiles: [
+            PublicProfile(
+                id: "preview-user-123",
+                displayName: "Alex Rivera",
+                role: "learner",
+                level: 3,
+                currentStreak: 5
+            )
+        ]),
+        avatarRepository: StubAvatarRepository(),
         progressRepository: StubProgressRepository(),
         biometricAuthService: StubBiometricAuthService(isBiometricAvailable: true, biometricType: .faceID),
+        credentialVault: StubCredentialVault(hasStoredCredentials: true, storedEmail: "maya.k@icloud.com"),
         notificationService: StubNotificationService(),
         speechRecognitionService: StubSpeechRecognitionService(),
         speechSynthesisService: StubSpeechSynthesisService(),

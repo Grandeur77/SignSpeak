@@ -47,7 +47,9 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
         AsyncStream(bufferingPolicy: .bufferingNewest(1)) { [weak self] continuation in
             self?.frameContinuation = continuation
             continuation.onTermination = { [weak self] _ in
-                self?.frameContinuation = nil
+                Task { @MainActor [weak self] in
+                    self?.frameContinuation = nil
+                }
             }
         }
     }()
@@ -189,8 +191,14 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
 
     private func updateConnection() {
         if let connection = videoOutput.connection(with: .video) {
-            if connection.isVideoOrientationSupported {
-                connection.videoOrientation = .portrait
+            if #available(iOS 17.0, *) {
+                if connection.isVideoRotationAngleSupported(90.0) {
+                    connection.videoRotationAngle = 90.0
+                }
+            } else {
+                if connection.isVideoOrientationSupported {
+                    connection.videoOrientation = .portrait
+                }
             }
             if connection.isVideoMirroringSupported {
                 connection.automaticallyAdjustsVideoMirroring = false

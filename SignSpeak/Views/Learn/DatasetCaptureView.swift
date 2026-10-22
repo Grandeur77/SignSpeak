@@ -2,8 +2,8 @@
 import SwiftUI
 import AVFoundation
 
-/// DEBUG-only screen for capturing training datasets for Create ML Hand Pose Classification.
-/// Lets developer select an ASL label, burst-capture N frames into `Documents/Dataset/<Label>/`,
+/// DEBUG-only screen for capturing training datasets for Create ML Hand Pose and Hand Action Classification.
+/// Lets developer switch between Static (burst photos) and Motion (short video clips),
 /// and export/share the dataset directly to Mac via AirDrop or Finder file sharing.
 struct DatasetCaptureView: View {
     @Environment(\.dismiss) private var dismiss
@@ -111,9 +111,14 @@ struct DatasetCaptureView: View {
                     countdownOverlay
                 }
 
-                // Burst progress HUD
+                // Burst progress HUD (Static)
                 if viewModel.isCapturing {
                     capturingProgressHUD
+                }
+
+                // Video recording HUD (Motion)
+                if viewModel.isRecordingVideo {
+                    recordingVideoHUD
                 }
 
                 // Controls & HUD
@@ -121,9 +126,15 @@ struct DatasetCaptureView: View {
                     topStatusHeader
                         .padding(.top, geometry.safeAreaInsets.top > 0 ? 0 : Theme.Spacing.m)
 
+                    modeSegmentedControl
+
                     labelSelectionBar
 
                     Spacer()
+
+                    if viewModel.mode == .motionSigns && !viewModel.isRecordingVideo && !viewModel.isCountingDown {
+                        motionGuidanceCard
+                    }
 
                     bottomCaptureControls
                         .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 0 : Theme.Spacing.m)
@@ -133,16 +144,18 @@ struct DatasetCaptureView: View {
         }
     }
 
-    // MARK: - Top Header & Label Selection
+    // MARK: - Top Header & Controls
 
     private var topStatusHeader: some View {
         HStack {
             // Label count pill
             HStack(spacing: Theme.Spacing.xs) {
                 Circle()
-                    .fill(Color.brandTurquoise)
+                    .fill(viewModel.mode == .motionSigns ? Color.danger : Color.brandTurquoise)
                     .frame(width: 8, height: 8)
-                Text("\(viewModel.selectedLabel): \(viewModel.classCounts[viewModel.selectedLabel] ?? 0) photos")
+                let count = viewModel.classCounts[viewModel.selectedLabel] ?? 0
+                let unit = (viewModel.mode == .staticSigns) ? "photos" : "clips"
+                Text("\(viewModel.selectedLabel): \(count) \(unit)")
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
@@ -153,8 +166,9 @@ struct DatasetCaptureView: View {
 
             Spacer()
 
-            // Total dataset count
-            Text("Total: \(viewModel.totalPhotosCount) photos")
+            // Total count
+            let totalUnit = (viewModel.mode == .staticSigns) ? "photos" : "clips"
+            Text("Total: \(viewModel.totalPhotosCount) \(totalUnit)")
                 .font(.caption)
                 .foregroundStyle(.white.opacity(0.85))
                 .padding(.horizontal, Theme.Spacing.m)
@@ -163,10 +177,20 @@ struct DatasetCaptureView: View {
         }
     }
 
+    private var modeSegmentedControl: some View {
+        Picker("Dataset Mode", selection: $viewModel.mode) {
+            ForEach(DatasetMode.allCases) { mode in
+                Text(mode.rawValue).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .background(Color.black.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+    }
+
     private var labelSelectionBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Theme.Spacing.xs) {
-                ForEach(DatasetCaptureViewModel.vocabulary, id: \.self) { label in
+                ForEach(viewModel.currentVocabulary, id: \.self) { label in
                     let isSelected = (viewModel.selectedLabel == label)
                     let count = viewModel.classCounts[label] ?? 0
 
@@ -182,21 +206,34 @@ struct DatasetCaptureView: View {
                                     .font(.caption2)
                                     .padding(.horizontal, 5)
                                     .padding(.vertical, 2)
-                                    .background(isSelected ? Color.brandNavy : Color.brandTurquoise, in: Capsule())
+                                    .background(isSelected ? Color.brandNavy : (viewModel.mode == .motionSigns ? Color.danger : Color.brandTurquoise), in: Capsule())
                                     .foregroundStyle(.white)
                             }
                         }
                         .font(.subheadline)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(isSelected ? Color.brandTurquoise : Color.black.opacity(0.6), in: Capsule())
+                        .background(isSelected ? (viewModel.mode == .motionSigns ? Color.brandYellow : Color.brandTurquoise) : Color.black.opacity(0.6), in: Capsule())
                         .foregroundStyle(isSelected ? Color.brandNavy : Color.white)
                     }
-                    .accessibilityLabel("\(label), \(count) photos captured")
+                    .accessibilityLabel("\(label), \(count) items captured")
                 }
             }
             .padding(.horizontal, 4)
         }
+    }
+
+    private var motionGuidanceCard: some View {
+        HStack(spacing: Theme.Spacing.s) {
+            Image(systemName: "video.badge.waveform")
+                .foregroundStyle(Color.brandYellow)
+            Text("Hold start (0.5s) → sign smoothly → hold finish (0.5s)")
+                .font(.caption)
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, Theme.Spacing.m)
+        .padding(.vertical, 6)
+        .background(Color.black.opacity(0.7), in: Capsule())
     }
 
     // MARK: - Countdown & HUD
@@ -212,7 +249,7 @@ struct DatasetCaptureView: View {
                     .scaleEffect(1.2)
                     .animation(.spring(response: 0.3, dampingFraction: 0.6), value: viewModel.countdownRemaining)
 
-                Text("Get ready for sign '\(viewModel.selectedLabel)'")
+                Text("Get ready for '\(viewModel.selectedLabel)'")
                     .font(.appHeadline)
                     .foregroundStyle(.white)
             }
@@ -252,6 +289,49 @@ struct DatasetCaptureView: View {
         }
     }
 
+    private var recordingVideoHUD: some View {
+        VStack {
+            Spacer()
+
+            VStack(spacing: Theme.Spacing.s) {
+                HStack(spacing: Theme.Spacing.m) {
+                    Circle()
+                        .fill(Color.danger)
+                        .frame(width: 14, height: 14)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 2)
+                        )
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Recording Clip: '\(viewModel.selectedLabel)'")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+
+                        Text("\(String(format: "%.1f", viewModel.recordingProgress * viewModel.clipDuration))s / \(String(format: "%.1f", viewModel.clipDuration))s")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+
+                    Spacer()
+
+                    Button("Cancel") {
+                        viewModel.cancelMotionRecording()
+                    }
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color.brandYellow)
+                }
+
+                ProgressView(value: viewModel.recordingProgress)
+                    .tint(Color.danger)
+            }
+            .padding(Theme.Spacing.m)
+            .background(Color.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal, Theme.Spacing.m)
+            .padding(.bottom, 100)
+        }
+    }
+
     // MARK: - Bottom Controls
 
     private var bottomCaptureControls: some View {
@@ -268,50 +348,15 @@ struct DatasetCaptureView: View {
             }
             .accessibilityLabel("Flip camera lens")
 
-            // Burst count selector
-            Menu {
-                ForEach([10, 20, 30, 50, 100], id: \.self) { count in
-                    Button("\(count) frames") {
-                        viewModel.burstCount = count
-                    }
-                }
-            } label: {
-                VStack(spacing: 2) {
-                    Text("\(viewModel.burstCount)")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Text("frames")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .frame(width: 52, height: 52)
-                .background(Color.black.opacity(0.6), in: Circle())
+            // Configuration Menu
+            if viewModel.mode == .staticSigns {
+                burstCountMenu
+            } else {
+                clipDurationMenu
             }
-            .accessibilityLabel("Burst count: \(viewModel.burstCount) frames")
 
-            // Big Start Burst Button
-            Button {
-                if viewModel.isCapturing || viewModel.isCountingDown {
-                    viewModel.cancelBurst()
-                } else {
-                    viewModel.startBurstSequence()
-                }
-            } label: {
-                ZStack {
-                    Circle()
-                        .stroke(Color.white, lineWidth: 4)
-                        .frame(width: 72, height: 72)
-
-                    Circle()
-                        .fill(viewModel.isCapturing ? Color.danger : Color.brandTurquoise)
-                        .frame(width: 58, height: 58)
-
-                    Image(systemName: viewModel.isCapturing ? "stop.fill" : "camera.fill")
-                        .font(.title2)
-                        .foregroundStyle(viewModel.isCapturing ? .white : Color.brandNavy)
-                }
-            }
-            .accessibilityLabel(viewModel.isCapturing ? "Stop burst capture" : "Start burst capture")
+            // Big Start/Stop Button
+            mainActionButton
 
             // Left-hand mirror toggle
             Button {
@@ -328,6 +373,91 @@ struct DatasetCaptureView: View {
         .padding(Theme.Spacing.m)
     }
 
+    private var burstCountMenu: some View {
+        Menu {
+            ForEach([10, 20, 30, 50, 100], id: \.self) { count in
+                Button("\(count) frames") {
+                    viewModel.burstCount = count
+                }
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Text("\(viewModel.burstCount)")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text("frames")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .frame(width: 52, height: 52)
+            .background(Color.black.opacity(0.6), in: Circle())
+        }
+        .accessibilityLabel("Burst count: \(viewModel.burstCount) frames")
+    }
+
+    private var clipDurationMenu: some View {
+        Menu {
+            ForEach([1.5, 2.0, 3.0], id: \.self) { duration in
+                Button("\(String(format: "%.1f", duration))s clip") {
+                    viewModel.clipDuration = duration
+                }
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Text(String(format: "%.1f", viewModel.clipDuration))
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                Text("sec")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .frame(width: 52, height: 52)
+            .background(Color.black.opacity(0.6), in: Circle())
+        }
+        .accessibilityLabel("Clip duration: \(String(format: "%.1f", viewModel.clipDuration)) seconds")
+    }
+
+    private var mainActionButton: some View {
+        Button {
+            if viewModel.mode == .staticSigns {
+                if viewModel.isCapturing || viewModel.isCountingDown {
+                    viewModel.cancelBurst()
+                } else {
+                    viewModel.startBurstSequence()
+                }
+            } else {
+                if viewModel.isRecordingVideo || viewModel.isCountingDown {
+                    viewModel.cancelMotionRecording()
+                } else {
+                    viewModel.startMotionRecordingSequence()
+                }
+            }
+        } label: {
+            ZStack {
+                Circle()
+                    .stroke(Color.white, lineWidth: 4)
+                    .frame(width: 72, height: 72)
+
+                let isActive = (viewModel.isCapturing || viewModel.isRecordingVideo)
+                let activeColor = (viewModel.mode == .motionSigns) ? Color.danger : Color.brandTurquoise
+
+                Circle()
+                    .fill(isActive ? Color.danger : activeColor)
+                    .frame(width: 58, height: 58)
+
+                let iconName: String = {
+                    if isActive { return "stop.fill" }
+                    return (viewModel.mode == .motionSigns) ? "video.fill" : "camera.fill"
+                }()
+
+                Image(systemName: iconName)
+                    .font(.title2)
+                    .foregroundStyle(isActive ? .white : Color.brandNavy)
+            }
+        }
+        .accessibilityLabel(viewModel.isCapturing || viewModel.isRecordingVideo ? "Stop capture" : "Start capture")
+    }
+
     // MARK: - Manage Dataset Sheet
 
     private var datasetManagementSheet: some View {
@@ -335,7 +465,16 @@ struct DatasetCaptureView: View {
             List {
                 Section("Summary") {
                     HStack {
-                        Text("Total Captured Photos")
+                        Text("Current Mode")
+                        Spacer()
+                        Text(viewModel.mode.rawValue)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.brandTurquoise)
+                    }
+
+                    HStack {
+                        let unit = (viewModel.mode == .staticSigns) ? "Photos" : "Clips"
+                        Text("Captured \(unit)")
                         Spacer()
                         Text("\(viewModel.totalPhotosCount)")
                             .fontWeight(.bold)
@@ -345,23 +484,23 @@ struct DatasetCaptureView: View {
                     ShareLink(
                         item: viewModel.datasetDirectoryURL,
                         subject: Text("SignSpeak Dataset"),
-                        message: Text("Exported SignSpeak training dataset photos.")
+                        message: Text("Exported SignSpeak training dataset files.")
                     ) {
-                        Label("Share / AirDrop Dataset Folder", systemImage: "square.and.arrow.up")
+                        Label("Share / AirDrop Entire Dataset Folder", systemImage: "square.and.arrow.up")
                             .foregroundStyle(Color.brandTurquoise)
                     }
 
                     HStack {
                         Image(systemName: "info.circle")
                             .foregroundStyle(Color.brandYellow)
-                        Text("Photos are also accessible via Finder file sharing in the app's Documents/Dataset folder.")
+                        Text("Files are also accessible via Finder file sharing in the app's Documents/Dataset folder.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                Section("Classes Breakdown") {
-                    ForEach(DatasetCaptureViewModel.vocabulary, id: \.self) { label in
+                Section("Classes Breakdown (\(viewModel.mode.rawValue))") {
+                    ForEach(viewModel.currentVocabulary, id: \.self) { label in
                         classBreakdownRow(for: label)
                     }
                 }
@@ -384,26 +523,28 @@ struct DatasetCaptureView: View {
                 }
             }
             .confirmationDialog("Clear Entire Dataset?", isPresented: $isShowingClearConfirm, titleVisibility: .visible) {
-                Button("Delete All Photos", role: .destructive) {
+                Button("Delete All Dataset Files", role: .destructive) {
                     viewModel.clearAllDataset()
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This permanently deletes all images from Documents/Dataset.")
+                Text("This permanently deletes all images and video clips from Documents/Dataset.")
             }
         }
     }
 
     private func classBreakdownRow(for label: String) -> some View {
         let count = viewModel.classCounts[label] ?? 0
+        let unit = (viewModel.mode == .staticSigns) ? "photos" : "clips"
+        let target = (viewModel.mode == .staticSigns) ? 80 : 40
         return HStack {
             Text(label)
                 .fontWeight(.medium)
 
             Spacer()
 
-            Text("\(count) photos")
-                .foregroundStyle(count >= 80 ? Color.success : Color.secondary)
+            Text("\(count) \(unit)")
+                .foregroundStyle(count >= target ? Color.success : Color.secondary)
 
             if count > 0 {
                 Button(role: .destructive) {
@@ -430,7 +571,7 @@ struct DatasetCaptureView: View {
                 .font(.appTitle)
                 .foregroundStyle(.white)
 
-            Text("The iOS Simulator does not provide video camera input. Connect a physical iPhone to use the burst Dataset Capture tool.")
+            Text("The iOS Simulator does not provide video camera input. Connect a physical iPhone to use the Dataset Capture tool.")
                 .font(.appBody)
                 .foregroundStyle(.white.opacity(0.8))
                 .multilineTextAlignment(.center)

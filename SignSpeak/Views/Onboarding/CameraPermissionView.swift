@@ -1,17 +1,54 @@
 import SwiftUI
 import UIKit
 
-/// Camera permission screen implementing the design from `docs/design/11-permission-camera.png`.
 /// Features Deaf Flag styling, privacy guarantees, clear device-only processing claims,
 /// and handles both initial request and denied states with Settings deep-linking.
-struct CameraPermissionView: View {
+public struct CameraPermissionView: View {
     let isDenied: Bool
     let onRequestAccess: () -> Void
     let onSkip: () -> Void
+    var onBack: (() -> Void)?
 
-    var body: some View {
+    public init(
+        isDenied: Bool,
+        onRequestAccess: @escaping () -> Void,
+        onSkip: @escaping () -> Void,
+        onBack: (() -> Void)? = nil
+    ) {
+        self.isDenied = isDenied
+        self.onRequestAccess = onRequestAccess
+        self.onSkip = onSkip
+        self.onBack = onBack
+    }
+
+    public var body: some View {
         ScrollView {
             VStack(spacing: Theme.Spacing.l) {
+                // MARK: - Top Bar (if back or skip available)
+                if onBack != nil {
+                    HStack {
+                        Button {
+                            onBack?()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                Text("Back")
+                            }
+                            .font(.appBody)
+                            .foregroundStyle(Color.textSecondary)
+                        }
+
+                        Spacer()
+
+                        Button("Skip") {
+                            onSkip()
+                        }
+                        .font(.appBody)
+                        .foregroundStyle(Color.textSecondary)
+                    }
+                    .padding(.horizontal, Theme.Spacing.s)
+                }
+
                 // MARK: - Progress Header
                 stepperHeader
 
@@ -179,11 +216,11 @@ struct CameraPermissionView: View {
                     Text("Hand Pose Detected • ASL Ready")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.brandNavy)
+                        .foregroundStyle(Color.textPrimary)
                 }
                 .padding(.horizontal, Theme.Spacing.m)
                 .padding(.vertical, 6)
-                .background(.white, in: Capsule())
+                .background(Color.cardBackground, in: Capsule())
             }
             .padding(Theme.Spacing.m)
         }
