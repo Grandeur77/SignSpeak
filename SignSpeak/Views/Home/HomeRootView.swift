@@ -8,9 +8,14 @@ public struct HomeRootView: View {
 
     @State private var isShowingPractice = false
     @State private var isShowingCommunicator = false
+    @State private var userProfile: UserProfile?
 
     public init(deepLinkRouter: DeepLinkRouter) {
         self.deepLinkRouter = deepLinkRouter
+    }
+
+    private var isDeafRole: Bool {
+        userProfile?.role == "deaf"
     }
 
     public var body: some View {
@@ -22,9 +27,9 @@ public struct HomeRootView: View {
                 // MARK: - Greeting
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text("Good morning, Maya")
+                        Text("Good morning, \(userProfile?.displayName ?? "Learner")")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.brandNavy)
+                            .foregroundStyle(Color.textPrimary)
 
                         Text("👋")
                             .font(.system(size: 26))
@@ -34,7 +39,7 @@ public struct HomeRootView: View {
                             .frame(width: 8, height: 8)
                     }
 
-                    Text("Ready for today's 5-minute sign practice?")
+                    Text("Ready for today's \(userProfile?.dailyGoalMinutes ?? 10)-minute sign practice?")
                         .font(.system(size: 15, weight: .regular))
                         .foregroundStyle(Color.textSecondary)
                 }
@@ -46,25 +51,39 @@ public struct HomeRootView: View {
 
                 // MARK: - Quick Stats Row
                 HStack(spacing: 10) {
-                    quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "14", label: "DAYS STREAK")
-                    quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "420", label: "TOTAL XP")
-                    quickStatPill(icon: "target", iconColor: Color.brandTurquoise, value: "3/4", label: "DAILY GOAL")
+                    quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "\(userProfile?.currentStreak ?? 7)", label: "DAYS STREAK")
+                    quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "\(userProfile?.xp ?? 420)", label: "TOTAL XP")
+                    quickStatPill(icon: "clock.fill", iconColor: Color.brandTurquoise, value: "\(userProfile?.dailyGoalMinutes ?? 10)m", label: "DAILY GOAL")
                 }
                 .padding(.horizontal, Theme.Spacing.l)
 
-                // MARK: - Sound Alerts Status Pill
-                soundAlertsPill
+                // MARK: - Role-Personalised Section Ordering
+                if isDeafRole {
+                    // For Deaf / Hard of Hearing users: prioritize sound alerts & live communicator
+                    if userProfile?.soundAlertsEnabled ?? true {
+                        soundAlertsPill
+                    }
 
-                // MARK: - Daily Sign Highlight Card
-                dailySignCard
+                    communicatorCard
+                    dailySignCard
+                    learningJourneySection
+                } else {
+                    // For ASL learners: prioritize daily sign & learning journey
+                    dailySignCard
+                    learningJourneySection
+                    communicatorCard
 
-                // MARK: - Two-Way Communicator Card
-                communicatorCard
-
-                // MARK: - Learning Journey Progress
-                learningJourneySection
+                    if userProfile?.soundAlertsEnabled == true {
+                        soundAlertsPill
+                    }
+                }
             }
             .padding(.bottom, Theme.Spacing.xl)
+        }
+        .task {
+            if let userId = dependencies.authService.currentUserId {
+                userProfile = try? await dependencies.userProfileRepository.fetchProfile(userId: userId)
+            }
         }
         .background(Color.appBackground.ignoresSafeArea())
         .navigationDestination(isPresented: $isShowingPractice) {

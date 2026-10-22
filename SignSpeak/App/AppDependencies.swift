@@ -54,7 +54,7 @@ public struct AppDependencies: Sendable {
             progressRepository: StubProgressRepository(),
             biometricAuthService: LocalAuthenticationBiometricService(),
             credentialVault: KeychainCredentialVault(),
-            notificationService: StubNotificationService(),
+            notificationService: LiveNotificationService(),
             speechRecognitionService: StubSpeechRecognitionService(),
             speechSynthesisService: StubSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),

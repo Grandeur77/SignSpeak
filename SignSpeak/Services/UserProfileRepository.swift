@@ -36,6 +36,7 @@ public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
     public var streakFreezes: Int
     public var onboardingComplete: Bool
     public var reminderSettings: ReminderSettings?
+    public var soundAlertsEnabled: Bool?
     public var createdAt: Date
 
     public init(
@@ -53,6 +54,7 @@ public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
         streakFreezes: Int = 0,
         onboardingComplete: Bool = false,
         reminderSettings: ReminderSettings? = nil,
+        soundAlertsEnabled: Bool? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -69,6 +71,7 @@ public struct UserProfile: Identifiable, Codable, Sendable, Equatable {
         self.streakFreezes = streakFreezes
         self.onboardingComplete = onboardingComplete
         self.reminderSettings = reminderSettings
+        self.soundAlertsEnabled = soundAlertsEnabled
         self.createdAt = createdAt
     }
 }

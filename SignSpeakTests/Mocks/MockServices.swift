@@ -817,6 +817,38 @@ public final class MockAvatarRepository: AvatarRepository, @unchecked Sendable {
     }
 }
 
+/// Configurable mock notification service for testing notification authorization and reminder scheduling.
+public final class MockNotificationService: NotificationServicing, @unchecked Sendable {
+    private let lock = NSLock()
+    public var authorizationResult: Bool = true
+    public private(set) var requestAuthorizationCallCount = 0
+    public private(set) var scheduledReminders: [(hour: Int, minute: Int)] = []
+    public private(set) var cancelAllRemindersCallCount = 0
+
+    public init(authorizationResult: Bool = true) {
+        self.authorizationResult = authorizationResult
+    }
+
+    public func requestAuthorization() async throws -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        requestAuthorizationCallCount += 1
+        return authorizationResult
+    }
+
+    public func scheduleDailyReminder(hour: Int, minute: Int) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        scheduledReminders.append((hour: hour, minute: minute))
+    }
+
+    public func cancelAllReminders() async {
+        lock.lock()
+        defer { lock.unlock() }
+        cancelAllRemindersCallCount += 1
+    }
+}
+
 
 
 
