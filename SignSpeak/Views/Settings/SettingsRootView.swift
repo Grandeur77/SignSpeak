@@ -121,6 +121,78 @@ public struct SettingsRootView: View {
                     .padding(.horizontal, Theme.Spacing.l)
                 }
 
+                #if DEBUG
+                // Section: Developer Tools (DEBUG only)
+                VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                    Text("Developer Tools")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color.textSecondary)
+                        .padding(.horizontal, Theme.Spacing.l)
+
+                    VStack(spacing: 0) {
+                        NavigationLink {
+                            DatasetCaptureView()
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "camera.badge.ellipsis")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.brandYellow)
+                                    .frame(width: 28, height: 28)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Dataset Capture Tool")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(Color.textPrimary)
+                                    Text("Capture static photos & motion video clips")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(Color.textSecondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Color.textSecondary)
+                            }
+                            .padding(Theme.Spacing.m)
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider().padding(.leading, 52)
+
+                        NavigationLink {
+                            CameraTestView()
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "hand.raised.viewfinder")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.brandTurquoise)
+                                    .frame(width: 28, height: 28)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Recognition Lab")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(Color.textPrimary)
+                                    Text("Test real-time hand pose and classifiers")
+                                        .font(.system(size: 12))
+                                        .foregroundStyle(Color.textSecondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Color.textSecondary)
+                            }
+                            .padding(Theme.Spacing.m)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+                    .padding(.horizontal, Theme.Spacing.l)
+                }
+                #endif
+
                 // Section 4: Sign Out
                 Button(role: .destructive) {
                     isShowingSignOutAlert = true
