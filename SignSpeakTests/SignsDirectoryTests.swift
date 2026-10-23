@@ -358,4 +358,94 @@ struct SignsDirectoryTests {
         #expect(vm.selectedCategory == nil)
         #expect(vm.activeFilterCount == 0)
     }
+
+    // MARK: - 9. Search Ranking Tests (Step 6.4)
+
+    @Test("Search ranking prioritizes exact matches over prefixes and description occurrences")
+    @MainActor
+    func searchRankingPrioritization() async {
+        let exactSign = Sign(
+            id: "s-help",
+            name: "Help",
+            category: "emergency",
+            description: "A plea for assistance.",
+            howToSteps: []
+        )
+        let prefixSign = Sign(
+            id: "s-helper",
+            name: "Helper",
+            category: "people",
+            description: "One who provides help.",
+            howToSteps: []
+        )
+        let descriptionSign = Sign(
+            id: "s-assist",
+            name: "Assist",
+            category: "actions",
+            description: "To give help to someone in need.",
+            howToSteps: []
+        )
+
+        let catalog = StubSignCatalogService(payload: SignCatalogPayload(signs: [descriptionSign, prefixSign, exactSign]))
+        let (_, progress, favs, requests, auth) = makeDependencies()
+
+        let vm = SignsDirectoryViewModel(
+            signCatalogService: catalog,
+            progressRepository: progress,
+            favouritesRepository: favs,
+            signRequestRepository: requests,
+            authService: auth
+        )
+        await vm.load()
+
+        vm.searchQuery = "help"
+        let ranked = vm.filteredSigns
+
+        #expect(ranked.count == 3)
+        // Exact name match "Help" must be first
+        #expect(ranked[0].id == "s-help")
+        // Prefix match "Helper" must be second
+        #expect(ranked[1].id == "s-helper")
+        // Description match "Assist" must be third
+        #expect(ranked[2].id == "s-assist")
+    }
+
+    // MARK: - 10. Status Mapping Tests (Step 6.4)
+
+    @Test("Status mapping accurately distinguishes Mastered, Learning, and New signs per criteria")
+    @MainActor
+    func statusMappingCriteria() async {
+        let (catalog, progress, favs, requests, auth) = makeDependencies()
+
+        let signNew = Sign(id: "s-new", name: "New", category: "general", description: "", howToSteps: [])
+        let signFewAttempts = Sign(id: "s-few", name: "Few", category: "general", description: "", howToSteps: [])
+        let signLowAccuracy = Sign(id: "s-low", name: "Low", category: "general", description: "", howToSteps: [])
+        let signMastered = Sign(id: "s-mast", name: "Mastered", category: "general", description: "", howToSteps: [])
+
+        let customProgress = StubProgressRepository(initialStore: [
+            "test-user": [
+                // 4 attempts, 4 correct -> not yet mastered (requires >= 5 attempts)
+                "s-few": SignProgress(signId: "s-few", attempts: 4, correct: 4, isMastered: false),
+                // 7 attempts, 5 correct (71.4% < 75%) -> not mastered
+                "s-low": SignProgress(signId: "s-low", attempts: 7, correct: 5, isMastered: false),
+                // 6 attempts, 5 correct (83.3% >= 75%) -> mastered
+                "s-mast": SignProgress(signId: "s-mast", attempts: 6, correct: 5, isMastered: true)
+            ]
+        ])
+
+        let vm = SignsDirectoryViewModel(
+            signCatalogService: catalog,
+            progressRepository: customProgress,
+            favouritesRepository: favs,
+            signRequestRepository: requests,
+            authService: auth
+        )
+        await vm.load()
+
+        #expect(vm.status(for: signNew) == .newSign)
+        #expect(vm.status(for: signFewAttempts) == .learning)
+        #expect(vm.status(for: signLowAccuracy) == .learning)
+        #expect(vm.status(for: signMastered) == .mastered)
+    }
 }
+

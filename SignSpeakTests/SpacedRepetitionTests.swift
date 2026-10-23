@@ -302,4 +302,50 @@ struct SpacedRepetitionTests {
         #expect(decoded.easeFactor == 2.6)
         #expect(decoded.repetitions == 2)
     }
+
+    // MARK: - 5. Multi-Step Review Sequence & Lapse Recovery (Step 6.4)
+
+    @Test("Multi-step review sequence accurately models retention growth and lapse recovery")
+    func multiStepReviewSequenceAndLapseRecovery() {
+        var record = FavouriteRecord(signId: "test-sign", savedAt: baseDate)
+        var currentDate = baseDate
+
+        // Review 1: quality 5 -> interval 1 day
+        record = SpacedRepetitionScheduler.evaluate(current: record, quality: 5, reviewDate: currentDate)
+        #expect(record.repetitions == 1)
+        #expect(record.intervalDays == 1)
+
+        // Advance date by 1 day
+        currentDate = Calendar.current.date(byAdding: .day, value: 1, to: currentDate)!
+
+        // Review 2: quality 4 -> interval 6 days
+        record = SpacedRepetitionScheduler.evaluate(current: record, quality: 4, reviewDate: currentDate)
+        #expect(record.repetitions == 2)
+        #expect(record.intervalDays == 6)
+
+        // Advance date by 6 days
+        currentDate = Calendar.current.date(byAdding: .day, value: 6, to: currentDate)!
+
+        // Review 3: quality 4 -> interval ~16 days (6 * 2.6 = 15.6 -> 16)
+        record = SpacedRepetitionScheduler.evaluate(current: record, quality: 4, reviewDate: currentDate)
+        #expect(record.repetitions == 3)
+        #expect(record.intervalDays >= 15)
+
+        // Advance date to when it's due
+        currentDate = Calendar.current.date(byAdding: .day, value: record.intervalDays, to: currentDate)!
+
+        // Review 4: LAPSE! User misses the sign (quality 1)
+        record = SpacedRepetitionScheduler.evaluate(current: record, quality: 1, reviewDate: currentDate)
+        #expect(record.repetitions == 0) // Repetitions reset to 0
+        #expect(record.intervalDays == 1) // Interval drops back to 1 day
+        #expect(record.easeFactor < 2.6) // Ease factor is penalized
+
+        // Advance 1 day
+        currentDate = Calendar.current.date(byAdding: .day, value: 1, to: currentDate)!
+
+        // Review 5: Recovery! Quality 5
+        record = SpacedRepetitionScheduler.evaluate(current: record, quality: 5, reviewDate: currentDate)
+        #expect(record.repetitions == 1) // Restarts streak
+        #expect(record.intervalDays == 1)
+    }
 }

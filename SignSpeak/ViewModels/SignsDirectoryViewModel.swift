@@ -161,18 +161,55 @@ public final class SignsDirectoryViewModel {
         }
 
         // 8. Sorting
-        switch selectedSort {
-        case .alphabeticalAsc:
-            signs.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        case .alphabeticalDesc:
-            signs.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
-        case .level:
-            signs.sort { $0.level < $1.level }
-        case .status:
-            signs.sort { statusRank(for: $0) < statusRank(for: $1) }
+        if !cleanQuery.isEmpty && selectedSort == .alphabeticalAsc {
+            // Rank by search relevance when searching (exact match > prefix > substring > hint > category > description)
+            signs.sort {
+                let r0 = searchRelevance(sign: $0, query: cleanQuery)
+                let r1 = searchRelevance(sign: $1, query: cleanQuery)
+                if r0 != r1 {
+                    return r0 > r1
+                }
+                return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+            }
+        } else {
+            switch selectedSort {
+            case .alphabeticalAsc:
+                signs.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            case .alphabeticalDesc:
+                signs.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+            case .level:
+                signs.sort { $0.level < $1.level }
+            case .status:
+                signs.sort { statusRank(for: $0) < statusRank(for: $1) }
+            }
         }
 
         return signs
+    }
+
+    public func searchRelevance(sign: Sign, query: String) -> Int {
+        let clean = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !clean.isEmpty else { return 0 }
+
+        let name = sign.name.lowercased()
+        let cat = sign.category.lowercased()
+        let desc = sign.description.lowercased()
+        let hint = sign.pronunciationHint?.lowercased() ?? ""
+
+        if name == clean {
+            return 100 // Exact name match
+        } else if name.hasPrefix(clean) {
+            return 80 // Name starts with query
+        } else if name.contains(clean) {
+            return 60 // Name contains query
+        } else if hint.contains(clean) {
+            return 50 // Pronunciation hint contains query
+        } else if cat.contains(clean) {
+            return 30 // Category match
+        } else if desc.contains(clean) {
+            return 10 // Description match
+        }
+        return 0
     }
 
     // MARK: - Metrics and Counts
