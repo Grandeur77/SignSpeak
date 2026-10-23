@@ -109,3 +109,27 @@ public struct Sign: Identifiable, Codable, Sendable, Equatable, Hashable {
         self.sideVideoName = sideVideoName
     }
 }
+
+extension Sign {
+    /// True if the sign is recognizable via Core ML hand pose or motion classifier.
+    public var isRecognizable: Bool {
+        recognition != .none
+    }
+
+    /// Evaluates whether a recognized label string matches this sign.
+    public func matchesRecognitionLabel(_ label: String) -> Bool {
+        let cleanTarget = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let cleanDetected = label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if cleanTarget == cleanDetected {
+            return true
+        }
+        if id.lowercased() == "sign-letter-\(cleanDetected)" {
+            return true
+        }
+        if id.lowercased() == "sign-\(cleanDetected)" {
+            return true
+        }
+        return false
+    }
+}
+

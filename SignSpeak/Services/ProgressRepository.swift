@@ -8,19 +8,22 @@ public struct SignProgress: Identifiable, Codable, Sendable, Equatable {
     public var correct: Int
     public var isMastered: Bool
     public var lastPracticedAt: Date?
+    public var lastDetectedAs: String?
 
     public init(
         signId: String,
         attempts: Int = 0,
         correct: Int = 0,
         isMastered: Bool = false,
-        lastPracticedAt: Date? = nil
+        lastPracticedAt: Date? = nil,
+        lastDetectedAs: String? = nil
     ) {
         self.signId = signId
         self.attempts = attempts
         self.correct = correct
         self.isMastered = isMastered
         self.lastPracticedAt = lastPracticedAt
+        self.lastDetectedAs = lastDetectedAs
     }
 }
 
@@ -70,11 +73,16 @@ public struct LearnHubMetrics: Sendable, Equatable {
 public protocol ProgressRepository: Sendable {
     func fetchProgress(userId: String) async throws -> [SignProgress]
     func recordAttempt(userId: String, signId: String, isCorrect: Bool) async throws
+    func recordAttempt(userId: String, signId: String, isCorrect: Bool, detectedAs: String?) async throws
     func fetchMistakes(userId: String) async throws -> [SignProgress]
     func fetchLearnHubMetrics(userId: String) async throws -> LearnHubMetrics
 }
 
 extension ProgressRepository {
+    public func recordAttempt(userId: String, signId: String, isCorrect: Bool) async throws {
+        try await recordAttempt(userId: userId, signId: signId, isCorrect: isCorrect, detectedAs: nil)
+    }
+
     public func fetchMistakes(userId: String) async throws -> [SignProgress] {
         let all = try await fetchProgress(userId: userId)
         return all.filter { $0.attempts > $0.correct && !$0.isMastered }
@@ -136,6 +144,10 @@ public final class StubProgressRepository: ProgressRepository, @unchecked Sendab
     }
 
     public func recordAttempt(userId: String, signId: String, isCorrect: Bool) async throws {
+        try await recordAttempt(userId: userId, signId: signId, isCorrect: isCorrect, detectedAs: nil)
+    }
+
+    public func recordAttempt(userId: String, signId: String, isCorrect: Bool, detectedAs: String?) async throws {
         var userDict = progressStore[userId] ?? progressStore["default"] ?? [:]
         var item = userDict[signId] ?? SignProgress(signId: signId)
         item.attempts += 1
@@ -144,6 +156,8 @@ public final class StubProgressRepository: ProgressRepository, @unchecked Sendab
             if item.correct >= 5 {
                 item.isMastered = true
             }
+        } else if let detectedAs {
+            item.lastDetectedAs = detectedAs
         }
         item.lastPracticedAt = Date()
         userDict[signId] = item

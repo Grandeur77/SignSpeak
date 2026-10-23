@@ -436,53 +436,11 @@ public struct CategoryDetailView: View {
                 .background(.ultraThinMaterial)
                 .ignoresSafeArea(edges: .bottom)
         )
-        .sheet(isPresented: $isShowingPracticeSheet) {
-            categoryPracticePlaceholder
-        }
-    }
-
-    private var categoryPracticePlaceholder: some View {
-        NavigationStack {
-            VStack(spacing: Theme.Spacing.l) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandTurquoise.opacity(0.15))
-                        .frame(width: 80, height: 80)
-
-                    Image(systemName: "video.badge.waveform")
-                        .font(.system(size: 38))
-                        .foregroundStyle(Color.brandTurquoise)
-                }
-                .padding(.top, Theme.Spacing.xl)
-
-                VStack(spacing: 8) {
-                    Text("Practise \(category.name)")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text("Full interactive category practice with live Vision gesture detection begins in Step 5.3!")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Spacing.l)
-                }
-
-                Spacer()
-
-                Button("Dismiss") {
-                    isShowingPracticeSheet = false
-                }
-                .font(.headline)
-                .foregroundStyle(Color.brandTurquoise)
-                .padding(.bottom, Theme.Spacing.l)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") {
-                        isShowingPracticeSheet = false
-                    }
-                }
-            }
+        .fullScreenCover(isPresented: $isShowingPracticeSheet) {
+            PracticeView(
+                signs: !categorySigns.isEmpty ? categorySigns : dependencies.signCatalogService.signs(forCategory: category.id),
+                lessonTitle: category.name
+            )
         }
     }
 

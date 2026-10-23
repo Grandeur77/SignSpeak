@@ -10,6 +10,7 @@ public struct LearnRootView: View {
 
     @State private var viewModel: LearnHubViewModel?
     @State private var isShowingCameraPractice = false
+    @State private var isShowingMistakesPractice = false
     @State private var navigatedDestination: String?
 
     #if DEBUG
@@ -78,8 +79,17 @@ public struct LearnRootView: View {
         )) {
             reviewMistakesSheet
         }
-        .sheet(isPresented: $isShowingCameraPractice) {
-            CameraTestView()
+        .fullScreenCover(isPresented: $isShowingCameraPractice) {
+            PracticeView(
+                signs: dependencies.signCatalogService.signs(forCategory: "alphabet"),
+                lessonTitle: "Alphabet Practice"
+            )
+        }
+        .fullScreenCover(isPresented: $isShowingMistakesPractice) {
+            PracticeView(
+                signs: (viewModel?.mistakeSigns.isEmpty == false) ? (viewModel?.mistakeSigns ?? []) : dependencies.signCatalogService.signs(forCategory: "alphabet"),
+                lessonTitle: "Review Mistakes"
+            )
         }
         #if DEBUG
         .sheet(isPresented: $isShowingDatasetCapture) {
@@ -576,6 +586,20 @@ public struct LearnRootView: View {
                 .padding(.horizontal, Theme.Spacing.l)
 
                 Spacer()
+
+                Button {
+                    viewModel?.isMistakesPracticePresented = false
+                    isShowingMistakesPractice = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                        Text("Practise Mistakes Now")
+                            .fontWeight(.bold)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                }
+                .buttonStyle(.primary)
+                .padding(.horizontal, Theme.Spacing.l)
 
                 Button("Dismiss") {
                     viewModel?.isMistakesPracticePresented = false

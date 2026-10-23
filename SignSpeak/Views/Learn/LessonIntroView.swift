@@ -349,57 +349,21 @@ public struct LessonIntroView: View {
                 .background(.ultraThinMaterial)
                 .ignoresSafeArea(edges: .bottom)
         )
-        .sheet(isPresented: $isShowingPracticeSheet) {
-            lessonPracticePlaceholder
+        .fullScreenCover(isPresented: $isShowingPracticeSheet) {
+            PracticeView(
+                signs: !lessonSigns.isEmpty ? lessonSigns : fallbackSignsForLesson(),
+                lessonTitle: lesson.title
+            )
         }
         .sheet(isPresented: $isShowingQuizSheet) {
             lessonQuizPlaceholder
         }
     }
 
-    private var lessonPracticePlaceholder: some View {
-        NavigationStack {
-            VStack(spacing: Theme.Spacing.l) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandTurquoise.opacity(0.15))
-                        .frame(width: 80, height: 80)
-
-                    Image(systemName: "camera.viewfinder")
-                        .font(.system(size: 38))
-                        .foregroundStyle(Color.brandTurquoise)
-                }
-                .padding(.top, Theme.Spacing.xl)
-
-                VStack(spacing: 8) {
-                    Text("Practice \(lesson.title)")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text("Live gesture practice with Vision recognition launches in Step 5.3.")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Spacing.l)
-                }
-
-                Spacer()
-
-                Button("Dismiss") {
-                    isShowingPracticeSheet = false
-                }
-                .font(.headline)
-                .foregroundStyle(Color.brandTurquoise)
-                .padding(.bottom, Theme.Spacing.l)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") {
-                        isShowingPracticeSheet = false
-                    }
-                }
-            }
-        }
+    private func fallbackSignsForLesson() -> [Sign] {
+        let signs = lesson.signIds.compactMap { dependencies.signCatalogService.sign(byId: $0) }
+        if !signs.isEmpty { return signs }
+        return dependencies.signCatalogService.signs(forCategory: "alphabet")
     }
 
     private var lessonQuizPlaceholder: some View {
