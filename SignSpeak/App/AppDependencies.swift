@@ -26,6 +26,8 @@ public struct AppDependencies: Sendable {
     var conversationRepository: any ConversationRepository
     var communityRepository: any CommunityRepository
     var signCatalogService: any SignCatalogServicing
+    var signRequestRepository: any SignRequestRepository
+    var favouritesRepository: any FavouritesRepository
 
     /// Production dependency container.
     static let live: AppDependencies = {
@@ -81,7 +83,9 @@ public struct AppDependencies: Sendable {
             speechSynthesisService: StubSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),
             communityRepository: StubCommunityRepository(),
-            signCatalogService: SignCatalogService()
+            signCatalogService: SignCatalogService(),
+            signRequestRepository: FirestoreSignRequestRepository(),
+            favouritesRepository: FirestoreFavouritesRepository()
         )
     }()
 
@@ -131,7 +135,9 @@ public struct AppDependencies: Sendable {
                 likeCount: 6
             )
         ]),
-        signCatalogService: SignCatalogService()
+        signCatalogService: SignCatalogService(),
+        signRequestRepository: StubSignRequestRepository(),
+        favouritesRepository: StubFavouritesRepository()
     )
 }
 
