@@ -1,18 +1,21 @@
 import SwiftUI
 
-/// Screen displaying user's saved and bookmarked ASL signs.
+/// Screen displaying user's saved and bookmarked ASL signs with SM-2 spaced repetition schedules.
 /// Matches design `44-favourites`.
-/// Features real-time Firestore synchronization, direct entry to sign detail,
-/// bookmark removal, and a quick launch to practice all favourites.
+/// Features real-time Firestore synchronization, due-date badges, review interval stats,
+/// filtering by due status or category, sorting, and a "Practise Due Favourites" session.
 public struct FavouritesView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dependencies) private var dependencies
 
-    @State private var favouriteRecords: [FavouriteRecord] = []
-    @State private var signs: [Sign] = []
-    @State private var searchQuery: String = ""
-    @State private var isLoading: Bool = true
-    @State private var isPresentingPracticeAll: Bool = false
+    @State private var viewModel: FavouritesViewModel?
+    @State private var isPresentingPracticeSession: Bool = false
+    @State private var sessionMode: PracticeSessionMode = .dueOnly
+
+    private enum PracticeSessionMode {
+        case dueOnly
+        case allFavourites
+    }
 
     private let columns = [
         GridItem(.flexible(), spacing: 14),
@@ -21,25 +24,19 @@ public struct FavouritesView: View {
 
     public init() {}
 
-    public var filteredSigns: [Sign] {
-        guard !searchQuery.isEmpty else { return signs }
-        let q = searchQuery.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        return signs.filter { sign in
-            sign.name.lowercased().contains(q) ||
-            sign.category.lowercased().contains(q) ||
-            sign.description.lowercased().contains(q)
-        }
-    }
-
     public var body: some View {
         NavigationStack {
             Group {
-                if isLoading {
-                    loadingView
-                } else if signs.isEmpty {
-                    emptyStateView
+                if let vm = viewModel {
+                    if vm.isLoading {
+                        loadingView
+                    } else if vm.records.isEmpty {
+                        emptyStateView
+                    } else {
+                        favouritesContent(vm)
+                    }
                 } else {
-                    favouriteSignsContent
+                    loadingView
                 }
             }
             .background(Color.appBackground.ignoresSafeArea())
@@ -52,32 +49,49 @@ public struct FavouritesView: View {
                     }
                 }
 
-                if !signs.isEmpty {
+                if let vm = viewModel, !vm.records.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Text("\(signs.count) \(signs.count == 1 ? "sign" : "signs")")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.textSecondary)
+                        Menu {
+                            Picker("Sort Options", selection: Binding(
+                                get: { vm.selectedSort },
+                                set: { vm.selectedSort = $0 }
+                            )) {
+                                ForEach(FavouritesSortOption.allCases) { opt in
+                                    Text(opt.rawValue).tag(opt)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down.circle")
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.textPrimary)
+                        }
+                        .accessibilityLabel("Sort favourites")
                     }
                 }
             }
             .task {
-                await loadFavourites()
+                await setupViewModel()
             }
-            .fullScreenCover(isPresented: $isPresentingPracticeAll) {
-                if !signs.isEmpty {
-                    let recognizable = signs.filter(\.isRecognizable)
+            .fullScreenCover(isPresented: $isPresentingPracticeSession) {
+                if let vm = viewModel, !vm.sessionSigns.isEmpty {
+                    let recognizable = vm.sessionSigns.filter(\.isRecognizable)
                     if !recognizable.isEmpty {
-                        PracticeView(signs: recognizable, lessonTitle: "Favourites Practice")
+                        PracticeView(
+                            signs: recognizable,
+                            lessonTitle: sessionMode == .dueOnly ? "Due Reviews" : "Favourites Practice"
+                        )
                     } else {
-                        // Watch and choose session for visual signs
                         let catalog = dependencies.signCatalogService.allSigns()
                         let questions = QuizEngine.generateQuestions(
-                            from: signs,
+                            from: vm.sessionSigns,
                             allCatalogSigns: catalog,
-                            count: min(5, signs.count),
+                            count: min(5, vm.sessionSigns.count),
                             preferredMode: .watchAndChoose
                         )
-                        QuizView(questions: questions, quizTitle: "Favourites Quiz")
+                        QuizView(
+                            questions: questions,
+                            quizTitle: sessionMode == .dueOnly ? "Due Reviews Quiz" : "Favourites Quiz"
+                        )
                     }
                 }
             }
@@ -86,29 +100,39 @@ public struct FavouritesView: View {
 
     // MARK: - Main Content
 
-    private var favouriteSignsContent: some View {
+    private func favouritesContent(_ vm: FavouritesViewModel) -> some View {
         ScrollView {
             VStack(spacing: Theme.Spacing.m) {
-                // Practise All Banner
-                practiceAllBanner
+                // 1. Practise Banner
+                practiceBanner(vm)
                     .padding(.horizontal, Theme.Spacing.l)
                     .padding(.top, Theme.Spacing.s)
 
-                // Search Bar
-                searchBar
+                // 2. Search Bar
+                searchBar(vm)
                     .padding(.horizontal, Theme.Spacing.l)
 
-                // Grid of Favourites
-                if filteredSigns.isEmpty {
-                    noSearchResultsView
-                        .padding(.top, Theme.Spacing.xl)
+                // 3. Filter Tabs
+                filterTabs(vm)
+                    .padding(.horizontal, Theme.Spacing.l)
+
+                // 4. Grid of Favourite Cards
+                let items = vm.filteredItems
+                if items.isEmpty {
+                    if vm.selectedTab == .due {
+                        allCaughtUpView
+                            .padding(.top, Theme.Spacing.xl)
+                    } else {
+                        noSearchResultsView(vm)
+                            .padding(.top, Theme.Spacing.xl)
+                    }
                 } else {
                     LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(filteredSigns) { sign in
+                        ForEach(items) { item in
                             NavigationLink {
-                                SignDetailView(sign: sign)
+                                SignDetailView(sign: item.sign)
                             } label: {
-                                favouriteCard(sign: sign)
+                                favouriteCard(item: item, vm: vm)
                             }
                             .buttonStyle(.plain)
                         }
@@ -120,32 +144,54 @@ public struct FavouritesView: View {
         }
     }
 
-    // MARK: - Practise All Banner
+    // MARK: - Practise Banner
 
-    private var practiceAllBanner: some View {
-        Button {
+    private func practiceBanner(_ vm: FavouritesViewModel) -> some View {
+        let due = vm.dueCount
+        let hasDue = due > 0
+
+        return Button {
             triggerHaptic()
-            isPresentingPracticeAll = true
+            if hasDue {
+                sessionMode = .dueOnly
+                vm.prepareDueReviewSession()
+            } else {
+                sessionMode = .allFavourites
+                vm.prepareAllFavouritesSession()
+            }
+            isPresentingPracticeSession = true
         } label: {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .fill(Color.brandYellow)
-                        .frame(width: 44, height: 44)
+                        .fill(hasDue ? Color.brandYellow : Color.brandTurquoise)
+                        .frame(width: 48, height: 48)
 
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 18))
+                    Image(systemName: hasDue ? "clock.badge.checkmark" : "play.fill")
+                        .font(.system(size: 20))
                         .foregroundStyle(Color.black)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Practise All Favourites")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color.white)
+                    HStack(spacing: 6) {
+                        Text(hasDue ? "Review Due Favourites" : "Practise All Favourites")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color.white)
 
-                    Text("Review your \(signs.count) saved signs")
+                        if hasDue {
+                            Text("\(due)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.black)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.brandYellow, in: Capsule())
+                        }
+                    }
+
+                    Text(hasDue ? "\(due) \(due == 1 ? "sign is" : "signs are") due for spaced-repetition review" : "Keep memory fresh with all \(vm.totalCount) saved signs")
                         .font(.system(size: 13))
-                        .foregroundStyle(Color.white.opacity(0.8))
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .lineLimit(1)
                 }
 
                 Spacer()
@@ -159,22 +205,25 @@ public struct FavouritesView: View {
             .shadow(color: Color.brandNavy.opacity(0.2), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Practise all \(signs.count) favourites")
+        .accessibilityLabel(hasDue ? "Review \(due) due favourites" : "Practise all \(vm.totalCount) favourites")
     }
 
     // MARK: - Search Bar
 
-    private var searchBar: some View {
+    private func searchBar(_ vm: FavouritesViewModel) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(Color.textSecondary)
 
-            TextField("Search in favourites...", text: $searchQuery)
-                .font(.system(size: 15))
+            TextField("Search in favourites...", text: Binding(
+                get: { vm.searchQuery },
+                set: { vm.searchQuery = $0 }
+            ))
+            .font(.system(size: 15))
 
-            if !searchQuery.isEmpty {
+            if !vm.searchQuery.isEmpty {
                 Button {
-                    searchQuery = ""
+                    vm.searchQuery = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Color.textSecondary)
@@ -189,10 +238,56 @@ public struct FavouritesView: View {
         )
     }
 
+    // MARK: - Filter Tabs
+
+    private func filterTabs(_ vm: FavouritesViewModel) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(FavouritesFilterTab.allCases) { tab in
+                    let isSelected = vm.selectedTab == tab
+                    Button {
+                        vm.selectedTab = tab
+                        triggerHaptic()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(tab.rawValue)
+                                .font(.system(size: 13, weight: isSelected ? .bold : .medium))
+
+                            if tab == .due && vm.dueCount > 0 {
+                                Text("\(vm.dueCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(isSelected ? Color.black : Color.white)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(isSelected ? Color.black.opacity(0.2) : Color.brandYellow, in: Capsule())
+                            }
+                        }
+                        .foregroundStyle(isSelected ? Color.black : Color.textPrimary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            isSelected ? Color.brandTurquoise : Color.cardBackground,
+                            in: Capsule()
+                        )
+                        .overlay(
+                            Capsule().stroke(Color.gray.opacity(0.18), lineWidth: isSelected ? 0 : 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
     // MARK: - Favourite Card
 
-    private func favouriteCard(sign: Sign) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private func favouriteCard(item: FavouriteSignItem, vm: FavouritesViewModel) -> some View {
+        let sign = item.sign
+        let record = item.record
+        let dueStatus = SpacedRepetitionScheduler.dueStatus(record: record)
+        let isDueNow = SpacedRepetitionScheduler.isDue(record: record)
+
+        return VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .topTrailing) {
                 // Thumbnail
                 ZStack {
@@ -222,28 +317,56 @@ public struct FavouritesView: View {
 
                 // Remove Bookmark Button
                 Button {
-                    removeFavourite(sign: sign)
+                    removeFavourite(signId: sign.id, vm: vm)
                 } label: {
                     Image(systemName: "heart.fill")
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                         .foregroundStyle(Color.danger)
                         .padding(6)
                         .background(Color.black.opacity(0.6), in: Circle())
                 }
                 .padding(6)
                 .accessibilityLabel("Remove \(sign.name) from favourites")
+
+                // Top Left: Due Badge
+                VStack {
+                    HStack {
+                        Text(dueStatus)
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(isDueNow ? Color.black : Color.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(
+                                isDueNow ? Color.brandYellow : Color.black.opacity(0.65),
+                                in: Capsule()
+                            )
+                        Spacer()
+                    }
+                    .padding(6)
+                    Spacer()
+                }
             }
 
-            // Info
+            // Info & SM-2 Metadata
             VStack(alignment: .leading, spacing: 3) {
                 Text(sign.name)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(Color.textPrimary)
                     .lineLimit(1)
 
                 Text(sign.category.capitalized)
                     .font(.system(size: 12))
                     .foregroundStyle(Color.textSecondary)
+
+                // Spaced Repetition Interval line
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 9))
+                    Text(intervalDescription(record: record))
+                        .font(.system(size: 10, weight: .medium))
+                }
+                .foregroundStyle(Color.brandTurquoise)
+                .padding(.top, 2)
             }
             .padding(.horizontal, 4)
             .padding(.bottom, 6)
@@ -252,8 +375,16 @@ public struct FavouritesView: View {
         .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.14), lineWidth: 1)
+                .stroke(isDueNow ? Color.brandYellow.opacity(0.4) : Color.gray.opacity(0.14), lineWidth: 1)
         )
+    }
+
+    private func intervalDescription(record: FavouriteRecord) -> String {
+        if record.intervalDays <= 1 {
+            return "1 day interval"
+        } else {
+            return "\(record.intervalDays) days interval"
+        }
     }
 
     // MARK: - Empty States
@@ -276,7 +407,7 @@ public struct FavouritesView: View {
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textPrimary)
 
-                Text("Tap the heart or bookmark icon on any sign detail to save it here for quick access.")
+                Text("Tap the heart or bookmark icon on any sign detail to save it here for spaced-repetition review.")
                     .font(.system(size: 15))
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
@@ -299,18 +430,54 @@ public struct FavouritesView: View {
         }
     }
 
-    private var noSearchResultsView: some View {
+    private var allCaughtUpView: some View {
+        VStack(spacing: Theme.Spacing.m) {
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.15))
+                    .frame(width: 72, height: 72)
+
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 34))
+                    .foregroundStyle(Color.green)
+            }
+            .padding(.top, Theme.Spacing.l)
+
+            VStack(spacing: 6) {
+                Text("All caught up!")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.textPrimary)
+
+                Text("No signs are due for review today. Keep your streak going or practise ahead!")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Theme.Spacing.xl)
+            }
+
+            Button {
+                viewModel?.selectedTab = .all
+            } label: {
+                Text("View All Saved Signs")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.brandTurquoise)
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private func noSearchResultsView(_ vm: FavouritesViewModel) -> some View {
         VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 32))
                 .foregroundStyle(Color.textSecondary)
 
-            Text("No favourites match '\(searchQuery)'")
+            Text("No favourites match '\(vm.searchQuery)'")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.textPrimary)
 
             Button("Clear search") {
-                searchQuery = ""
+                vm.searchQuery = ""
             }
             .font(.system(size: 14, weight: .bold))
             .foregroundStyle(Color.brandTurquoise)
@@ -321,7 +488,7 @@ public struct FavouritesView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .tint(Color.brandTurquoise)
-            Text("Loading favourites...")
+            Text("Loading favourites & review schedule...")
                 .font(.system(size: 14))
                 .foregroundStyle(Color.textSecondary)
         }
@@ -330,31 +497,25 @@ public struct FavouritesView: View {
 
     // MARK: - Actions
 
-    private func loadFavourites() async {
-        isLoading = true
-        defer { isLoading = false }
-
-        let userId = dependencies.authService.currentUserId ?? "default"
-        do {
-            let records = try await dependencies.favouritesRepository.fetchFavourites(userId: userId)
-            self.favouriteRecords = records
-
-            let catalog = dependencies.signCatalogService
-            self.signs = records.compactMap { catalog.sign(byId: $0.signId) }
-        } catch {
-            self.favouriteRecords = []
-            self.signs = []
+    private func setupViewModel() async {
+        if viewModel == nil {
+            let userId = dependencies.authService.currentUserId ?? "default"
+            let vm = FavouritesViewModel(
+                favouritesRepository: dependencies.favouritesRepository,
+                signCatalogService: dependencies.signCatalogService,
+                progressRepository: dependencies.progressRepository,
+                userId: userId,
+                nowProvider: { dependencies.dateProvider.now }
+            )
+            self.viewModel = vm
         }
+        await viewModel?.load()
     }
 
-    private func removeFavourite(sign: Sign) {
+    private func removeFavourite(signId: String, vm: FavouritesViewModel) {
         triggerHaptic()
-        let userId = dependencies.authService.currentUserId ?? "default"
-        signs.removeAll(where: { $0.id == sign.id })
-        favouriteRecords.removeAll(where: { $0.signId == sign.id })
-
         Task {
-            try? await dependencies.favouritesRepository.removeFavourite(userId: userId, signId: sign.id)
+            await vm.removeFavourite(signId: signId)
         }
     }
 
