@@ -1,4 +1,6 @@
-import Foundation
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 #if canImport(FirebaseFirestore)
 import FirebaseFirestore
 #endif
@@ -88,24 +90,36 @@ public protocol UserProfileRepository: Sendable {
 #if canImport(FirebaseFirestore)
 /// Concrete implementation of `UserProfileRepository` backed by Cloud Firestore.
 public final class FirestoreProfileRepository: UserProfileRepository, @unchecked Sendable {
-    private let db: Firestore
+    private let customFirestore: Firestore?
+    private var db: Firestore? {
+        if let customFirestore { return customFirestore }
+        #if canImport(FirebaseCore)
+        guard FirebaseApp.app() != nil else { return nil }
+        return Firestore.firestore()
+        #else
+        return nil
+        #endif
+    }
     private let collectionName = "users"
 
     public init(firestore: Firestore? = nil) {
-        self.db = firestore ?? Firestore.firestore()
+        self.customFirestore = firestore
     }
 
     public func fetchProfile(userId: String) async throws -> UserProfile? {
+        guard let db else { return nil }
         let doc = try await db.collection(collectionName).document(userId).getDocument()
         guard doc.exists else { return nil }
         return try doc.data(as: UserProfile.self)
     }
 
     public func saveProfile(_ profile: UserProfile) async throws {
+        guard let db else { return }
         try db.collection(collectionName).document(profile.id).setData(from: profile, merge: true)
     }
 
     public func updateStreak(userId: String, streak: Int) async throws {
+        guard let db else { return }
         try await db.collection(collectionName).document(userId).updateData([
             "currentStreak": streak
         ])

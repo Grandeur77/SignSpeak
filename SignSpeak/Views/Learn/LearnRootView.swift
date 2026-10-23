@@ -1,10 +1,18 @@
 import SwiftUI
 
-/// Provides access to camera sign practice, lesson chapters, fingerspelling drills, and quizzes.
+/// Main learning hub for American Sign Language curriculum.
+/// Matches design `25-learn-hub`.
+/// Displays daily mastery goal, alphabet fingerspelling path card with progress ring,
+/// words & phrases categories card with progress ring, and fast-track practice & review cards.
 public struct LearnRootView: View {
+    @Environment(\.dependencies) private var dependencies
     @Bindable var deepLinkRouter: DeepLinkRouter
 
+    @State private var viewModel: LearnHubViewModel?
     @State private var isShowingCameraPractice = false
+    @State private var isShowingMistakesPractice = false
+    @State private var navigatedDestination: String?
+
     #if DEBUG
     @State private var isShowingDatasetCapture = false
     #endif
@@ -16,180 +24,531 @@ public struct LearnRootView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: Theme.Spacing.l) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Learn Hub")
-                            .font(.system(size: 26, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.textPrimary)
+                // 1. Top Header Bar
+                headerView
+                    .padding(.horizontal, Theme.Spacing.l)
+                    .padding(.top, Theme.Spacing.s)
 
-                        Text("Interactive sign language curriculum")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.textSecondary)
-                    }
+                // 2. Daily Mastery Goal Card
+                dailyGoalCard
+                    .padding(.horizontal, Theme.Spacing.l)
 
-                    Spacer()
+                // 3. Curriculum Cards (Alphabet & Words & Phrases)
+                curriculumSection
+                    .padding(.horizontal, Theme.Spacing.l)
 
-                    ProfileAvatarButton {
-                        deepLinkRouter.openProfile()
-                    }
-                }
-                .padding(.horizontal, Theme.Spacing.l)
-                .padding(.top, Theme.Spacing.s)
-
-                // Featured Action Card: Real-time Camera Practice
-                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    HStack {
-                        Image(systemName: "camera.viewfinder")
-                            .font(.system(size: 22))
-                            .foregroundStyle(Color.brandTurquoise)
-
-                        Text("AI PRACTICE MIRROR")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color.brandTurquoise)
-                            .tracking(0.8)
-
-                        Spacer()
-
-                        Text("On-Device Vision")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(Color.textSecondary)
-                    }
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Real-Time Camera Practice")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundStyle(Color.textPrimary)
-
-                        Text("Receive instant on-device feedback on hand orientation, fingerspelling shape, and accuracy.")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.textSecondary)
-                    }
-
-                    Button {
-                        isShowingCameraPractice = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Spacer()
-                            Image(systemName: "camera.fill")
-                            Text("Start Camera Practice")
-                                .font(.system(size: 16, weight: .semibold))
-                            Spacer()
-                        }
-                        .foregroundStyle(Color.onPrimary)
-                        .frame(height: 50)
-                        .background(Color.primaryFill, in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(Theme.Spacing.m)
-                .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-                .padding(.horizontal, Theme.Spacing.l)
+                // 4. Practice & Review Fast Track Cards
+                practiceAndReviewSection
+                    .padding(.horizontal, Theme.Spacing.l)
 
                 #if DEBUG
-                // Developer Dataset Capture Utility
-                Button {
-                    isShowingDatasetCapture = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "camera.badge.ellipsis")
-                        Text("Dataset Capture Tool")
-                            .font(.system(size: 15, weight: .semibold))
-                    }
-                    .foregroundStyle(Color.textPrimary)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(Color.brandYellow.opacity(0.2), in: RoundedRectangle(cornerRadius: Theme.Radius.button))
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, Theme.Spacing.l)
+                // Developer Tools Section
+                developerSection
+                    .padding(.horizontal, Theme.Spacing.l)
+                    .padding(.top, Theme.Spacing.m)
                 #endif
 
-                // Modules Grid
-                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    Text("Modules")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.textPrimary)
-                        .padding(.horizontal, Theme.Spacing.l)
-
-                    VStack(spacing: 12) {
-                        moduleCard(
-                            icon: "character.book.closed.fill",
-                            color: Color.brandTurquoise,
-                            title: "Alphabet Lessons (A–Z)",
-                            description: "Master all 26 manual alphabet hand shapes",
-                            badge: "Complete"
-                        )
-
-                        moduleCard(
-                            icon: "hand.wave.fill",
-                            color: Color.brandYellow,
-                            title: "Essential Greetings",
-                            description: "Hello, Thank You, Nice to meet you",
-                            badge: "In Progress"
-                        )
-
-                        moduleCard(
-                            icon: "cross.case.fill",
-                            color: Color.danger,
-                            title: "Emergency & Safety",
-                            description: "Hospital, Help, Police, Allergy signs",
-                            badge: "Crucial"
-                        )
-                    }
-                    .padding(.horizontal, Theme.Spacing.l)
-                }
+                Spacer(minLength: Theme.Spacing.xl)
             }
             .padding(.bottom, Theme.Spacing.xl)
         }
         .background(Color.appBackground.ignoresSafeArea())
-        .navigationDestination(isPresented: $isShowingCameraPractice) {
-            CameraTestView()
+        .task {
+            if viewModel == nil {
+                let vm = LearnHubViewModel(
+                    progressRepository: dependencies.progressRepository,
+                    signCatalogService: dependencies.signCatalogService,
+                    userProfileRepository: dependencies.userProfileRepository,
+                    authService: dependencies.authService
+                )
+                viewModel = vm
+                await vm.load()
+            } else {
+                await viewModel?.load()
+            }
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { viewModel?.isQuizPresented ?? false },
+            set: { viewModel?.isQuizPresented = $0 }
+        )) {
+            speedRunQuizSheet
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel?.isMistakesPracticePresented ?? false },
+            set: { viewModel?.isMistakesPracticePresented = $0 }
+        )) {
+            reviewMistakesSheet
+        }
+        .fullScreenCover(isPresented: $isShowingCameraPractice) {
+            PracticeView(
+                signs: dependencies.signCatalogService.signs(forCategory: "alphabet"),
+                lessonTitle: "Alphabet Practice"
+            )
+        }
+        .fullScreenCover(isPresented: $isShowingMistakesPractice) {
+            PracticeView(
+                signs: (viewModel?.mistakeSigns.isEmpty == false) ? (viewModel?.mistakeSigns ?? []) : dependencies.signCatalogService.signs(forCategory: "alphabet"),
+                lessonTitle: "Review Mistakes"
+            )
         }
         #if DEBUG
-        .navigationDestination(isPresented: $isShowingDatasetCapture) {
+        .sheet(isPresented: $isShowingDatasetCapture) {
             DatasetCaptureView()
         }
         #endif
         .onChange(of: deepLinkRouter.activeDestination) { _, newDest in
-            if case .practice = newDest {
-                isShowingCameraPractice = true
-                deepLinkRouter.activeDestination = nil
+            handleDestination(newDest)
+        }
+    }
+
+    // MARK: - Header
+
+    private var headerView: some View {
+        HStack(spacing: 12) {
+            // App Logo Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.brandTurquoise.opacity(0.14))
+                    .frame(width: 40, height: 40)
+
+                Image(systemName: "hand.raised.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.brandTurquoise)
+            }
+
+            Text("Learn Hub")
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(Color.textPrimary)
+
+            Spacer()
+
+            // Streak Pill
+            HStack(spacing: 5) {
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.brandYellow)
+
+                Text("\(viewModel?.currentStreak ?? 7)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.brandYellow.opacity(0.18), in: Capsule())
+            .accessibilityLabel("Current streak: \(viewModel?.currentStreak ?? 7) days")
+
+            // Profile Button
+            ProfileAvatarButton {
+                deepLinkRouter.openProfile()
             }
         }
     }
 
-    private func moduleCard(icon: String, color: Color, title: String, description: String, badge: String) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundStyle(color)
-                .frame(width: 44, height: 44)
-                .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+    // MARK: - Daily Mastery Goal Card
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .semibold))
+    private var dailyGoalCard: some View {
+        let metrics = viewModel?.metrics ?? LearnHubMetrics()
+
+        return HStack(spacing: 14) {
+            // Sparkle Icon Circle
+            ZStack {
+                Circle()
+                    .fill(Color.brandTurquoise.opacity(0.14))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: "sparkles")
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color.brandTurquoise)
+            }
+
+            // Goal Title & Subtitle
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Daily Mastery Goal")
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(Color.textPrimary)
 
-                Text(description)
-                    .font(.system(size: 12))
+                Text("\(metrics.dailyGoalVerified) of \(metrics.dailyGoalTarget) signs verified today")
+                    .font(.system(size: 13))
                     .foregroundStyle(Color.textSecondary)
             }
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color.textSecondary)
+            // Progress Dots
+            HStack(spacing: 6) {
+                ForEach(0..<metrics.dailyGoalTarget, id: \.self) { index in
+                    Circle()
+                        .fill(index < metrics.dailyGoalVerified ? Color.brandTurquoise : Color.gray.opacity(0.25))
+                        .frame(width: 9, height: 9)
+                }
+            }
         }
         .padding(Theme.Spacing.m)
-        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Daily Mastery Goal: \(metrics.dailyGoalVerified) of \(metrics.dailyGoalTarget) signs verified today")
+    }
+
+    // MARK: - Curriculum Cards
+
+    private var curriculumSection: some View {
+        let metrics = viewModel?.metrics ?? LearnHubMetrics()
+
+        return VStack(spacing: 14) {
+            // 1. Alphabet Card
+            NavigationLink {
+                FingerspellingPathView()
+            } label: {
+                curriculumCard(
+                    title: "Alphabet",
+                    subtitle: "\(metrics.alphabetTotal) letters · \(metrics.alphabetMastered) mastered",
+                    badge: "Fingerspelling",
+                    percentDone: Int(metrics.alphabetProgress * 100),
+                    progress: metrics.alphabetProgress,
+                    imageName: "sign_a",
+                    tagLabel: "ASL"
+                )
+            }
+            .buttonStyle(.plain)
+
+            // 2. Words & Phrases Card
+            NavigationLink {
+                WordsPhrasesCategoriesView()
+            } label: {
+                curriculumCard(
+                    title: "Words & Phrases",
+                    subtitle: "\(metrics.wordsCategoriesCount) categories · \(metrics.wordsLearned) words learned",
+                    badge: "Conversational",
+                    percentDone: Int(metrics.wordsProgress * 100),
+                    progress: metrics.wordsProgress,
+                    imageName: "sign_hello",
+                    tagLabel: "CORE"
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func curriculumCard(
+        title: String,
+        subtitle: String,
+        badge: String,
+        percentDone: Int,
+        progress: Double,
+        imageName: String,
+        tagLabel: String
+    ) -> some View {
+        HStack(spacing: 14) {
+            // Thumbnail Image with Tag Overlay
+            ZStack(alignment: .bottomLeading) {
+                Group {
+                    if let _ = UIImage(named: imageName) {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Color.brandNavy.opacity(0.08)
+                            .overlay(
+                                Image(systemName: "hand.raised.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundStyle(Color.brandTurquoise)
+                            )
+                    }
+                }
+                .frame(width: 76, height: 76)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                // Tag Label Overlay (e.g. "ASL" / "CORE")
+                Text(tagLabel)
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(Color.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.brandNavy.opacity(0.85), in: RoundedRectangle(cornerRadius: 4))
+                    .padding(5)
+            }
+
+            // Info Column
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary.opacity(0.6))
+                }
+
+                Text(subtitle)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.textSecondary)
+
+                HStack(spacing: 8) {
+                    Text(badge)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.brandTurquoise)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.brandTurquoise.opacity(0.12), in: Capsule())
+
+                    Text("\(percentDone)% done")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.brandTurquoise)
+                }
+                .padding(.top, 2)
+            }
+
+            Spacer()
+
+            // Circular Progress Ring
+            ProgressRingView(
+                progress: progress,
+                ringSize: 52,
+                strokeWidth: 5,
+                ringColor: Color.brandTurquoise
+            )
+        }
+        .padding(Theme.Spacing.m)
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
+    }
+
+    // MARK: - Practice & Review Fast Track
+
+    private var practiceAndReviewSection: some View {
+        let metrics = viewModel?.metrics ?? LearnHubMetrics()
+
+        return VStack(alignment: .leading, spacing: 12) {
+            // Section Title
+            HStack {
+                Text("Practice & Review")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+
+                Spacer()
+
+                Text("FAST TRACK")
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(0.8)
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            // Two Fast-Track Cards
+            HStack(spacing: 12) {
+                // Card 1: Quiz Yourself
+                Button {
+                    triggerHaptic()
+                    viewModel?.startSpeedRun()
+                } label: {
+                    VStack(alignment: .leading, spacing: 10) {
+                        // Lightning Icon
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.brandYellow.opacity(0.22))
+                                .frame(width: 38, height: 38)
+
+                            Image(systemName: "bolt.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color.brandYellow)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Quiz yourself")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(Color.textPrimary)
+
+                            Text("Test your recognition speed")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color.textSecondary)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        Spacer(minLength: 12)
+
+                        HStack(spacing: 4) {
+                            Text("Start speed run")
+                                .font(.system(size: 13, weight: .bold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                        .foregroundStyle(Color.brandTurquoise)
+                    }
+                    .padding(Theme.Spacing.m)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: 170)
+                    .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Quiz yourself: Test your recognition speed. Start speed run.")
+
+                // Card 2: Review Mistakes
+                Button {
+                    triggerHaptic()
+                    viewModel?.startMistakesReview()
+                } label: {
+                    VStack(alignment: .leading, spacing: 10) {
+                        // Exclamation Mark Icon with Badge
+                        ZStack(alignment: .topTrailing) {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.danger.opacity(0.12))
+                                .frame(width: 38, height: 38)
+
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(Color.danger)
+
+                            // Count Badge Overlay
+                            if metrics.mistakesCount > 0 {
+                                Text("\(metrics.mistakesCount)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(Color.white)
+                                    .frame(width: 17, height: 17)
+                                    .background(Color.danger, in: Circle())
+                                    .offset(x: 5, y: -5)
+                            }
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Review mistakes")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(Color.textPrimary)
+
+                            Text("\(metrics.mistakesCount) signs to polish")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color.textSecondary)
+                        }
+
+                        Spacer(minLength: 12)
+
+                        HStack(spacing: 4) {
+                            Text("Quick practice")
+                                .font(.system(size: 13, weight: .bold))
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                        .foregroundStyle(Color.textPrimary)
+                    }
+                    .padding(Theme.Spacing.m)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: 170)
+                    .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Review mistakes: \(metrics.mistakesCount) signs to polish. Quick practice.")
+            }
+        }
+    }
+
+    // MARK: - Developer Tools
+
+    #if DEBUG
+    private var developerSection: some View {
+        VStack(spacing: 10) {
+            Button {
+                isShowingCameraPractice = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "camera.viewfinder")
+                    Text("AI Practice Mirror (Step 5.3 Preview)")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(Color.brandTurquoise)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.brandTurquoise.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                isShowingDatasetCapture = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "camera.badge.ellipsis")
+                    Text("Dataset Capture Tool")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(Color.textSecondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    #endif
+
+    // MARK: - Sheets
+
+    private var speedRunQuizSheet: some View {
+        let allSigns = dependencies.signCatalogService.allSigns()
+        let pool = dependencies.signCatalogService.signs(forCategory: "alphabet")
+        let questions = QuizEngine.generateQuestions(
+            from: !pool.isEmpty ? pool : allSigns,
+            allCatalogSigns: allSigns,
+            count: 10,
+            isSpeedRun: true
+        )
+
+        return QuizView(
+            questions: questions,
+            quizTitle: "Speed Run Quiz",
+            isSpeedRun: true
+        )
+    }
+
+    private var reviewMistakesSheet: some View {
+        LessonReviewMistakesView(
+            summary: viewModel?.makeReviewMistakesSummary(signCatalog: dependencies.signCatalogService) ?? LessonCompletionSummary(mistakes: []),
+            onStartPractice: { _ in
+                viewModel?.isMistakesPracticePresented = false
+                isShowingMistakesPractice = true
+            }
+        )
+    }
+
+    // MARK: - Navigation & Deep Links
+
+    private func handleDestination(_ destination: DeepLinkDestination?) {
+        guard let destination else { return }
+
+        switch destination {
+        case .practice:
+            isShowingCameraPractice = true
+            deepLinkRouter.activeDestination = nil
+
+        default:
+            break
+        }
+    }
+
+    private func triggerHaptic() {
+        #if canImport(UIKit)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #endif
     }
 }
 
-#Preview("Learn Root View") {
+#Preview("Learn Hub") {
     NavigationStack {
         LearnRootView(deepLinkRouter: DeepLinkRouter())
+            .environment(\.dependencies, .preview)
     }
 }

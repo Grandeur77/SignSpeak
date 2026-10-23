@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "sign_nurse.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 
 /// Central dependency-injection container for the SignSpeak app.
 /// The root application configures `AppDependencies.live`; previews and tests use `.preview` or dedicated mocks.
@@ -22,14 +25,21 @@ public struct AppDependencies: Sendable {
     var speechSynthesisService: any SpeechSynthesisServicing
     var conversationRepository: any ConversationRepository
     var communityRepository: any CommunityRepository
+    var signCatalogService: any SignCatalogServicing
 
     /// Production dependency container.
     static let live: AppDependencies = {
+        #if canImport(FirebaseCore)
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        #endif
+
         let dateProvider = SystemDateProvider()
         let cameraService = CameraService()
         let handPoseDetector = HandPoseDetector()
         let signClassifier: any SignClassifying = (try? SignClassifier()) ?? StubSignClassifier()
-        let motionSignClassifier: any MotionSignClassifying = MotionSignClassifier()
+        let motionSignClassifier: any MotionSignClassifying = MotionClassifier()
         let stabilityFilter = StabilityFilter(
             confidenceThreshold: 0.85,
             holdDuration: 1.0,
@@ -44,6 +54,14 @@ public struct AppDependencies: Sendable {
             dateProvider: dateProvider
         )
 
+        let userProfileRepository = FirestoreProfileRepository()
+        let publicProfileRepository = FirestorePublicProfileRepository()
+        let progressRepository = FirestoreProgressRepository(
+            userProfileRepository: userProfileRepository,
+            publicProfileRepository: publicProfileRepository,
+            dateProvider: dateProvider
+        )
+
         return AppDependencies(
             dateProvider: dateProvider,
             cameraService: cameraService,
@@ -52,17 +70,18 @@ public struct AppDependencies: Sendable {
             motionSignClassifier: motionSignClassifier,
             signRecognitionService: signRecognitionService,
             authService: FirebaseAuthService(),
-            userProfileRepository: FirestoreProfileRepository(),
-            publicProfileRepository: FirestorePublicProfileRepository(),
+            userProfileRepository: userProfileRepository,
+            publicProfileRepository: publicProfileRepository,
             avatarRepository: FirestoreAvatarRepository(),
-            progressRepository: StubProgressRepository(),
+            progressRepository: progressRepository,
             biometricAuthService: LocalAuthenticationBiometricService(),
             credentialVault: KeychainCredentialVault(),
             notificationService: LiveNotificationService(),
             speechRecognitionService: StubSpeechRecognitionService(),
             speechSynthesisService: StubSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),
-            communityRepository: StubCommunityRepository()
+            communityRepository: StubCommunityRepository(),
+            signCatalogService: SignCatalogService()
         )
     }()
 
@@ -111,7 +130,8 @@ public struct AppDependencies: Sendable {
                 body: "Completed the Alphabet chapter today! 🎉",
                 likeCount: 6
             )
-        ])
+        ]),
+        signCatalogService: SignCatalogService()
     )
 }
 

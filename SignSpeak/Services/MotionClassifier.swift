@@ -3,7 +3,7 @@ import CoreML
 
 /// Production classifier for dynamic ASL motion signs (J, Z, Hello, ThankYou, Please, etc.).
 /// Evaluates a temporal window of hand pose keypoint arrays at 30 fps using Create ML Hand Action models.
-public final class MotionSignClassifier: MotionSignClassifying, @unchecked Sendable {
+public final class MotionClassifier: MotionSignClassifying, @unchecked Sendable {
     public let targetFrameRate: Double
     public let predictionWindow: Int
 

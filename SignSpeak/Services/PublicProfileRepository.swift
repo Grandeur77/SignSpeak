@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 #if canImport(FirebaseFirestore)
 import FirebaseFirestore
 #endif
@@ -45,20 +48,31 @@ public protocol PublicProfileRepository: Sendable {
 #if canImport(FirebaseFirestore)
 /// Concrete implementation of `PublicProfileRepository` backed by Cloud Firestore.
 public final class FirestorePublicProfileRepository: PublicProfileRepository, @unchecked Sendable {
-    private let db: Firestore
+    private let customFirestore: Firestore?
+    private var db: Firestore? {
+        if let customFirestore { return customFirestore }
+        #if canImport(FirebaseCore)
+        guard FirebaseApp.app() != nil else { return nil }
+        return Firestore.firestore()
+        #else
+        return nil
+        #endif
+    }
     private let collectionName = "publicProfiles"
 
     public init(firestore: Firestore? = nil) {
-        self.db = firestore ?? Firestore.firestore()
+        self.customFirestore = firestore
     }
 
     public func fetchPublicProfile(userId: String) async throws -> PublicProfile? {
+        guard let db else { return nil }
         let doc = try await db.collection(collectionName).document(userId).getDocument()
         guard doc.exists else { return nil }
         return try doc.data(as: PublicProfile.self)
     }
 
     public func savePublicProfile(_ profile: PublicProfile) async throws {
+        guard let db else { return }
         try db.collection(collectionName).document(profile.id).setData(from: profile, merge: true)
     }
 

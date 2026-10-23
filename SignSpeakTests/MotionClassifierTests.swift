@@ -8,9 +8,9 @@ import CoreGraphics
 @Suite("Motion Sign Recognition & Arbitration Tests (Steps 2.2 - 2.4)")
 @MainActor
 struct MotionClassifierTests {
-    @Test("MotionSignClassifier initializes with 30 fps and 45-frame window")
+    @Test("MotionClassifier initializes with 30 fps and 45-frame window")
     func classifierConfiguration() {
-        let classifier = MotionSignClassifier(targetFrameRate: 30.0, predictionWindow: 45)
+        let classifier = MotionClassifier(targetFrameRate: 30.0, predictionWindow: 45)
 
         #expect(classifier.targetFrameRate == 30.0)
         #expect(classifier.predictionWindow == 45)
@@ -18,7 +18,7 @@ struct MotionClassifierTests {
 
     @Test("Classifier throws clear error when model is not bundled")
     func unbundledModelThrowsInitializationError() {
-        let classifier = MotionSignClassifier()
+        let classifier = MotionClassifier()
 
         // When MotionSignClassifier.mlmodel is not yet in the bundle, classify throws
         if !classifier.isModelLoaded {

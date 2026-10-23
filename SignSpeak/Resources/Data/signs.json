@@ -1,0 +1,2809 @@
+{
+  "categories": [
+    {
+      "id": "alphabet",
+      "name": "Alphabet",
+      "iconName": "character.bubble",
+      "description": "ASL manual alphabet fingerspelling from A to Z.",
+      "order": 1,
+      "introVideoName": "cat_alphabet_intro"
+    },
+    {
+      "id": "numbers",
+      "name": "Numbers",
+      "iconName": "number",
+      "description": "Cardinal counting numbers 1 through 10 in American Sign Language.",
+      "order": 2,
+      "introVideoName": "cat_numbers_intro"
+    },
+    {
+      "id": "greetings",
+      "name": "Greetings",
+      "iconName": "hand.wave",
+      "description": "Essential greetings and introductory conversation starters.",
+      "order": 3,
+      "introVideoName": "cat_greetings_intro"
+    },
+    {
+      "id": "courtesy",
+      "name": "Courtesy",
+      "iconName": "heart.text.square",
+      "description": "Polite expressions, gratitude, and social courtesy.",
+      "order": 4,
+      "introVideoName": "cat_courtesy_intro"
+    },
+    {
+      "id": "everyday",
+      "name": "Everyday",
+      "iconName": "calendar",
+      "description": "High-frequency conversational signs for daily life.",
+      "order": 5,
+      "introVideoName": "cat_everyday_intro"
+    },
+    {
+      "id": "family",
+      "name": "Family",
+      "iconName": "person.2",
+      "description": "Family members and interpersonal relationships.",
+      "order": 6,
+      "introVideoName": "cat_family_intro"
+    },
+    {
+      "id": "feelings",
+      "name": "Feelings",
+      "iconName": "face.smiling",
+      "description": "Emotions, states of mind, and personal expressions.",
+      "order": 7,
+      "introVideoName": "cat_feelings_intro"
+    },
+    {
+      "id": "food-drink",
+      "name": "Food & Drink",
+      "iconName": "cup.and.saucer",
+      "description": "Common foods, beverages, meals, and dining expressions.",
+      "order": 8,
+      "introVideoName": "cat_food_drink_intro"
+    },
+    {
+      "id": "healthcare",
+      "name": "Healthcare",
+      "iconName": "cross.case",
+      "description": "Medical signs, symptoms, pain levels, and doctor appointments.",
+      "order": 9,
+      "introVideoName": "cat_healthcare_intro"
+    },
+    {
+      "id": "workplace",
+      "name": "Workplace",
+      "iconName": "briefcase",
+      "description": "Office interactions, teamwork, schedules, and workplace communication.",
+      "order": 10,
+      "introVideoName": "cat_workplace_intro"
+    },
+    {
+      "id": "emergency",
+      "name": "Emergency",
+      "iconName": "exclamationmark.triangle",
+      "description": "Crucial urgent signs for safety, help, and first responders.",
+      "order": 11,
+      "introVideoName": "cat_emergency_intro"
+    }
+  ],
+  "units": [
+    {
+      "id": "unit-alphabet",
+      "title": "Manual Alphabet",
+      "description": "Master all 26 letters of American Sign Language fingerspelling.",
+      "lessonIds": [
+        "lesson-alphabet-1",
+        "lesson-alphabet-2",
+        "lesson-alphabet-3",
+        "lesson-alphabet-4",
+        "lesson-alphabet-5"
+      ],
+      "order": 1
+    },
+    {
+      "id": "unit-numbers",
+      "title": "Numbers & Counting",
+      "description": "Learn cardinal counting from 1 through 10.",
+      "lessonIds": [
+        "lesson-numbers-1"
+      ],
+      "order": 2
+    },
+    {
+      "id": "unit-words-phrases",
+      "title": "Words & Everyday Phrases",
+      "description": "High-frequency practical signs across everyday topics.",
+      "lessonIds": [
+        "lesson-greetings",
+        "lesson-courtesy",
+        "lesson-everyday",
+        "lesson-family",
+        "lesson-feelings",
+        "lesson-food-drink",
+        "lesson-healthcare",
+        "lesson-workplace",
+        "lesson-emergency"
+      ],
+      "order": 3
+    }
+  ],
+  "lessons": [
+    {
+      "id": "lesson-alphabet-1",
+      "unitId": "unit-alphabet",
+      "title": "Lesson 1: A – E",
+      "subtitle": "Foundational hand shapes and vowels.",
+      "category": "alphabet",
+      "signIds": [
+        "sign-letter-a",
+        "sign-letter-b",
+        "sign-letter-c",
+        "sign-letter-d",
+        "sign-letter-e"
+      ],
+      "order": 1,
+      "proTip": "Keep your wrist relaxed and thumb positioning precise."
+    },
+    {
+      "id": "lesson-alphabet-2",
+      "unitId": "unit-alphabet",
+      "title": "Lesson 2: F – J",
+      "subtitle": "First dynamic sign and open handshapes.",
+      "category": "alphabet",
+      "signIds": [
+        "sign-letter-f",
+        "sign-letter-g",
+        "sign-letter-h",
+        "sign-letter-i",
+        "sign-letter-j"
+      ],
+      "order": 2,
+      "proTip": "Pay close attention to J's scooping motion!"
+    },
+    {
+      "id": "lesson-alphabet-3",
+      "unitId": "unit-alphabet",
+      "title": "Lesson 3: K – O",
+      "subtitle": "Finger crossovers and distinct thumb locks.",
+      "category": "alphabet",
+      "signIds": [
+        "sign-letter-k",
+        "sign-letter-l",
+        "sign-letter-m",
+        "sign-letter-n",
+        "sign-letter-o"
+      ],
+      "order": 3,
+      "proTip": "Notice the subtle difference between M and N."
+    },
+    {
+      "id": "lesson-alphabet-4",
+      "unitId": "unit-alphabet",
+      "title": "Lesson 4: P – T",
+      "subtitle": "Inverted shapes and tricky letter crosses.",
+      "category": "alphabet",
+      "signIds": [
+        "sign-letter-p",
+        "sign-letter-q",
+        "sign-letter-r",
+        "sign-letter-s",
+        "sign-letter-t"
+      ],
+      "order": 4,
+      "proTip": "P is simply K pointing down to the ground."
+    },
+    {
+      "id": "lesson-alphabet-5",
+      "unitId": "unit-alphabet",
+      "title": "Lesson 5: U – Z",
+      "subtitle": "Final letters and dynamic letter Z.",
+      "category": "alphabet",
+      "signIds": [
+        "sign-letter-u",
+        "sign-letter-v",
+        "sign-letter-w",
+        "sign-letter-x",
+        "sign-letter-y",
+        "sign-letter-z"
+      ],
+      "order": 5,
+      "proTip": "U has united fingers; V has victory spread fingers."
+    },
+    {
+      "id": "lesson-numbers-1",
+      "unitId": "unit-numbers",
+      "title": "Numbers 1 – 10",
+      "subtitle": "Counting and cardinal numbers in ASL.",
+      "category": "numbers",
+      "signIds": [
+        "sign-number-1",
+        "sign-number-2",
+        "sign-number-3",
+        "sign-number-4",
+        "sign-number-5",
+        "sign-number-6",
+        "sign-number-7",
+        "sign-number-8",
+        "sign-number-9",
+        "sign-number-10"
+      ],
+      "order": 6,
+      "proTip": "Remember that in ASL 1 through 5, your palm faces inward toward yourself!"
+    },
+    {
+      "id": "lesson-greetings",
+      "unitId": "unit-words-phrases",
+      "title": "Greetings Essentials",
+      "subtitle": "Core greetings signs for real-world interactions.",
+      "category": "greetings",
+      "signIds": [
+        "sign-word-hello",
+        "sign-word-goodmorning",
+        "sign-word-goodnight",
+        "sign-word-goodbye",
+        "sign-word-welcome",
+        "sign-word-howareyou",
+        "sign-word-nicetomeetyou"
+      ],
+      "order": 7,
+      "proTip": "Practise Greetings signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-courtesy",
+      "unitId": "unit-words-phrases",
+      "title": "Courtesy Essentials",
+      "subtitle": "Core courtesy signs for real-world interactions.",
+      "category": "courtesy",
+      "signIds": [
+        "sign-word-please",
+        "sign-word-thankyou",
+        "sign-word-sorry",
+        "sign-word-excuseme",
+        "sign-word-yourewelcome",
+        "sign-word-good",
+        "sign-word-bad"
+      ],
+      "order": 8,
+      "proTip": "Practise Courtesy signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-everyday",
+      "unitId": "unit-words-phrases",
+      "title": "Everyday Essentials",
+      "subtitle": "Core everyday signs for real-world interactions.",
+      "category": "everyday",
+      "signIds": [
+        "sign-word-yes",
+        "sign-word-no",
+        "sign-word-maybe",
+        "sign-word-name",
+        "sign-word-deaf",
+        "sign-word-hearing",
+        "sign-word-sign",
+        "sign-word-friend",
+        "sign-word-time",
+        "sign-word-today",
+        "sign-word-tomorrow"
+      ],
+      "order": 9,
+      "proTip": "Practise Everyday signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-family",
+      "unitId": "unit-words-phrases",
+      "title": "Family Essentials",
+      "subtitle": "Core family signs for real-world interactions.",
+      "category": "family",
+      "signIds": [
+        "sign-word-mother",
+        "sign-word-father",
+        "sign-word-brother",
+        "sign-word-sister",
+        "sign-word-baby",
+        "sign-word-family",
+        "sign-word-son",
+        "sign-word-daughter",
+        "sign-word-grandmother",
+        "sign-word-grandfather"
+      ],
+      "order": 10,
+      "proTip": "Practise Family signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-feelings",
+      "unitId": "unit-words-phrases",
+      "title": "Feelings Essentials",
+      "subtitle": "Core feelings signs for real-world interactions.",
+      "category": "feelings",
+      "signIds": [
+        "sign-word-happy",
+        "sign-word-sad",
+        "sign-word-angry",
+        "sign-word-tired",
+        "sign-word-excited",
+        "sign-word-scared",
+        "sign-word-fine",
+        "sign-word-confused",
+        "sign-word-love"
+      ],
+      "order": 11,
+      "proTip": "Practise Feelings signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-food-drink",
+      "unitId": "unit-words-phrases",
+      "title": "Food & Drink Essentials",
+      "subtitle": "Core food & drink signs for real-world interactions.",
+      "category": "food-drink",
+      "signIds": [
+        "sign-word-water",
+        "sign-word-food",
+        "sign-word-eat",
+        "sign-word-drink",
+        "sign-word-milk",
+        "sign-word-bread",
+        "sign-word-apple",
+        "sign-word-coffee",
+        "sign-word-tea",
+        "sign-word-hungry",
+        "sign-word-thirsty"
+      ],
+      "order": 12,
+      "proTip": "Practise Food & Drink signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-healthcare",
+      "unitId": "unit-words-phrases",
+      "title": "Healthcare Essentials",
+      "subtitle": "Core healthcare signs for real-world interactions.",
+      "category": "healthcare",
+      "signIds": [
+        "sign-word-pain",
+        "sign-word-sick",
+        "sign-word-fever",
+        "sign-word-doctor",
+        "sign-word-nurse",
+        "sign-word-appointment",
+        "sign-word-headache"
+      ],
+      "order": 13,
+      "proTip": "Practise Healthcare signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-workplace",
+      "unitId": "unit-words-phrases",
+      "title": "Workplace Essentials",
+      "subtitle": "Core workplace signs for real-world interactions.",
+      "category": "workplace",
+      "signIds": [
+        "sign-word-work",
+        "sign-word-meeting",
+        "sign-word-office",
+        "sign-word-boss",
+        "sign-word-email",
+        "sign-word-break",
+        "sign-word-project",
+        "sign-word-schedule"
+      ],
+      "order": 14,
+      "proTip": "Practise Workplace signs with natural facial expressions."
+    },
+    {
+      "id": "lesson-emergency",
+      "unitId": "unit-words-phrases",
+      "title": "Emergency Essentials",
+      "subtitle": "Core emergency signs for real-world interactions.",
+      "category": "emergency",
+      "signIds": [
+        "sign-word-help",
+        "sign-word-emergency",
+        "sign-word-hospital",
+        "sign-word-police",
+        "sign-word-fire",
+        "sign-word-hurt",
+        "sign-word-danger",
+        "sign-word-medicine"
+      ],
+      "order": 15,
+      "proTip": "Practise Emergency signs with natural facial expressions."
+    }
+  ],
+  "signs": [
+    {
+      "id": "sign-letter-a",
+      "name": "A",
+      "pronunciationHint": "AY",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Fist with thumb resting firmly against the side of the index finger.",
+      "howToSteps": [
+        "Curl all four fingers tightly into your palm.",
+        "Rest your upright thumb flush against the side of the index finger.",
+        "Face your palm forward towards the conversation partner."
+      ],
+      "commonMistake": "Do not wrap your thumb over your fingers (that makes an S).",
+      "mnemonicTip": "Imagine hitchhiking with a clenched fist.",
+      "imageName": "sign_letter_a",
+      "frontVideoName": "video_letter_a_front",
+      "sideVideoName": "video_letter_a_side"
+    },
+    {
+      "id": "sign-letter-b",
+      "name": "B",
+      "pronunciationHint": "BEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Open hand with four fingers straight up together and thumb folded across the palm.",
+      "howToSteps": [
+        "Hold all four fingers upright, straight and touching each other.",
+        "Fold your thumb across your open palm resting gently over the lower joints.",
+        "Keep your wrist steady with palm facing forward."
+      ],
+      "commonMistake": "Allowing gaps between fingers resembles the number 4.",
+      "mnemonicTip": "Think of holding up a flat board (B for Board).",
+      "imageName": "sign_letter_b",
+      "frontVideoName": "video_letter_b_front",
+      "sideVideoName": "video_letter_b_side"
+    },
+    {
+      "id": "sign-letter-c",
+      "name": "C",
+      "pronunciationHint": "SEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Curved hand forming the letter C with fingers together and thumb opposed.",
+      "howToSteps": [
+        "Curve all four fingers together in a smooth arc.",
+        "Oppose your thumb below them to trace a semi-circle.",
+        "Hold at chest height with the opening facing slightly left/center."
+      ],
+      "commonMistake": "Do not close fingers too tightly or flatten the arch.",
+      "mnemonicTip": "Your hand literally outlines the letter C.",
+      "imageName": "sign_letter_c",
+      "frontVideoName": "video_letter_c_front",
+      "sideVideoName": "video_letter_c_side"
+    },
+    {
+      "id": "sign-letter-d",
+      "name": "D",
+      "pronunciationHint": "DEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index finger pointing straight up while thumb touches the tips of the other three curled fingers.",
+      "howToSteps": [
+        "Extend your index finger straight toward the ceiling.",
+        "Curl your middle, ring, and pinky fingers downward.",
+        "Touch your thumb pad to the tips of those three curled fingers."
+      ],
+      "commonMistake": "Confusing D with F (in F, the thumb touches the index finger instead).",
+      "mnemonicTip": "Index finger stands tall like the stem of a lowercase 'd'.",
+      "imageName": "sign_letter_d",
+      "frontVideoName": "video_letter_d_front",
+      "sideVideoName": "video_letter_d_side"
+    },
+    {
+      "id": "sign-letter-e",
+      "name": "E",
+      "pronunciationHint": "EE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "All four fingertips curled down tightly to touch the top of your tucked thumb.",
+      "howToSteps": [
+        "Curl all four fingertips downward tightly.",
+        "Tuck your thumb across your palm directly under the fingertips.",
+        "Ensure your fingertips rest on the side or edge of your thumb."
+      ],
+      "commonMistake": "Confusing E with S (in S, fingers make a closed fist over the thumb).",
+      "mnemonicTip": "Look at the claws of an eagle perched tight.",
+      "imageName": "sign_letter_e",
+      "frontVideoName": "video_letter_e_front",
+      "sideVideoName": "video_letter_e_side"
+    },
+    {
+      "id": "sign-letter-f",
+      "name": "F",
+      "pronunciationHint": "EFF",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index finger and thumb touch to form a circle while middle, ring, and pinky flare upright.",
+      "howToSteps": [
+        "Touch the pad of your index finger to the tip of your thumb, forming an 'O'.",
+        "Extend your middle, ring, and little fingers straight up and slightly spread.",
+        "Palm faces forward."
+      ],
+      "commonMistake": "Confusing F with D or the OK sign's position.",
+      "mnemonicTip": "F has Three Free Fingers Flying like Feathers.",
+      "imageName": "sign_letter_f",
+      "frontVideoName": "video_letter_f_front",
+      "sideVideoName": "video_letter_f_side"
+    },
+    {
+      "id": "sign-letter-g",
+      "name": "G",
+      "pronunciationHint": "JEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index finger and thumb extended horizontally parallel to each other, pointing sideways.",
+      "howToSteps": [
+        "Curl middle, ring, and pinky fingers against your palm.",
+        "Extend your index finger horizontally pointing across your body.",
+        "Extend your thumb parallel right below the index finger."
+      ],
+      "commonMistake": "Pointing fingers forward instead of horizontally across your chest.",
+      "mnemonicTip": "Measuring the thickness of a Green Grape between thumb and index.",
+      "imageName": "sign_letter_g",
+      "frontVideoName": "video_letter_g_front",
+      "sideVideoName": "video_letter_g_side"
+    },
+    {
+      "id": "sign-letter-h",
+      "name": "H",
+      "pronunciationHint": "AYTCH",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index and middle fingers extended straight horizontally together with thumb tucked underneath.",
+      "howToSteps": [
+        "Extend index and middle fingers together horizontally pointing sideways.",
+        "Keep thumb tucked flat under your middle finger.",
+        "Palm faces inward toward your chest."
+      ],
+      "commonMistake": "Letting the two fingers split apart (they must stay joined).",
+      "mnemonicTip": "Two horizontal bars like the crossbars of H.",
+      "imageName": "sign_letter_h",
+      "frontVideoName": "video_letter_h_front",
+      "sideVideoName": "video_letter_h_side"
+    },
+    {
+      "id": "sign-letter-i",
+      "name": "I",
+      "pronunciationHint": "EYE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Fist with only the pinky finger extended straight up into the air.",
+      "howToSteps": [
+        "Make a tight fist with thumb wrapped across your three middle fingers.",
+        "Extend your little finger (pinky) straight upward.",
+        "Palm faces forward toward the viewer."
+      ],
+      "commonMistake": "Letting the thumb poke out or loosening the other three fingers.",
+      "mnemonicTip": "The pinky finger is the tiny vertical line of the letter 'i'.",
+      "imageName": "sign_letter_i",
+      "frontVideoName": "video_letter_i_front",
+      "sideVideoName": "video_letter_i_side"
+    },
+    {
+      "id": "sign-letter-j",
+      "name": "J",
+      "pronunciationHint": "JAY",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "motion",
+      "description": "Form the 'I' sign with pinky upright, then trace the letter J in the air with a downward curve.",
+      "howToSteps": [
+        "Start with your hand in the letter 'I' position (pinky extended).",
+        "Dip your hand down and scoop outward in the shape of a fishing hook.",
+        "End with your palm facing toward yourself."
+      ],
+      "commonMistake": "Moving the entire arm rather than initiating from the wrist.",
+      "mnemonicTip": "Your pinky acts as a pen drawing a hook in the air.",
+      "imageName": "sign_letter_j",
+      "frontVideoName": "video_letter_j_front",
+      "sideVideoName": "video_letter_j_side"
+    },
+    {
+      "id": "sign-letter-k",
+      "name": "K",
+      "pronunciationHint": "KAY",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index finger pointing up, middle finger angled forward 45 degrees, thumb resting between them.",
+      "howToSteps": [
+        "Point index finger straight up.",
+        "Angle your middle finger forward at roughly a 45-degree angle.",
+        "Place your thumb pad right at the crook between index and middle."
+      ],
+      "commonMistake": "Confusing with V (V has both fingers up with no thumb between).",
+      "mnemonicTip": "Fingers create the two angled arms of the letter K.",
+      "imageName": "sign_letter_k",
+      "frontVideoName": "video_letter_k_front",
+      "sideVideoName": "video_letter_k_side"
+    },
+    {
+      "id": "sign-letter-l",
+      "name": "L",
+      "pronunciationHint": "ELL",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index finger pointing up and thumb extended outward at a 90-degree right angle.",
+      "howToSteps": [
+        "Extend your index finger straight up.",
+        "Stick your thumb out horizontally to the side at 90 degrees.",
+        "Fold the other three fingers flat into your palm."
+      ],
+      "commonMistake": "Pointing thumb down or tilting hand diagonally.",
+      "mnemonicTip": "Your hand forms an unmistakable 'L' shape.",
+      "imageName": "sign_letter_l",
+      "frontVideoName": "video_letter_l_front",
+      "sideVideoName": "video_letter_l_side"
+    },
+    {
+      "id": "sign-letter-m",
+      "name": "M",
+      "pronunciationHint": "EM",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb tucked under the first three curled fingers (index, middle, ring).",
+      "howToSteps": [
+        "Tuck your thumb across your palm.",
+        "Fold index, middle, and ring fingers over top of the thumb.",
+        "Pinky curls into the palm beside them."
+      ],
+      "commonMistake": "Confusing with N (M covers 3 fingers; N covers 2).",
+      "mnemonicTip": "Three fingers over thumb like the three downward humps of an 'm'.",
+      "imageName": "sign_letter_m",
+      "frontVideoName": "video_letter_m_front",
+      "sideVideoName": "video_letter_m_side"
+    },
+    {
+      "id": "sign-letter-n",
+      "name": "N",
+      "pronunciationHint": "EN",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb tucked under the first two curled fingers (index and middle).",
+      "howToSteps": [
+        "Tuck your thumb across your palm.",
+        "Fold only index and middle fingers over the thumb.",
+        "Ring and pinky curl directly into your palm."
+      ],
+      "commonMistake": "Confusing with M or T.",
+      "mnemonicTip": "Two fingers over thumb like the two peaks of an 'n'.",
+      "imageName": "sign_letter_n",
+      "frontVideoName": "video_letter_n_front",
+      "sideVideoName": "video_letter_n_side"
+    },
+    {
+      "id": "sign-letter-o",
+      "name": "O",
+      "pronunciationHint": "OH",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "All fingers and thumb curve together to touch at the tips, forming an O.",
+      "howToSteps": [
+        "Curve all four fingers downward together.",
+        "Bring your thumb up to meet all fingertips.",
+        "Create a complete circle viewed from the front."
+      ],
+      "commonMistake": "Flattening the fingers into an oval or pinching too flat.",
+      "mnemonicTip": "Your hand makes a round, hollow 'O'.",
+      "imageName": "sign_letter_o",
+      "frontVideoName": "video_letter_o_front",
+      "sideVideoName": "video_letter_o_side"
+    },
+    {
+      "id": "sign-letter-p",
+      "name": "P",
+      "pronunciationHint": "PEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "The 'K' handshape pointed downwards toward the floor.",
+      "howToSteps": [
+        "Form the 'K' sign (index up, middle angled, thumb between).",
+        "Tilt your wrist forward so the index finger points downward toward the ground.",
+        "Middle finger extends outward horizontally."
+      ],
+      "commonMistake": "Losing the thumb placement between the two fingers.",
+      "mnemonicTip": "P is simply a dropped, sleepy 'K' pointing to the Pavement.",
+      "imageName": "sign_letter_p",
+      "frontVideoName": "video_letter_p_front",
+      "sideVideoName": "video_letter_p_side"
+    },
+    {
+      "id": "sign-letter-q",
+      "name": "Q",
+      "pronunciationHint": "KYOO",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "The 'G' handshape turned downwards toward the floor.",
+      "howToSteps": [
+        "Form the 'G' handshape (index and thumb parallel).",
+        "Point both fingers directly down toward the floor.",
+        "Palm faces slightly toward your body."
+      ],
+      "commonMistake": "Letting other fingers uncurl.",
+      "mnemonicTip": "Q is a G pointing down to Quick sand.",
+      "imageName": "sign_letter_q",
+      "frontVideoName": "video_letter_q_front",
+      "sideVideoName": "video_letter_q_side"
+    },
+    {
+      "id": "sign-letter-r",
+      "name": "R",
+      "pronunciationHint": "AHR",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index and middle fingers crossed tightly together, pointing straight up.",
+      "howToSteps": [
+        "Extend your index and middle fingers upward.",
+        "Cross your middle finger over in front of your index finger.",
+        "Thumb secures folded ring and pinky fingers."
+      ],
+      "commonMistake": "Crossing the wrong way or separating the fingers.",
+      "mnemonicTip": "Crossing your fingers for good luck (R for Ready).",
+      "imageName": "sign_letter_r",
+      "frontVideoName": "video_letter_r_front",
+      "sideVideoName": "video_letter_r_side"
+    },
+    {
+      "id": "sign-letter-s",
+      "name": "S",
+      "pronunciationHint": "ESS",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Tight fist with the thumb wrapped firmly across the front of all curled fingers.",
+      "howToSteps": [
+        "Curl all four fingers into a tight fist.",
+        "Wrap your thumb across the middle knuckles of all curled fingers.",
+        "Palm faces forward."
+      ],
+      "commonMistake": "Placing thumb to the side (which is A) instead of across the front.",
+      "mnemonicTip": "Thumb wraps tight like a Snake coiled around your fist.",
+      "imageName": "sign_letter_s",
+      "frontVideoName": "video_letter_s_front",
+      "sideVideoName": "video_letter_s_side"
+    },
+    {
+      "id": "sign-letter-t",
+      "name": "T",
+      "pronunciationHint": "TEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb tucked between the curled index finger and middle finger.",
+      "howToSteps": [
+        "Curl all four fingers into your palm.",
+        "Poke your thumb tip up between your index and middle fingers.",
+        "Palm faces forward."
+      ],
+      "commonMistake": "Confusing with M (3 fingers over) or N (2 fingers over). T has only 1 finger over thumb.",
+      "mnemonicTip": "Top of thumb peeking through like a Turtle head.",
+      "imageName": "sign_letter_t",
+      "frontVideoName": "video_letter_t_front",
+      "sideVideoName": "video_letter_t_side"
+    },
+    {
+      "id": "sign-letter-u",
+      "name": "U",
+      "pronunciationHint": "YOO",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index and middle fingers extended straight up and glued together side-by-side.",
+      "howToSteps": [
+        "Extend your index and middle fingers straight up toward the ceiling.",
+        "Press them firmly together with zero gap between them.",
+        "Fold thumb over ring and pinky fingers."
+      ],
+      "commonMistake": "Allowing a gap between fingers (that makes a V).",
+      "mnemonicTip": "U has the two fingers United together.",
+      "imageName": "sign_letter_u",
+      "frontVideoName": "video_letter_u_front",
+      "sideVideoName": "video_letter_u_side"
+    },
+    {
+      "id": "sign-letter-v",
+      "name": "V",
+      "pronunciationHint": "VEE",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index and middle fingers extended straight up in a separated 'V' shape.",
+      "howToSteps": [
+        "Extend index and middle fingers upright.",
+        "Spread them apart to form a distinct 'V' or peace sign.",
+        "Thumb secures folded ring and little fingers."
+      ],
+      "commonMistake": "Poking thumb between fingers (which makes a K).",
+      "mnemonicTip": "Classic Victory / Peace sign outlining the letter V.",
+      "imageName": "sign_letter_v",
+      "frontVideoName": "video_letter_v_front",
+      "sideVideoName": "video_letter_v_side"
+    },
+    {
+      "id": "sign-letter-w",
+      "name": "W",
+      "pronunciationHint": "DUB-uhl-yoo",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index, middle, and ring fingers extended upright and spread apart.",
+      "howToSteps": [
+        "Extend index, middle, and ring fingers straight up.",
+        "Spread all three fingers evenly apart.",
+        "Thumb holds pinky finger down against the palm."
+      ],
+      "commonMistake": "Spreading only two fingers or holding pinky upright.",
+      "mnemonicTip": "Three upright fingers form the three peaks of a 'W'.",
+      "imageName": "sign_letter_w",
+      "frontVideoName": "video_letter_w_front",
+      "sideVideoName": "video_letter_w_side"
+    },
+    {
+      "id": "sign-letter-x",
+      "name": "X",
+      "pronunciationHint": "EKS",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Fist with the index finger bent into a curved hook.",
+      "howToSteps": [
+        "Make a loose fist with your fingers.",
+        "Raise your index finger and bend it at the second knuckle like a hook.",
+        "Palm faces forward or slightly angled."
+      ],
+      "commonMistake": "Curling index completely flat or pointing thumb out.",
+      "mnemonicTip": "A pirate's hook marking the spot where X marks the treasure.",
+      "imageName": "sign_letter_x",
+      "frontVideoName": "video_letter_x_front",
+      "sideVideoName": "video_letter_x_side"
+    },
+    {
+      "id": "sign-letter-y",
+      "name": "Y",
+      "pronunciationHint": "WY",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Fist with thumb and pinky extended outward like a 'hang loose' sign.",
+      "howToSteps": [
+        "Curl middle three fingers firmly into your palm.",
+        "Extend your thumb out to one side and your pinky out to the other.",
+        "Palm faces forward."
+      ],
+      "commonMistake": "Angling hand horizontally instead of keeping palm upright.",
+      "mnemonicTip": "The classic 'shaka' or phone gesture outlining the two branches of Y.",
+      "imageName": "sign_letter_y",
+      "frontVideoName": "video_letter_y_front",
+      "sideVideoName": "video_letter_y_side"
+    },
+    {
+      "id": "sign-letter-z",
+      "name": "Z",
+      "pronunciationHint": "ZED",
+      "category": "alphabet",
+      "level": "beginner",
+      "frequencyTag": "Fingerspelling",
+      "handedness": "dominant",
+      "recognition": "motion",
+      "description": "Index finger extended, drawing a 'Z' shape across the air in front of you.",
+      "howToSteps": [
+        "Make a fist with your index finger pointing forward like a pencil.",
+        "Trace a horizontal line left to right.",
+        "Diagonal down-left, then horizontal left to right to draw a Z."
+      ],
+      "commonMistake": "Moving whole body instead of using a crisp wrist motion.",
+      "mnemonicTip": "Zorro carving his famous 'Z' with a single finger stroke.",
+      "imageName": "sign_letter_z",
+      "frontVideoName": "video_letter_z_front",
+      "sideVideoName": "video_letter_z_side"
+    },
+    {
+      "id": "sign-number-1",
+      "name": "1",
+      "pronunciationHint": "ONE",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index finger held upright with palm facing inward toward yourself.",
+      "howToSteps": [
+        "Make a fist with your dominant hand.",
+        "Extend your index finger straight up.",
+        "Face your palm backward toward your own chest/face."
+      ],
+      "commonMistake": "Facing palm outward (that represents the letter D in fingerspelling).",
+      "mnemonicTip": "Single tall candle.",
+      "imageName": "sign_number_1",
+      "frontVideoName": "video_number_1_front",
+      "sideVideoName": "video_number_1_side"
+    },
+    {
+      "id": "sign-number-2",
+      "name": "2",
+      "pronunciationHint": "TWO",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Index and middle fingers held upright together or slightly spread, palm facing inward.",
+      "howToSteps": [
+        "Extend index and middle fingers upward.",
+        "Keep palm facing inward toward your body.",
+        "Thumb holds ring and pinky fingers."
+      ],
+      "commonMistake": "Facing palm outward (which is letter V).",
+      "mnemonicTip": "Two eyes looking back at you.",
+      "imageName": "sign_number_2",
+      "frontVideoName": "video_number_2_front",
+      "sideVideoName": "video_number_2_side"
+    },
+    {
+      "id": "sign-number-3",
+      "name": "3",
+      "pronunciationHint": "THREE",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb, index, and middle fingers extended with palm facing inward.",
+      "howToSteps": [
+        "Extend your thumb, index finger, and middle finger.",
+        "Keep ring and pinky fingers folded into your palm.",
+        "Palm faces inward toward yourself."
+      ],
+      "commonMistake": "Using index, middle, and ring fingers (that is British sign or European count, not ASL!).",
+      "mnemonicTip": "ASL 3 always includes the thumb!",
+      "imageName": "sign_number_3",
+      "frontVideoName": "video_number_3_front",
+      "sideVideoName": "video_number_3_side"
+    },
+    {
+      "id": "sign-number-4",
+      "name": "4",
+      "pronunciationHint": "FOUR",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "All four fingers held upright and slightly spread, thumb tucked across palm.",
+      "howToSteps": [
+        "Extend four fingers upward.",
+        "Fold thumb flat against the palm.",
+        "Palm faces inward toward your chest."
+      ],
+      "commonMistake": "Spreading fingers too wide.",
+      "mnemonicTip": "Four fence posts stood tall.",
+      "imageName": "sign_number_4",
+      "frontVideoName": "video_number_4_front",
+      "sideVideoName": "video_number_4_side"
+    },
+    {
+      "id": "sign-number-5",
+      "name": "5",
+      "pronunciationHint": "FIVE",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "All five fingers extended and spread wide, palm facing inward.",
+      "howToSteps": [
+        "Extend all five fingers and thumb.",
+        "Spread them comfortably apart.",
+        "Hold at chest height with palm facing inward."
+      ],
+      "commonMistake": "Facing palm outward.",
+      "mnemonicTip": "Open high-five hand turned inward.",
+      "imageName": "sign_number_5",
+      "frontVideoName": "video_number_5_front",
+      "sideVideoName": "video_number_5_side"
+    },
+    {
+      "id": "sign-number-6",
+      "name": "6",
+      "pronunciationHint": "SIX",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb and pinky tips touch forming a circle, three middle fingers held upright.",
+      "howToSteps": [
+        "Hold hand upright with palm facing forward.",
+        "Bring the tip of your thumb to touch the tip of your pinky finger.",
+        "Extend index, middle, and ring fingers straight up."
+      ],
+      "commonMistake": "Touching the wrong finger (touching index is 9; touching middle is 8; touching ring is 7).",
+      "mnemonicTip": "Smallest finger (pinky) starts the higher numbers: 6.",
+      "imageName": "sign_number_6",
+      "frontVideoName": "video_number_6_front",
+      "sideVideoName": "video_number_6_side"
+    },
+    {
+      "id": "sign-number-7",
+      "name": "7",
+      "pronunciationHint": "SEVEN",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb and ring fingertip touch, while index, middle, and pinky stay upright.",
+      "howToSteps": [
+        "Hold hand upright with palm facing outward.",
+        "Touch your thumb pad to your ring fingertip.",
+        "Keep index, middle, and little finger upright."
+      ],
+      "commonMistake": "Touching pinky instead of ring finger.",
+      "mnemonicTip": "Ring finger count down.",
+      "imageName": "sign_number_7",
+      "frontVideoName": "video_number_7_front",
+      "sideVideoName": "video_number_7_side"
+    },
+    {
+      "id": "sign-number-8",
+      "name": "8",
+      "pronunciationHint": "EIGHT",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb and middle fingertip touch, while other three fingers stay upright.",
+      "howToSteps": [
+        "Hold hand upright with palm facing outward.",
+        "Touch your thumb pad to your middle fingertip.",
+        "Index, ring, and pinky remain extended upright."
+      ],
+      "commonMistake": "Touching ring finger instead of middle finger.",
+      "mnemonicTip": "Middle finger connection.",
+      "imageName": "sign_number_8",
+      "frontVideoName": "video_number_8_front",
+      "sideVideoName": "video_number_8_side"
+    },
+    {
+      "id": "sign-number-9",
+      "name": "9",
+      "pronunciationHint": "NINE",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "static",
+      "description": "Thumb and index fingertip touch (like OK sign), other three fingers upright.",
+      "howToSteps": [
+        "Hold hand upright with palm facing forward.",
+        "Touch your thumb pad to your index fingertip forming an 'O'.",
+        "Keep middle, ring, and pinky fingers extended upward."
+      ],
+      "commonMistake": "Confusing with letter F (F is a letter; 9 is signed identically in shape with neutral context).",
+      "mnemonicTip": "Nine is fine like an OK sign.",
+      "imageName": "sign_number_9",
+      "frontVideoName": "video_number_9_front",
+      "sideVideoName": "video_number_9_side"
+    },
+    {
+      "id": "sign-number-10",
+      "name": "10",
+      "pronunciationHint": "TEN",
+      "category": "numbers",
+      "level": "beginner",
+      "frequencyTag": "Counting",
+      "handedness": "dominant",
+      "recognition": "motion",
+      "description": "Thumbtack fist with thumb upright, shaken or rotated side to side twice.",
+      "howToSteps": [
+        "Make a fist with your thumb extended straight up (like a thumbs up).",
+        "Hold at shoulder level with palm facing inward/forward.",
+        "Rotate your wrist side-to-side in a small shaking motion twice."
+      ],
+      "commonMistake": "Over-rotating the arm or shaking the whole elbow.",
+      "mnemonicTip": "Thumbs up shaking with excitement for a perfect 10.",
+      "imageName": "sign_number_10",
+      "frontVideoName": "video_number_10_front",
+      "sideVideoName": "video_number_10_side"
+    },
+    {
+      "id": "sign-word-hello",
+      "name": "Hello",
+      "pronunciationHint": "HEH-loh",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "A friendly salute gesture moving away from your forehead.",
+      "howToSteps": [
+        "Place the flat side of your dominant open hand near your temple (like a salute).",
+        "Move your hand forward and outward away from your forehead with a gentle, smooth arc.",
+        "Smile and make friendly eye contact."
+      ],
+      "commonMistake": "Don't flick your hand too abruptly or touch your forehead too roughly.",
+      "mnemonicTip": "A warm military salute to a friend.",
+      "imageName": "sign_hello",
+      "frontVideoName": "video_hello_front",
+      "sideVideoName": "video_hello_side"
+    },
+    {
+      "id": "sign-word-goodmorning",
+      "name": "Good Morning",
+      "pronunciationHint": "good MOR-ning",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Compound sign: 'Good' followed by the sun rising over the horizon arm.",
+      "howToSteps": [
+        "Sign 'Good': touch chin with flat hand and bring down to resting palm.",
+        "Extend non-dominant arm horizontally across body as the horizon.",
+        "Dominant hand rises upward from behind the arm like the morning sun."
+      ],
+      "commonMistake": "Rushing the two signs together without distinct articulation.",
+      "mnemonicTip": "The sun rising up into a beautiful day.",
+      "imageName": "sign_goodmorning",
+      "frontVideoName": "video_goodmorning_front",
+      "sideVideoName": "video_goodmorning_side"
+    },
+    {
+      "id": "sign-word-goodnight",
+      "name": "Good Night",
+      "pronunciationHint": "good NYT",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Compound sign: 'Good' followed by the sun dropping below the horizon.",
+      "howToSteps": [
+        "Sign 'Good' from chin to non-dominant palm.",
+        "Rest non-dominant arm horizontally.",
+        "Dominant curved hand scoops downward over the arm like the sun setting into sleep."
+      ],
+      "commonMistake": "Curving the hand upward instead of dropping down.",
+      "mnemonicTip": "The sun dipping below the bed horizon.",
+      "imageName": "sign_goodnight",
+      "frontVideoName": "video_goodnight_front",
+      "sideVideoName": "video_goodnight_side"
+    },
+    {
+      "id": "sign-word-goodbye",
+      "name": "Goodbye",
+      "pronunciationHint": "good-BYE",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open flat hand waving fingers open and closed from the knuckles.",
+      "howToSteps": [
+        "Raise open flat hand to shoulder height, palm facing outward.",
+        "Fold fingers downward toward palm together twice in a warm wave.",
+        "Keep wrist relatively stationary."
+      ],
+      "commonMistake": "Waving side to side like a windshield wiper.",
+      "mnemonicTip": "A classic gentle farewell wave.",
+      "imageName": "sign_goodbye",
+      "frontVideoName": "video_goodbye_front",
+      "sideVideoName": "video_goodbye_side"
+    },
+    {
+      "id": "sign-word-welcome",
+      "name": "Welcome",
+      "pronunciationHint": "WEL-kum",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open curved hand sweeping inward toward your body with an inviting motion.",
+      "howToSteps": [
+        "Extend dominant open hand outward, palm tilted up.",
+        "Sweep your hand in an arc toward your torso invitingly.",
+        "Nod gently with a warm welcoming expression."
+      ],
+      "commonMistake": "Starting too close to your chest.",
+      "mnemonicTip": "Sweeping your hand as if gesturing 'come on in!'",
+      "imageName": "sign_welcome",
+      "frontVideoName": "video_welcome_front",
+      "sideVideoName": "video_welcome_side"
+    },
+    {
+      "id": "sign-word-howareyou",
+      "name": "How are you",
+      "pronunciationHint": "how ahr YOO",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Curved hands with backs together rolling upward, then pointing forward to the person.",
+      "howToSteps": [
+        "Place knuckles of both curved hands together facing down.",
+        "Roll hands upward and outward so palms face up.",
+        "Point index finger forward at the conversation partner ('you')."
+      ],
+      "commonMistake": "Forgetting the facial expression (furrow brow slightly for an inquiry).",
+      "mnemonicTip": "Opening up your hands to ask how someone's heart is.",
+      "imageName": "sign_howareyou",
+      "frontVideoName": "video_howareyou_front",
+      "sideVideoName": "video_howareyou_side"
+    },
+    {
+      "id": "sign-word-nicetomeetyou",
+      "name": "Nice to meet you",
+      "pronunciationHint": "nys too MEET yoo",
+      "category": "greetings",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Compound sign: 'Nice' (palms slide flat) + 'Meet' (two index fingers meet in center).",
+      "howToSteps": [
+        "Slide dominant palm forward across flat non-dominant palm ('Nice').",
+        "Bring both index fingers upright together until knuckles touch ('Meet').",
+        "Point index finger forward to 'You'."
+      ],
+      "commonMistake": "Bumping fingers too aggressively.",
+      "mnemonicTip": "Two people walking toward each other to greet.",
+      "imageName": "sign_nicetomeetyou",
+      "frontVideoName": "video_nicetomeetyou_front",
+      "sideVideoName": "video_nicetomeetyou_side"
+    },
+    {
+      "id": "sign-word-please",
+      "name": "Please",
+      "pronunciationHint": "PLEEZ",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Flat open hand rubbing in a gentle clockwise circle over your chest.",
+      "howToSteps": [
+        "Place your dominant open flat hand flat against the center of your chest.",
+        "Rub in circular, clockwise motions twice with fingers together.",
+        "Wear a polite, sincere facial expression."
+      ],
+      "commonMistake": "Making circles in the air without touching your chest.",
+      "mnemonicTip": "Rubbing your heart to show your polite intentions.",
+      "imageName": "sign_please",
+      "frontVideoName": "video_please_front",
+      "sideVideoName": "video_please_side"
+    },
+    {
+      "id": "sign-word-thankyou",
+      "name": "Thank You",
+      "pronunciationHint": "THANGK yoo",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Fingertips touch chin or lips and extend outward toward the person with a nod.",
+      "howToSteps": [
+        "Touch the fingertips of your flat open dominant hand to your chin or lower lip.",
+        "Move your hand smoothly forward and slightly down toward the other person.",
+        "Keep palm facing upward toward them."
+      ],
+      "commonMistake": "Do not blow a kiss or curl your fingers; keep palm open and respectful.",
+      "mnemonicTip": "Sending gratitude directly from your lips to them.",
+      "imageName": "sign_thankyou",
+      "frontVideoName": "video_thankyou_front",
+      "sideVideoName": "video_thankyou_side"
+    },
+    {
+      "id": "sign-word-sorry",
+      "name": "Sorry",
+      "pronunciationHint": "SAHR-ee",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'A' fist circling gently over the heart on your chest.",
+      "howToSteps": [
+        "Make an 'A' or 'S' fist with your dominant hand.",
+        "Place the knuckles flat against the center of your chest over your heart.",
+        "Rub in small circular motions twice with an apologetic expression."
+      ],
+      "commonMistake": "Using an open hand (which means Please) instead of a closed fist.",
+      "mnemonicTip": "Grinding your fist over a bruised, sorry heart.",
+      "imageName": "sign_sorry",
+      "frontVideoName": "video_sorry_front",
+      "sideVideoName": "video_sorry_side"
+    },
+    {
+      "id": "sign-word-excuseme",
+      "name": "Excuse Me",
+      "pronunciationHint": "ek-SKYOOZ mee",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant curved fingertips gently brushing across flat non-dominant palm twice.",
+      "howToSteps": [
+        "Hold non-dominant hand flat, palm facing up.",
+        "Curve dominant fingers like a rake and brush across non-dominant palm forward twice.",
+        "Tilt head with an inquisitive polite expression."
+      ],
+      "commonMistake": "Scraping too hard or brushing backwards.",
+      "mnemonicTip": "Gently sweeping away an obstacle to pass by.",
+      "imageName": "sign_excuseme",
+      "frontVideoName": "video_excuseme_front",
+      "sideVideoName": "video_excuseme_side"
+    },
+    {
+      "id": "sign-word-yourewelcome",
+      "name": "You're Welcome",
+      "pronunciationHint": "yor WEL-kum",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open hand nodding down or signing Welcome / Thank you back.",
+      "howToSteps": [
+        "Dominant open hand moves down in a polite nod or welcoming sweep.",
+        "Often signed by nodding with a polite smile, or signing 'Thank you' in return."
+      ],
+      "commonMistake": "Overcomplicating the gesture; in ASL, a warm head nod and open hand is natural.",
+      "mnemonicTip": "Accepting gratitude gracefully.",
+      "imageName": "sign_yourewelcome",
+      "frontVideoName": "video_yourewelcome_front",
+      "sideVideoName": "video_yourewelcome_side"
+    },
+    {
+      "id": "sign-word-good",
+      "name": "Good",
+      "pronunciationHint": "GOOD",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Fingertips touch chin and fall down into the waiting non-dominant palm.",
+      "howToSteps": [
+        "Touch flat dominant fingertips to your chin.",
+        "Bring hand down to land gently on the upturned palm of your non-dominant hand.",
+        "Smile with satisfaction."
+      ],
+      "commonMistake": "Confusing with Thank You (Good lands on the other hand; Thank You moves into empty space).",
+      "mnemonicTip": "Tasting something good and laying it gently in your hand.",
+      "imageName": "sign_good",
+      "frontVideoName": "video_good_front",
+      "sideVideoName": "video_good_side"
+    },
+    {
+      "id": "sign-word-bad",
+      "name": "Bad",
+      "pronunciationHint": "BAD",
+      "category": "courtesy",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Fingertips touch chin and flip forcefully downward away with palm facing down.",
+      "howToSteps": [
+        "Touch flat fingertips to your chin.",
+        "Flip your hand downward and outward with palm facing down toward the floor.",
+        "Grimace slightly or shake head to show disapproval."
+      ],
+      "commonMistake": "Dropping hand straight down without the downward flip.",
+      "mnemonicTip": "Spitting out something bad from your chin.",
+      "imageName": "sign_bad",
+      "frontVideoName": "video_bad_front",
+      "sideVideoName": "video_bad_side"
+    },
+    {
+      "id": "sign-word-yes",
+      "name": "Yes",
+      "pronunciationHint": "YES",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'S' fist nodding up and down from the wrist like a head nodding.",
+      "howToSteps": [
+        "Make an 'S' fist with your dominant hand held at chest height.",
+        "Nod your fist up and down twice bending only at the wrist.",
+        "Affirm with a gentle head nod."
+      ],
+      "commonMistake": "Pumping your whole arm up and down from the elbow.",
+      "mnemonicTip": "Your fist represents a head nodding in agreement.",
+      "imageName": "sign_yes",
+      "frontVideoName": "video_yes_front",
+      "sideVideoName": "video_yes_side"
+    },
+    {
+      "id": "sign-word-no",
+      "name": "No",
+      "pronunciationHint": "NOH",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Index and middle fingers snap down quickly onto the thumb pad.",
+      "howToSteps": [
+        "Hold index and middle fingers extended forward with thumb below them.",
+        "Snap the two fingers down firmly onto the thumb pad once or twice.",
+        "Shake your head slightly."
+      ],
+      "commonMistake": "Snapping only the index finger (must use both index and middle).",
+      "mnemonicTip": "A firm mouth snapping shut saying 'No!'",
+      "imageName": "sign_no",
+      "frontVideoName": "video_no_front",
+      "sideVideoName": "video_no_side"
+    },
+    {
+      "id": "sign-word-maybe",
+      "name": "Maybe",
+      "pronunciationHint": "MAY-bee",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both flat hands palms up rocking alternately up and down like scales.",
+      "howToSteps": [
+        "Hold both open flat hands in front of you with palms facing up.",
+        "Alternate raising one hand while lowering the other, like balancing scales.",
+        "Tilt head and shrug shoulders."
+      ],
+      "commonMistake": "Moving hands in unison instead of alternating.",
+      "mnemonicTip": "Weighing two possibilities on a balance scale.",
+      "imageName": "sign_maybe",
+      "frontVideoName": "video_maybe_front",
+      "sideVideoName": "video_maybe_side"
+    },
+    {
+      "id": "sign-word-name",
+      "name": "Name",
+      "pronunciationHint": "NAYM",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'H' handshapes tapped across each other twice at right angles.",
+      "howToSteps": [
+        "Form 'H' with both hands (index and middle fingers extended together).",
+        "Tap the dominant fingers across the non-dominant fingers twice in an 'X' cross.",
+        "Keep wrists steady."
+      ],
+      "commonMistake": "Tapping with single index fingers (which is the sign for Needle or Hurt).",
+      "mnemonicTip": "Carving your mark or signature on a wooden plaque.",
+      "imageName": "sign_name",
+      "frontVideoName": "video_name_front",
+      "sideVideoName": "video_name_side"
+    },
+    {
+      "id": "sign-word-deaf",
+      "name": "Deaf",
+      "pronunciationHint": "DEF",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Index finger touches near the ear then moves forward to touch near the mouth.",
+      "howToSteps": [
+        "Extend index finger pointing up.",
+        "Touch fingertip near your ear lobe, then arc forward to touch the corner of your mouth.",
+        "Can also be signed mouth-to-ear."
+      ],
+      "commonMistake": "Touching cheek instead of ear/mouth alignment.",
+      "mnemonicTip": "Connecting the ear and mouth in proud Deaf culture.",
+      "imageName": "sign_deaf",
+      "frontVideoName": "video_deaf_front",
+      "sideVideoName": "video_deaf_side"
+    },
+    {
+      "id": "sign-word-hearing",
+      "name": "Hearing",
+      "pronunciationHint": "HEER-ing",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Index finger rolling in small forward circles horizontally in front of the mouth.",
+      "howToSteps": [
+        "Hold index finger horizontally in front of your lips.",
+        "Roll finger in small forward circular motions toward the listener.",
+        "Neutral or conversational facial expression."
+      ],
+      "commonMistake": "Making circles around the ear (that is 'Listen' or 'Hear').",
+      "mnemonicTip": "Words continually rolling out of a hearing person's mouth.",
+      "imageName": "sign_hearing",
+      "frontVideoName": "video_hearing_front",
+      "sideVideoName": "video_hearing_side"
+    },
+    {
+      "id": "sign-word-sign",
+      "name": "Sign",
+      "pronunciationHint": "SYN",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both index fingers circling backward toward your chest in alternating rhythm.",
+      "howToSteps": [
+        "Point both index fingers inward toward each other at chest height.",
+        "Roll both hands in backward circles alternately, gesturing fluid movement.",
+        "Engage your upper body naturally."
+      ],
+      "commonMistake": "Circling forward away from body (forward circling is 'Argue' or 'Converse').",
+      "mnemonicTip": "Hands dancing in rhythm with the language of signs.",
+      "imageName": "sign_sign",
+      "frontVideoName": "video_sign_front",
+      "sideVideoName": "video_sign_side"
+    },
+    {
+      "id": "sign-word-friend",
+      "name": "Friend",
+      "pronunciationHint": "FREND",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Index fingers hooked into each other, then reversed and hooked again.",
+      "howToSteps": [
+        "Hook dominant index finger over non-dominant index finger.",
+        "Unlink, flip hands, and hook them in the reverse direction.",
+        "Smile warmly."
+      ],
+      "commonMistake": "Holding fingers straight instead of curved hooks.",
+      "mnemonicTip": "Two lives closely intertwined and linked together.",
+      "imageName": "sign_friend",
+      "frontVideoName": "video_friend_front",
+      "sideVideoName": "video_friend_side"
+    },
+    {
+      "id": "sign-word-time",
+      "name": "Time",
+      "pronunciationHint": "TYM",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant index finger tapping the wrist of the non-dominant hand twice.",
+      "howToSteps": [
+        "Hold non-dominant wrist still in front of chest.",
+        "Tap dominant index finger twice on the top of your wrist where a watch sits.",
+        "Inquire with raised eyebrows if asking 'What time?'"
+      ],
+      "commonMistake": "Tapping the inner wrist instead of the outer watch face.",
+      "mnemonicTip": "Tapping a wristwatch to check the hour.",
+      "imageName": "sign_time",
+      "frontVideoName": "video_time_front",
+      "sideVideoName": "video_time_side"
+    },
+    {
+      "id": "sign-word-today",
+      "name": "Today",
+      "pronunciationHint": "tuh-DAY",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'Y' handshapes dropped downward together twice in front of you.",
+      "howToSteps": [
+        "Form 'Y' handshapes with both hands (thumb and pinky out).",
+        "Drop both hands downward smoothly twice in front of your waist.",
+        "Can also sign 'Now' + 'Day'."
+      ],
+      "commonMistake": "Moving hands outward instead of straight down.",
+      "mnemonicTip": "Dropping anchor right here into today.",
+      "imageName": "sign_today",
+      "frontVideoName": "video_today_front",
+      "sideVideoName": "video_today_side"
+    },
+    {
+      "id": "sign-word-tomorrow",
+      "name": "Tomorrow",
+      "pronunciationHint": "tuh-MAHR-oh",
+      "category": "everyday",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'A' fist with thumb touching chin, then rotating forward into the future.",
+      "howToSteps": [
+        "Place thumb of 'A' fist against your dominant jaw or cheek.",
+        "Rotate wrist forward and arc your hand ahead into the space in front of you.",
+        "Keep movement fluid."
+      ],
+      "commonMistake": "Starting too far forward on the lips.",
+      "mnemonicTip": "Looking forward past the sunrise into tomorrow.",
+      "imageName": "sign_tomorrow",
+      "frontVideoName": "video_tomorrow_front",
+      "sideVideoName": "video_tomorrow_side"
+    },
+    {
+      "id": "sign-word-mother",
+      "name": "Mother",
+      "pronunciationHint": "MUH-ther",
+      "category": "family",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open '5' hand with thumb tapping the chin twice.",
+      "howToSteps": [
+        "Spread all five fingers of dominant hand wide.",
+        "Tap the tip of your thumb gently against your chin twice.",
+        "Warm, gentle expression."
+      ],
+      "commonMistake": "Tapping forehead instead of chin (forehead is Father!).",
+      "mnemonicTip": "Female signs in ASL are positioned on the lower face / chin line.",
+      "imageName": "sign_mother",
+      "frontVideoName": "video_mother_front",
+      "sideVideoName": "video_mother_side"
+    },
+    {
+      "id": "sign-word-father",
+      "name": "Father",
+      "pronunciationHint": "FAH-ther",
+      "category": "family",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open '5' hand with thumb tapping the forehead twice.",
+      "howToSteps": [
+        "Spread all five fingers wide with palm facing sideways/forward.",
+        "Tap thumb tip against the side of your forehead twice.",
+        "Keep hand steady."
+      ],
+      "commonMistake": "Tapping chin (chin is Mother!).",
+      "mnemonicTip": "Male signs in ASL are positioned on the upper face / forehead (resembling a cap brim).",
+      "imageName": "sign_father",
+      "frontVideoName": "video_father_front",
+      "sideVideoName": "video_father_side"
+    },
+    {
+      "id": "sign-word-brother",
+      "name": "Brother",
+      "pronunciationHint": "BRUH-ther",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'L' or '1' handshape from forehead coming down to rest on non-dominant index finger.",
+      "howToSteps": [
+        "Dominant 'L' hand touches forehead (male sign).",
+        "Brings down to clasp over non-dominant '1' hand waiting in front of chest.",
+        "Firm, clean motion."
+      ],
+      "commonMistake": "Starting on the chin (that would be Sister!).",
+      "mnemonicTip": "A male child born from the same family line.",
+      "imageName": "sign_brother",
+      "frontVideoName": "video_brother_front",
+      "sideVideoName": "video_brother_side"
+    },
+    {
+      "id": "sign-word-sister",
+      "name": "Sister",
+      "pronunciationHint": "SIS-ter",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'L' handshape from jawline coming down to rest on non-dominant index finger.",
+      "howToSteps": [
+        "Dominant 'L' thumb strokes side of chin/jaw (female sign).",
+        "Brings down to rest directly on non-dominant index finger at chest level.",
+        "Smooth connection."
+      ],
+      "commonMistake": "Starting on the forehead (that is Brother!).",
+      "mnemonicTip": "A female sibling born from the same line.",
+      "imageName": "sign_sister",
+      "frontVideoName": "video_sister_front",
+      "sideVideoName": "video_sister_side"
+    },
+    {
+      "id": "sign-word-baby",
+      "name": "Baby",
+      "pronunciationHint": "BAY-bee",
+      "category": "family",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Cradling arms rocking side to side as if holding an infant.",
+      "howToSteps": [
+        "Cross both forearms in front of chest, dominant arm over non-dominant.",
+        "Cup hands as if cradling a newborn baby.",
+        "Rock arms gently side to side twice."
+      ],
+      "commonMistake": "Rocking too fast or jerky; keep it tender and natural.",
+      "mnemonicTip": "Cradling an infant in your arms.",
+      "imageName": "sign_baby",
+      "frontVideoName": "video_baby_front",
+      "sideVideoName": "video_baby_side"
+    },
+    {
+      "id": "sign-word-family",
+      "name": "Family",
+      "pronunciationHint": "FAM-uh-lee",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both 'F' hands starting with index/thumbs touching, circling out and joining pinkies.",
+      "howToSteps": [
+        "Form 'F' with both hands, touching index/thumb rings in front of chest.",
+        "Circle both hands outward and forward away from each other.",
+        "Complete circle by bringing little fingers together."
+      ],
+      "commonMistake": "Starting with pinkies touching instead of index rings.",
+      "mnemonicTip": "Drawing a closed protective circle around the family unit.",
+      "imageName": "sign_family",
+      "frontVideoName": "video_family_front",
+      "sideVideoName": "video_family_side"
+    },
+    {
+      "id": "sign-word-son",
+      "name": "Son",
+      "pronunciationHint": "SUN",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Salute from forehead, then cradling into baby position in arms.",
+      "howToSteps": [
+        "Salute from forehead with open hand (male indicator).",
+        "Bring hand down into arms cradled like an infant.",
+        "Smooth transition."
+      ],
+      "commonMistake": "Starting from chin.",
+      "mnemonicTip": "A baby boy born into your arms.",
+      "imageName": "sign_son",
+      "frontVideoName": "video_son_front",
+      "sideVideoName": "video_son_side"
+    },
+    {
+      "id": "sign-word-daughter",
+      "name": "Daughter",
+      "pronunciationHint": "DAW-ter",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Stroke jawline from ear to chin, then cradle into baby position.",
+      "howToSteps": [
+        "Dominant open hand strokes jawline forward (female indicator).",
+        "Bring hand down into cradled arms.",
+        "Gentle motion."
+      ],
+      "commonMistake": "Starting from forehead.",
+      "mnemonicTip": "A baby girl welcomed into your family.",
+      "imageName": "sign_daughter",
+      "frontVideoName": "video_daughter_front",
+      "sideVideoName": "video_daughter_side"
+    },
+    {
+      "id": "sign-word-grandmother",
+      "name": "Grandmother",
+      "pronunciationHint": "GRAND-muh-ther",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Sign 'Mother' at chin, then bounce hand forward in two small arcs.",
+      "howToSteps": [
+        "Place thumb of open '5' hand on chin.",
+        "Bounce hand forward in two gentle arcs outward away from face.",
+        "Signifies one generation removed."
+      ],
+      "commonMistake": "Only one arc (single arc is sometimes confused with talking).",
+      "mnemonicTip": "Mother plus one generation forward in time.",
+      "imageName": "sign_grandmother",
+      "frontVideoName": "video_grandmother_front",
+      "sideVideoName": "video_grandmother_side"
+    },
+    {
+      "id": "sign-word-grandfather",
+      "name": "Grandfather",
+      "pronunciationHint": "GRAND-fah-ther",
+      "category": "family",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Sign 'Father' at forehead, then bounce hand forward in two small arcs.",
+      "howToSteps": [
+        "Place thumb of open '5' hand on forehead.",
+        "Bounce hand forward in two arcs outward away from face.",
+        "Keep fingers spread."
+      ],
+      "commonMistake": "Dropping down to chin.",
+      "mnemonicTip": "Father plus one generation forward in time.",
+      "imageName": "sign_grandfather",
+      "frontVideoName": "video_grandfather_front",
+      "sideVideoName": "video_grandfather_side"
+    },
+    {
+      "id": "sign-word-happy",
+      "name": "Happy",
+      "pronunciationHint": "HAP-ee",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open flat hand brushing upward against chest twice with an energetic smile.",
+      "howToSteps": [
+        "Place flat dominant hand against chest, palm facing in.",
+        "Brush hand upward toward chin twice in quick, uplifting motions.",
+        "Smile brightly with cheerful eyes."
+      ],
+      "commonMistake": "Brushing downward (downward signifies depression or sad).",
+      "mnemonicTip": "Joy bubbling up inside your chest and overflowing.",
+      "imageName": "sign_happy",
+      "frontVideoName": "video_happy_front",
+      "sideVideoName": "video_happy_side"
+    },
+    {
+      "id": "sign-word-sad",
+      "name": "Sad",
+      "pronunciationHint": "SAD",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open curved fingers in front of face dropping downward while tilting head down.",
+      "howToSteps": [
+        "Hold open hand in front of face with curved drooping fingers.",
+        "Slowly drop hand downward toward chest while dropping your head.",
+        "Expression should look sorrowful and heavy."
+      ],
+      "commonMistake": "Smiling or moving too quickly.",
+      "mnemonicTip": "Tears or sorrow pulling the whole face down.",
+      "imageName": "sign_sad",
+      "frontVideoName": "video_sad_front",
+      "sideVideoName": "video_sad_side"
+    },
+    {
+      "id": "sign-word-angry",
+      "name": "Angry",
+      "pronunciationHint": "ANG-gree",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Clawed hand placed near face pulling outward forcefully with an intense expression.",
+      "howToSteps": [
+        "Form a claw with dominant hand in front of nose/face.",
+        "Pull hand forward and out quickly as if ripping off a mask.",
+        "Furrow brow and show stern anger."
+      ],
+      "commonMistake": "Smiling breaks the sign completely; facial grammar is essential.",
+      "mnemonicTip": "Claws of fiery anger tearing outward.",
+      "imageName": "sign_angry",
+      "frontVideoName": "video_angry_front",
+      "sideVideoName": "video_angry_side"
+    },
+    {
+      "id": "sign-word-tired",
+      "name": "Tired",
+      "pronunciationHint": "TYRD",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Curved fingertips placed on chest, rolling inward and dropping down as shoulders slump.",
+      "howToSteps": [
+        "Place curved fingertips of both hands on respective sides of upper chest.",
+        "Roll hands down and inward so wrists drop.",
+        "Exhale and slump shoulders with fatigue."
+      ],
+      "commonMistake": "Keeping shoulders rigid.",
+      "mnemonicTip": "The energy literally draining from your torso.",
+      "imageName": "sign_tired",
+      "frontVideoName": "video_tired_front",
+      "sideVideoName": "video_tired_side"
+    },
+    {
+      "id": "sign-word-excited",
+      "name": "Excited",
+      "pronunciationHint": "ek-SY-ted",
+      "category": "feelings",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Middle fingers bent forward at knuckles, circling alternately up across chest.",
+      "howToSteps": [
+        "Bend middle fingers forward from open hands.",
+        "Alternate flicking/circling middle fingertips upward across chest.",
+        "Bright animated eyes and smile."
+      ],
+      "commonMistake": "Using flat fingers instead of feeling middle fingers.",
+      "mnemonicTip": "Heart fluttering rapidly with excitement.",
+      "imageName": "sign_excited",
+      "frontVideoName": "video_excited_front",
+      "sideVideoName": "video_excited_side"
+    },
+    {
+      "id": "sign-word-scared",
+      "name": "Scared",
+      "pronunciationHint": "SKAIRD",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Open hands crossing in front of chest in a sudden defensive trembling motion.",
+      "howToSteps": [
+        "Bring open hands in from sides toward chest, fingers pointing toward each other.",
+        "Make a quick shivering or shaking motion in front of heart.",
+        "Widen eyes with fear."
+      ],
+      "commonMistake": "Slow motion; must be snappy and sudden.",
+      "mnemonicTip": "Instinctively protecting your vital organs from fright.",
+      "imageName": "sign_scared",
+      "frontVideoName": "video_scared_front",
+      "sideVideoName": "video_scared_side"
+    },
+    {
+      "id": "sign-word-fine",
+      "name": "Fine",
+      "pronunciationHint": "FYN",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Open '5' hand with thumb tapping chest twice with relaxed posture.",
+      "howToSteps": [
+        "Open '5' hand with thumb touching the center of your sternum.",
+        "Tap thumb against chest twice with calm, relaxed rhythm.",
+        "Casual polite smile."
+      ],
+      "commonMistake": "Stiff fingers; keep it light.",
+      "mnemonicTip": "Everything is balanced and fine at your core.",
+      "imageName": "sign_fine",
+      "frontVideoName": "video_fine_front",
+      "sideVideoName": "video_fine_side"
+    },
+    {
+      "id": "sign-word-confused",
+      "name": "Confused",
+      "pronunciationHint": "kun-FYOOZD",
+      "category": "feelings",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Index finger points to forehead (think), followed by claw hands scrambling over each other.",
+      "howToSteps": [
+        "Touch temple with index finger ('Think').",
+        "Lower hands to chest with claw fingers twisting and scrambling around each other.",
+        "Squint eyes and furrow brow."
+      ],
+      "commonMistake": "Forgetting the initial forehead touch.",
+      "mnemonicTip": "Thoughts getting tangled like spaghetti in your mind.",
+      "imageName": "sign_confused",
+      "frontVideoName": "video_confused_front",
+      "sideVideoName": "video_confused_side"
+    },
+    {
+      "id": "sign-word-love",
+      "name": "Love",
+      "pronunciationHint": "LUV",
+      "category": "feelings",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "two_handed",
+      "recognition": "static",
+      "description": "Both hands folded into 'S' fists crossed over the heart in a hug.",
+      "howToSteps": [
+        "Cross both arms over your chest, placing fists over heart.",
+        "Hold firmly against body with a warm affectionate expression.",
+        "Can tilt head slightly."
+      ],
+      "commonMistake": "Crossing hands at the wrists only; hugs should cover the chest.",
+      "mnemonicTip": "A full, warm embrace wrapped around your heart.",
+      "imageName": "sign_love",
+      "frontVideoName": "video_love_front",
+      "sideVideoName": "video_love_side"
+    },
+    {
+      "id": "sign-word-water",
+      "name": "Water",
+      "pronunciationHint": "WAH-ter",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'W' handshape with index finger tapping the lips twice.",
+      "howToSteps": [
+        "Form 'W' handshape with index, middle, and ring fingers extended.",
+        "Tap the side of your index finger against your chin/lower lip twice.",
+        "Keep palm facing left/sideways."
+      ],
+      "commonMistake": "Tapping cheek instead of lips.",
+      "mnemonicTip": "W stands for Water at your lips.",
+      "imageName": "sign_water",
+      "frontVideoName": "video_water_front",
+      "sideVideoName": "video_water_side"
+    },
+    {
+      "id": "sign-word-food",
+      "name": "Food",
+      "pronunciationHint": "FOOD",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Flattened 'O' handshape tapping the lips twice.",
+      "howToSteps": [
+        "Pinch all fingertips to thumb in a squashed 'O' (like holding a bite of food).",
+        "Tap fingertips against lips twice.",
+        "Neutral or hungry expression."
+      ],
+      "commonMistake": "Tapping only once (single tap is the verb 'Eat'; double tap is the noun 'Food').",
+      "mnemonicTip": "Putting morsels of food into your mouth.",
+      "imageName": "sign_food",
+      "frontVideoName": "video_food_front",
+      "sideVideoName": "video_food_side"
+    },
+    {
+      "id": "sign-word-eat",
+      "name": "Eat",
+      "pronunciationHint": "EET",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Flattened 'O' handshape brought to mouth in a single feeding motion.",
+      "howToSteps": [
+        "Pinch fingertips to thumb.",
+        "Bring hand to lips once smoothly.",
+        "Mouth the word 'Eat'."
+      ],
+      "commonMistake": "Tapping multiple times (that is Food).",
+      "mnemonicTip": "Single bite into mouth.",
+      "imageName": "sign_eat",
+      "frontVideoName": "video_eat_front",
+      "sideVideoName": "video_eat_side"
+    },
+    {
+      "id": "sign-word-drink",
+      "name": "Drink",
+      "pronunciationHint": "DRINGK",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Top 10",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'C' handshape tipped back toward open mouth like drinking from a cup.",
+      "howToSteps": [
+        "Form 'C' handshape as if holding an invisible glass.",
+        "Tip thumb and cup toward mouth, tilting head back slightly.",
+        "Simulate a sip."
+      ],
+      "commonMistake": "Spilling the invisible cup past your mouth.",
+      "mnemonicTip": "Drinking from a glass.",
+      "imageName": "sign_drink",
+      "frontVideoName": "video_drink_front",
+      "sideVideoName": "video_drink_side"
+    },
+    {
+      "id": "sign-word-milk",
+      "name": "Milk",
+      "pronunciationHint": "MILK",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Squeezing fist open and closed twice as if milking a cow.",
+      "howToSteps": [
+        "Hold fist out in front of chest.",
+        "Squeeze fingers open and closed twice firmly.",
+        "Keep wrist steady."
+      ],
+      "commonMistake": "Using two hands (usually done with one hand).",
+      "mnemonicTip": "Milking an udder on a farm.",
+      "imageName": "sign_milk",
+      "frontVideoName": "video_milk_front",
+      "sideVideoName": "video_milk_side"
+    },
+    {
+      "id": "sign-word-bread",
+      "name": "Bread",
+      "pronunciationHint": "BRED",
+      "category": "food-drink",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Curved dominant fingers slicing downward along the back of non-dominant hand.",
+      "howToSteps": [
+        "Hold non-dominant arm across chest as a loaf.",
+        "Use dominant fingertips like a knife slicing down the back of the hand twice.",
+        "Even slices."
+      ],
+      "commonMistake": "Chopping flat instead of curved slice.",
+      "mnemonicTip": "Slicing fresh bread off the loaf.",
+      "imageName": "sign_bread",
+      "frontVideoName": "video_bread_front",
+      "sideVideoName": "video_bread_side"
+    },
+    {
+      "id": "sign-word-apple",
+      "name": "Apple",
+      "pronunciationHint": "AP-uhl",
+      "category": "food-drink",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Knuckle of dominant 'X' twisting twice into the cheek.",
+      "howToSteps": [
+        "Make an 'X' with index knuckle bent.",
+        "Press knuckle into your cheek and twist wrist back and forth twice.",
+        "Slight smile."
+      ],
+      "commonMistake": "Using fingertip instead of the knuckle.",
+      "mnemonicTip": "Twisting an apple stem to pick it from the branch.",
+      "imageName": "sign_apple",
+      "frontVideoName": "video_apple_front",
+      "sideVideoName": "video_apple_side"
+    },
+    {
+      "id": "sign-word-coffee",
+      "name": "Coffee",
+      "pronunciationHint": "KAW-fee",
+      "category": "food-drink",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant fist grinding in circles on top of stationary non-dominant fist.",
+      "howToSteps": [
+        "Hold non-dominant fist still.",
+        "Place dominant fist directly on top and rotate in circular grinding motion.",
+        "Like an antique hand grinder."
+      ],
+      "commonMistake": "Moving bottom fist.",
+      "mnemonicTip": "Grinding roasted coffee beans.",
+      "imageName": "sign_coffee",
+      "frontVideoName": "video_coffee_front",
+      "sideVideoName": "video_coffee_side"
+    },
+    {
+      "id": "sign-word-tea",
+      "name": "Tea",
+      "pronunciationHint": "TEE",
+      "category": "food-drink",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'F' handshape dipping into the 'O' rim of the non-dominant hand like a tea bag.",
+      "howToSteps": [
+        "Make a cup rim with non-dominant 'O' or 'C'.",
+        "Hold 'F' hand with dominant hand and dip into the cup twice.",
+        "Delicate motion."
+      ],
+      "commonMistake": "Stirring vigorously (stirring is a soup gesture).",
+      "mnemonicTip": "Steeping a tea bag into hot water.",
+      "imageName": "sign_tea",
+      "frontVideoName": "video_tea_front",
+      "sideVideoName": "video_tea_side"
+    },
+    {
+      "id": "sign-word-hungry",
+      "name": "Hungry",
+      "pronunciationHint": "HUNG-gree",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'C' handshape sliding downward from throat down to sternum.",
+      "howToSteps": [
+        "Place 'C' handshape at center of throat.",
+        "Slide hand straight down to stomach.",
+        "Expression showing an empty belly."
+      ],
+      "commonMistake": "Bouncing hand; must slide straight down.",
+      "mnemonicTip": "Empty channel running through the stomach.",
+      "imageName": "sign_hungry",
+      "frontVideoName": "video_hungry_front",
+      "sideVideoName": "video_hungry_side"
+    },
+    {
+      "id": "sign-word-thirsty",
+      "name": "Thirsty",
+      "pronunciationHint": "THUR-stee",
+      "category": "food-drink",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Index finger tracing a line straight down the center of the throat.",
+      "howToSteps": [
+        "Point index finger to throat.",
+        "Draw line straight down toward chest.",
+        "Dry mouth expression."
+      ],
+      "commonMistake": "Curving finger; keep it straight and direct.",
+      "mnemonicTip": "Tracing a dry throat in need of water.",
+      "imageName": "sign_thirsty",
+      "frontVideoName": "video_thirsty_front",
+      "sideVideoName": "video_thirsty_side"
+    },
+    {
+      "id": "sign-word-pain",
+      "name": "Pain",
+      "pronunciationHint": "PAYN",
+      "category": "healthcare",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both index fingers pointed at each other, twisting inward toward each other with a wince.",
+      "howToSteps": [
+        "Point both index fingers toward each other horizontally.",
+        "Jab inward toward each other twice with a twisting motion.",
+        "Wince with pain."
+      ],
+      "commonMistake": "Touching fingers completely (keep a small gap).",
+      "mnemonicTip": "Sign where the pain hurts (e.g. at head for headache).",
+      "imageName": "sign_pain",
+      "frontVideoName": "video_pain_front",
+      "sideVideoName": "video_pain_side"
+    },
+    {
+      "id": "sign-word-sick",
+      "name": "Sick",
+      "pronunciationHint": "SIK",
+      "category": "healthcare",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "static",
+      "description": "Middle finger of dominant hand on forehead, middle finger of non-dominant hand on stomach.",
+      "howToSteps": [
+        "Bend middle fingers forward from open hands.",
+        "Place one on forehead, one on stomach simultaneously.",
+        "Sick facial expression."
+      ],
+      "commonMistake": "Using index finger instead of middle feeling finger.",
+      "mnemonicTip": "Fever in head, nausea in stomach.",
+      "imageName": "sign_sick",
+      "frontVideoName": "video_sick_front",
+      "sideVideoName": "video_sick_side"
+    },
+    {
+      "id": "sign-word-fever",
+      "name": "Fever",
+      "pronunciationHint": "FEE-ver",
+      "category": "healthcare",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Back of dominant hand touching forehead repeatedly as if feeling temperature.",
+      "howToSteps": [
+        "Place back of open dominant hand against forehead.",
+        "Feel temperature with serious concerned expression.",
+        "Can puff cheeks."
+      ],
+      "commonMistake": "Touching with palm (mothers feel fever with the sensitive back of hand).",
+      "mnemonicTip": "Testing for a hot forehead.",
+      "imageName": "sign_fever",
+      "frontVideoName": "video_fever_front",
+      "sideVideoName": "video_fever_side"
+    },
+    {
+      "id": "sign-word-doctor",
+      "name": "Doctor",
+      "pronunciationHint": "DAHK-ter",
+      "category": "healthcare",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'D' or 'M' fingertips tapping the inner wrist of non-dominant hand twice.",
+      "howToSteps": [
+        "Hold non-dominant wrist with palm up.",
+        "Tap fingertips of dominant hand on radial pulse twice.",
+        "Professional posture."
+      ],
+      "commonMistake": "Tapping back of hand.",
+      "mnemonicTip": "Doctor taking your pulse.",
+      "imageName": "sign_doctor",
+      "frontVideoName": "video_doctor_front",
+      "sideVideoName": "video_doctor_side"
+    },
+    {
+      "id": "sign-word-nurse",
+      "name": "Nurse",
+      "pronunciationHint": "NURS",
+      "category": "healthcare",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'N' fingertips tapping the radial pulse on the inner wrist twice.",
+      "howToSteps": [
+        "Hold non-dominant wrist upturned.",
+        "Tap 'N' handshape fingertips on the pulse.",
+        "Gentle professional touch."
+      ],
+      "commonMistake": "Using three fingers (that would be 'M' / Doctor variant).",
+      "mnemonicTip": "N for Nurse feeling the pulse.",
+      "imageName": "sign_nurse",
+      "frontVideoName": "video_nurse_front",
+      "sideVideoName": "video_nurse_side"
+    },
+    {
+      "id": "sign-word-appointment",
+      "name": "Appointment",
+      "pronunciationHint": "uh-POYNT-ment",
+      "category": "healthcare",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant hand circling in air and coming down firmly onto non-dominant fist.",
+      "howToSteps": [
+        "Hold non-dominant fist still.",
+        "Circle dominant curved hand over it and land firmly on top.",
+        "Locking in a date."
+      ],
+      "commonMistake": "Loose landing; must be decisive.",
+      "mnemonicTip": "Locking down a scheduled time.",
+      "imageName": "sign_appointment",
+      "frontVideoName": "video_appointment_front",
+      "sideVideoName": "video_appointment_side"
+    },
+    {
+      "id": "sign-word-headache",
+      "name": "Headache",
+      "pronunciationHint": "HED-ayk",
+      "category": "healthcare",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Sign 'Pain' with both index fingers jabbing inward at the temples.",
+      "howToSteps": [
+        "Hold index fingers pointing toward temples.",
+        "Twist inward toward head twice with squinted eyes in pain.",
+        "Visible discomfort."
+      ],
+      "commonMistake": "Jabbing chest (that is chest pain).",
+      "mnemonicTip": "Throbbing ache across the temples.",
+      "imageName": "sign_headache",
+      "frontVideoName": "video_headache_front",
+      "sideVideoName": "video_headache_side"
+    },
+    {
+      "id": "sign-word-work",
+      "name": "Work",
+      "pronunciationHint": "WURK",
+      "category": "workplace",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant fist tapping the wrist of non-dominant fist twice.",
+      "howToSteps": [
+        "Hold non-dominant fist with palm down.",
+        "Tap base of dominant fist over the back of the wrist twice.",
+        "Steady, productive tempo."
+      ],
+      "commonMistake": "Tapping palms together.",
+      "mnemonicTip": "Hard work chipping away at a stone anvil.",
+      "imageName": "sign_work",
+      "frontVideoName": "video_work_front",
+      "sideVideoName": "video_work_side"
+    },
+    {
+      "id": "sign-word-meeting",
+      "name": "Meeting",
+      "pronunciationHint": "MEE-ting",
+      "category": "workplace",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both open hands coming together and closing into flat 'O's facing each other.",
+      "howToSteps": [
+        "Start with hands wide and open facing each other.",
+        "Bring hands together into center, folding fingers into 'O's like people gathering.",
+        "Group gathering."
+      ],
+      "commonMistake": "Not closing fingers into O shape.",
+      "mnemonicTip": "People assembling around a conference table.",
+      "imageName": "sign_meeting",
+      "frontVideoName": "video_meeting_front",
+      "sideVideoName": "video_meeting_side"
+    },
+    {
+      "id": "sign-word-office",
+      "name": "Office",
+      "pronunciationHint": "AW-fis",
+      "category": "workplace",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'O' handshapes outlining the four walls of a room.",
+      "howToSteps": [
+        "Form 'O' with both hands.",
+        "Show front and back walls, then turn hands to show side walls.",
+        "Enclosing a space."
+      ],
+      "commonMistake": "Only showing two sides.",
+      "mnemonicTip": "O for Office outlining a room.",
+      "imageName": "sign_office",
+      "frontVideoName": "video_office_front",
+      "sideVideoName": "video_office_side"
+    },
+    {
+      "id": "sign-word-boss",
+      "name": "Boss",
+      "pronunciationHint": "BAWS",
+      "category": "workplace",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "Clawed hand tapping the dominant shoulder twice.",
+      "howToSteps": [
+        "Make a claw with dominant hand.",
+        "Tap fingertips against dominant shoulder twice.",
+        "Assertive posture."
+      ],
+      "commonMistake": "Tapping chest instead of shoulder.",
+      "mnemonicTip": "The weight of epaulettes / authority on the shoulder.",
+      "imageName": "sign_boss",
+      "frontVideoName": "video_boss_front",
+      "sideVideoName": "video_boss_side"
+    },
+    {
+      "id": "sign-word-email",
+      "name": "Email",
+      "pronunciationHint": "EE-mayl",
+      "category": "workplace",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant index finger shooting through the 'C' tunnel of non-dominant hand.",
+      "howToSteps": [
+        "Form a horizontal tube with non-dominant 'C'.",
+        "Shoot dominant index finger straight through the tunnel forward.",
+        "Quick zippy motion."
+      ],
+      "commonMistake": "Missing the tunnel.",
+      "mnemonicTip": "An electronic letter shooting through the cable.",
+      "imageName": "sign_email",
+      "frontVideoName": "video_email_front",
+      "sideVideoName": "video_email_side"
+    },
+    {
+      "id": "sign-word-break",
+      "name": "Break",
+      "pronunciationHint": "BRAYK",
+      "category": "workplace",
+      "level": "beginner",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Flat dominant hand chopping down between index and middle fingers of non-dominant hand.",
+      "howToSteps": [
+        "Spread index and middle fingers of non-dominant hand.",
+        "Chop dominant flat hand down into the space between them.",
+        "Relaxing sigh."
+      ],
+      "commonMistake": "Chopping whole arm.",
+      "mnemonicTip": "Taking a distinct break in the schedule.",
+      "imageName": "sign_break",
+      "frontVideoName": "video_break_front",
+      "sideVideoName": "video_break_side"
+    },
+    {
+      "id": "sign-word-project",
+      "name": "Project",
+      "pronunciationHint": "PRAH-jekt",
+      "category": "workplace",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "'P' hand touching non-dominant palm, then moving to touch with 'J'.",
+      "howToSteps": [
+        "Touch base of palm with 'P'.",
+        "Arc up and trace down with 'J'.",
+        "Or initialize P across paper."
+      ],
+      "commonMistake": "Sloppy letters.",
+      "mnemonicTip": "P to J initials outlining a project dossier.",
+      "imageName": "sign_project",
+      "frontVideoName": "video_project_front",
+      "sideVideoName": "video_project_side"
+    },
+    {
+      "id": "sign-word-schedule",
+      "name": "Schedule",
+      "pronunciationHint": "SKEJ-ool",
+      "category": "workplace",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Four fingers of dominant hand drawing a vertical then horizontal grid across non-dominant palm.",
+      "howToSteps": [
+        "Hold non-dominant palm flat facing you.",
+        "Draw four dominant fingers down across palm, then across horizontally.",
+        "Like a calendar grid."
+      ],
+      "commonMistake": "Only one stroke.",
+      "mnemonicTip": "Drawing calendar rows and columns.",
+      "imageName": "sign_schedule",
+      "frontVideoName": "video_schedule_front",
+      "sideVideoName": "video_schedule_side"
+    },
+    {
+      "id": "sign-word-help",
+      "name": "Help",
+      "pronunciationHint": "HELP",
+      "category": "emergency",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant 'thumbs up' fist resting on flat non-dominant palm, lifted upward together.",
+      "howToSteps": [
+        "Place dominant fist with thumb up flat onto open palm of non-dominant hand.",
+        "Lift both hands upward together decisively.",
+        "Urgent or supportive expression."
+      ],
+      "commonMistake": "Not lifting; the upward hoist represents giving support.",
+      "mnemonicTip": "Lifting someone up when they cannot stand on their own.",
+      "imageName": "sign_help",
+      "frontVideoName": "video_help_front",
+      "sideVideoName": "video_help_side"
+    },
+    {
+      "id": "sign-word-emergency",
+      "name": "Emergency",
+      "pronunciationHint": "ee-MUR-jen-see",
+      "category": "emergency",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'E' handshape waving rapidly side to side with urgency.",
+      "howToSteps": [
+        "Form an 'E' handshape with dominant hand.",
+        "Shake it briskly side to side at chest height with an alert face.",
+        "Wide alert eyes."
+      ],
+      "commonMistake": "Sluggish movement; must convey alarm.",
+      "mnemonicTip": "Emergency flashing like an alarm light.",
+      "imageName": "sign_emergency",
+      "frontVideoName": "video_emergency_front",
+      "sideVideoName": "video_emergency_side"
+    },
+    {
+      "id": "sign-word-hospital",
+      "name": "Hospital",
+      "pronunciationHint": "HAHS-pi-tul",
+      "category": "emergency",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'H' hand drawing a cross on the upper non-dominant arm.",
+      "howToSteps": [
+        "Form 'H' with index and middle fingers together.",
+        "Draw a cross on the upper bicep of your other arm (vertical stroke, then horizontal).",
+        "Solemn expression."
+      ],
+      "commonMistake": "Drawing on chest (cross on chest is church/religion; on arm is hospital/Red Cross).",
+      "mnemonicTip": "The Red Cross emblem on a doctor's sleeve.",
+      "imageName": "sign_hospital",
+      "frontVideoName": "video_hospital_front",
+      "sideVideoName": "video_hospital_side"
+    },
+    {
+      "id": "sign-word-police",
+      "name": "Police",
+      "pronunciationHint": "puh-LEES",
+      "category": "emergency",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "one_handed",
+      "recognition": "motion",
+      "description": "'C' handshape tapped twice on the chest over the badge area.",
+      "howToSteps": [
+        "Form a 'C' handshape.",
+        "Tap it twice over your left chest where a badge is pinned.",
+        "Official demeanor."
+      ],
+      "commonMistake": "Tapping right shoulder.",
+      "mnemonicTip": "Tapping a police officer's metallic badge.",
+      "imageName": "sign_police",
+      "frontVideoName": "video_police_front",
+      "sideVideoName": "video_police_side"
+    },
+    {
+      "id": "sign-word-fire",
+      "name": "Fire",
+      "pronunciationHint": "FYR",
+      "category": "emergency",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both open claw hands wiggling fingers as they dance upward like flames.",
+      "howToSteps": [
+        "Hold both open hands in front of waist, palms facing in.",
+        "Flutter all fingers rapidly as both hands rise upward like flames.",
+        "Alarmed expression."
+      ],
+      "commonMistake": "Moving downward.",
+      "mnemonicTip": "Flames leaping and licking upward into the sky.",
+      "imageName": "sign_fire",
+      "frontVideoName": "video_fire_front",
+      "sideVideoName": "video_fire_side"
+    },
+    {
+      "id": "sign-word-hurt",
+      "name": "Hurt",
+      "pronunciationHint": "HURT",
+      "category": "emergency",
+      "level": "beginner",
+      "frequencyTag": "Essential",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Both index fingers jabbing toward each other with twisting wrists.",
+      "howToSteps": [
+        "Point index fingers at each other.",
+        "Thrust inward with a twist twice.",
+        "Direct at injured spot."
+      ],
+      "commonMistake": "No facial expression.",
+      "mnemonicTip": "Sharp pang of pain.",
+      "imageName": "sign_hurt",
+      "frontVideoName": "video_hurt_front",
+      "sideVideoName": "video_hurt_side"
+    },
+    {
+      "id": "sign-word-danger",
+      "name": "Danger",
+      "pronunciationHint": "DAYN-jer",
+      "category": "emergency",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant thumbs-up brushing upward across non-dominant thumbs-up twice.",
+      "howToSteps": [
+        "Both hands in 'A' fists.",
+        "Dominant thumb brushes upward across non-dominant knuckle twice.",
+        "Warning eyes."
+      ],
+      "commonMistake": "Brushing downward.",
+      "mnemonicTip": "Rising risk level.",
+      "imageName": "sign_danger",
+      "frontVideoName": "video_danger_front",
+      "sideVideoName": "video_danger_side"
+    },
+    {
+      "id": "sign-word-medicine",
+      "name": "Medicine",
+      "pronunciationHint": "MED-i-sin",
+      "category": "emergency",
+      "level": "intermediate",
+      "frequencyTag": "Common",
+      "handedness": "two_handed",
+      "recognition": "motion",
+      "description": "Dominant middle finger pivoting back and forth in non-dominant palm.",
+      "howToSteps": [
+        "Open non-dominant palm facing up.",
+        "Press bent middle finger into palm and twist back and forth.",
+        "Neutral."
+      ],
+      "commonMistake": "Tapping with index.",
+      "mnemonicTip": "Crushing pills in a mortar.",
+      "imageName": "sign_medicine",
+      "frontVideoName": "video_medicine_front",
+      "sideVideoName": "video_medicine_side"
+    }
+  ]
+}
