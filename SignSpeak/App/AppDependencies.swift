@@ -82,7 +82,7 @@ public struct AppDependencies: Sendable {
             notificationService: LiveNotificationService(),
             speechRecognitionService: OnDeviceSpeechRecognitionService(),
             speechSynthesisService: OnDeviceSpeechSynthesisService(),
-            conversationRepository: StubConversationRepository(),
+            conversationRepository: FirestoreConversationRepository(),
             communityRepository: StubCommunityRepository(),
             signCatalogService: SignCatalogService(),
             signRequestRepository: FirestoreSignRequestRepository(),

@@ -24,7 +24,7 @@ struct AppDependenciesTests {
         #expect(live.notificationService is LiveNotificationService)
         #expect(live.speechRecognitionService is OnDeviceSpeechRecognitionService)
         #expect(live.speechSynthesisService is OnDeviceSpeechSynthesisService)
-        #expect(live.conversationRepository is StubConversationRepository)
+        #expect(live.conversationRepository is FirestoreConversationRepository)
         #expect(live.communityRepository is StubCommunityRepository)
         #expect(live.signCatalogService is SignCatalogService)
         #expect(live.signRequestRepository is FirestoreSignRequestRepository)
