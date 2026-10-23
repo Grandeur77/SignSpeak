@@ -35,7 +35,10 @@ public struct TalkRootView: View {
         }
         .background(Color.appBackground.ignoresSafeArea())
         .navigationDestination(isPresented: $viewModel.isShowingLiveSession) {
-            CameraTestView()
+            CommunicatorLiveView(
+                mode: viewModel.selectedMode,
+                dominantHand: viewModel.dominantHand
+            )
         }
         .sheet(isPresented: $viewModel.isShowingCalibration) {
             GestureCalibrationView(viewModel: viewModel)
