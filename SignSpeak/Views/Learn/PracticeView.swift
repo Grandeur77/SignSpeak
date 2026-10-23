@@ -882,101 +882,14 @@ public struct PracticeView: View {
     // MARK: - Session Completed View
 
     private var sessionCompletedView: some View {
-        VStack(spacing: Theme.Spacing.l) {
-            Spacer()
-
-            ZStack {
-                Circle()
-                    .fill(Color.brandTurquoise.opacity(0.18))
-                    .frame(width: 110, height: 110)
-
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 58))
-                    .foregroundStyle(Color.brandTurquoise)
-            }
-
-            VStack(spacing: 8) {
-                Text("Practice Complete!")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-
-                Text(viewModel.lessonTitle)
-                    .font(.headline)
-                    .foregroundStyle(Color.brandTurquoise)
-
-                Text("Great work! You completed \(viewModel.signs.count) signs.")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
-            }
-
-            // Stats Cards
-            HStack(spacing: Theme.Spacing.m) {
-                VStack(spacing: 4) {
-                    Text("\(viewModel.accuracyPercentage)%")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.brandYellow)
-                    Text("Accuracy")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity, minHeight: 70)
-                .background(Color.brandNavy, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-
-                VStack(spacing: 4) {
-                    Text("\(viewModel.signs.count)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.brandTurquoise)
-                    Text("Practiced")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity, minHeight: 70)
-                .background(Color.brandNavy, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-            }
-            .padding(.horizontal, Theme.Spacing.l)
-
-            // Review Mistakes List (if any)
-            if !viewModel.sessionMistakes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Signs to review:")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white.opacity(0.8))
-
-                    HStack(spacing: 8) {
-                        ForEach(Array(Set(viewModel.sessionMistakes.map(\.signName))), id: \.self) { mistakeName in
-                            HStack(spacing: 4) {
-                                Text(mistakeName)
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundStyle(Color.danger)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Color.danger.opacity(0.2), in: Capsule())
-                        }
-                    }
-                }
-                .padding(.horizontal, Theme.Spacing.l)
-            }
-
-            Spacer()
-
-            Button("Finish Session") {
+        LessonCompleteView(
+            summary: viewModel.makeCompletionSummary(signCatalog: dependencies.signCatalogService),
+            onContinue: {
                 dismiss()
             }
-            .font(.appButton)
-            .fontWeight(.bold)
-            .foregroundStyle(Color.brandNavy)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(Color.brandYellow, in: RoundedRectangle(cornerRadius: Theme.Radius.button))
-            .padding(.horizontal, Theme.Spacing.l)
-            .padding(.bottom, Theme.Spacing.l)
-        }
-        .background(Color.brandNavy.ignoresSafeArea())
+        )
     }
+
 
     // MARK: - Simulator Fallback View
 

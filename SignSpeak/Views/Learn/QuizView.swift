@@ -507,75 +507,12 @@ public struct QuizView: View {
     // MARK: - Quiz Complete View
 
     private var quizCompleteView: some View {
-        VStack(spacing: Theme.Spacing.l) {
-            Spacer()
-
-            ZStack {
-                Circle()
-                    .fill(Color.brandYellow.opacity(0.2))
-                    .frame(width: 110, height: 110)
-
-                Image(systemName: "trophy.fill")
-                    .font(.system(size: 58))
-                    .foregroundStyle(Color.brandYellow)
-            }
-
-            VStack(spacing: 8) {
-                Text("Quiz Complete!")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-
-                Text(viewModel.quizTitle)
-                    .font(.headline)
-                    .foregroundStyle(Color.brandTurquoise)
-
-                Text("+\(viewModel.totalXP) XP earned")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.brandYellow)
-            }
-
-            // Stats Cards
-            HStack(spacing: Theme.Spacing.m) {
-                VStack(spacing: 4) {
-                    Text("\(viewModel.quizEngine.accuracyPercentage)%")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.brandTurquoise)
-                    Text("Accuracy")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity, minHeight: 70)
-                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-
-                VStack(spacing: 4) {
-                    Text("🔥 \(viewModel.quizEngine.bestStreak)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.brandYellow)
-                    Text("Best Streak")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity, minHeight: 70)
-                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: Theme.Radius.card))
-            }
-            .padding(.horizontal, Theme.Spacing.l)
-
-            Spacer()
-
-            Button("Finish Quiz") {
+        LessonCompleteView(
+            summary: viewModel.makeCompletionSummary(signCatalog: dependencies.signCatalogService),
+            onContinue: {
                 dismiss()
             }
-            .font(.appButton)
-            .fontWeight(.bold)
-            .foregroundStyle(Color.brandNavy)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(Color.brandYellow, in: RoundedRectangle(cornerRadius: Theme.Radius.button))
-            .padding(.horizontal, Theme.Spacing.l)
-            .padding(.bottom, Theme.Spacing.l)
-        }
-        .background(Color.brandNavy.ignoresSafeArea())
+        )
     }
 }
+

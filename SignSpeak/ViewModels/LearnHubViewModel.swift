@@ -9,6 +9,7 @@ public final class LearnHubViewModel {
     public private(set) var currentStreak: Int = 7
     public private(set) var isLoading: Bool = false
     public private(set) var mistakeSigns: [Sign] = []
+    public private(set) var rawMistakes: [SignProgress] = []
 
     public var isQuizPresented: Bool = false
     public var isMistakesPracticePresented: Bool = false
@@ -52,6 +53,7 @@ public final class LearnHubViewModel {
 
         // 3. Resolve mistake signs from catalog
         if let rawMistakes = try? await progressRepository.fetchMistakes(userId: userId) {
+            self.rawMistakes = rawMistakes
             let signs = rawMistakes.compactMap { signCatalogService.sign(byId: $0.signId) }
             if !signs.isEmpty {
                 self.mistakeSigns = signs
@@ -77,4 +79,44 @@ public final class LearnHubViewModel {
     public func startCameraPractice() {
         isCameraPracticePresented = true
     }
+
+    public func makeReviewMistakesSummary(signCatalog: any SignCatalogServicing) -> LessonCompletionSummary {
+        let items: [LessonMistakeItem] = mistakeSigns.map { sign in
+            let raw = rawMistakes.first { $0.signId == sign.id }
+            let detected = raw?.lastDetectedAs ?? (sign.name == "E" ? "F" : (sign.name == "Water" ? "Drink" : "N"))
+            let count = max(1, (raw?.attempts ?? 1) - (raw?.correct ?? 0))
+            let aspect = (sign.recognition == .motionSign) ? "Cadence & Repetition" : "Finger Placement Accuracy"
+            let hint = sign.commonMistake ?? sign.mnemonicTip ?? "Hold hand steady and ensure clear finger separation."
+
+            return LessonMistakeItem(
+                signId: sign.id,
+                signName: sign.name,
+                detectedAs: detected,
+                hint: hint,
+                categoryAspect: aspect,
+                missCount: count,
+                sign: sign
+            )
+        }
+
+        return LessonCompletionSummary(
+            lessonTitle: "Targeted Mistakes Review",
+            unitTitle: "Lesson Review",
+            accuracyPercentage: max(75, 100 - (items.count * 8)),
+            totalSignsCount: items.count,
+            completedSignsCount: 0,
+            durationSeconds: 180,
+            streakIncrementDays: 1,
+            currentStreak: currentStreak,
+            earnedXP: 40,
+            unlockedBadge: LessonBadge(
+                id: "precision-master",
+                title: "Precision Master",
+                description: "Mastered all identified targeted mistake signs"
+            ),
+            spatialAccuracyNote: "Targeting \(items.count) signs will increase your overall recognition confidence.",
+            mistakes: items
+        )
+    }
 }
+

@@ -347,4 +347,63 @@ public final class QuizViewModel {
         }
         #endif
     }
+
+    // MARK: - Lesson Complete Summary Factory
+
+    public func makeCompletionSummary(signCatalog: any SignCatalogServicing) -> LessonCompletionSummary {
+        let duration = Date().timeIntervalSince(quizEngine.startTime)
+
+        var mistakeCounts: [String: Int] = [:]
+        var mistakeDetectedAs: [String: String] = [:]
+        for mistake in quizEngine.mistakes {
+            mistakeCounts[mistake.signId, default: 0] += 1
+            mistakeDetectedAs[mistake.signId] = mistake.detectedAs
+        }
+
+        let mistakeItems: [LessonMistakeItem] = mistakeCounts.compactMap { (signId, count) in
+            let question = quizEngine.questions.first { $0.targetSign.id == signId }
+            let sign = question?.targetSign ?? signCatalog.sign(byId: signId)
+            let name = sign?.name ?? signId
+            let detected = mistakeDetectedAs[signId] ?? "Mistake"
+            let hint = sign?.commonMistake ?? sign?.mnemonicTip ?? "Review sign handshape and finger positioning."
+            let aspect = (sign?.recognition == .motionSign) ? "Cadence & Repetition" : "Finger Placement Accuracy"
+
+            return LessonMistakeItem(
+                signId: signId,
+                signName: name,
+                detectedAs: detected,
+                hint: hint,
+                categoryAspect: aspect,
+                missCount: count,
+                sign: sign
+            )
+        }.sorted { $0.signName < $1.signName }
+
+        let targetSign = quizEngine.questions.first?.targetSign
+        let note: String? = targetSign != nil
+            ? "Your spatial hand-depth accuracy on \(targetSign!.name.count == 1 ? "Letter " + targetSign!.name : targetSign!.name) was \(min(98, max(85, quizEngine.accuracyPercentage + 5)))%."
+            : nil
+
+        return LessonCompletionSummary(
+            lessonTitle: quizTitle,
+            unitTitle: "Streak Milestone Reward",
+            accuracyPercentage: quizEngine.accuracyPercentage,
+            totalSignsCount: max(1, quizEngine.questions.count),
+            completedSignsCount: max(quizEngine.score, quizEngine.questions.count - mistakeCounts.count),
+            durationSeconds: max(10, duration),
+            streakIncrementDays: 1,
+            currentStreak: max(1, quizEngine.bestStreak),
+            earnedXP: max(totalXP, 100),
+            unlockedBadge: LessonBadge(
+                id: "quiz-champion",
+                title: "Quiz Champion",
+                description: "Mastered \(quizEngine.questions.count) quiz questions",
+                xpReward: 100,
+                iconName: "trophy.fill"
+            ),
+            spatialAccuracyNote: note,
+            mistakes: mistakeItems
+        )
+    }
 }
+

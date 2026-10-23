@@ -515,79 +515,13 @@ public struct LearnRootView: View {
     }
 
     private var reviewMistakesSheet: some View {
-        NavigationStack {
-            VStack(spacing: Theme.Spacing.l) {
-                ZStack {
-                    Circle()
-                        .fill(Color.danger.opacity(0.15))
-                        .frame(width: 80, height: 80)
-
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 36))
-                        .foregroundStyle(Color.danger)
-                }
-                .padding(.top, Theme.Spacing.xl)
-
-                VStack(spacing: 8) {
-                    Text("Review Mistakes")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text("\(viewModel?.metrics.mistakesCount ?? 3) signs targeted for extra practice to build muscle memory.")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Spacing.l)
-                }
-
-                // List of mistake signs
-                VStack(spacing: 8) {
-                    ForEach(viewModel?.mistakeSigns ?? []) { sign in
-                        HStack {
-                            Text(sign.name)
-                                .font(.system(size: 16, weight: .semibold))
-                            Spacer()
-                            Text(sign.category)
-                                .font(.system(size: 12))
-                                .foregroundStyle(Color.textSecondary)
-                        }
-                        .padding()
-                        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-                .padding(.horizontal, Theme.Spacing.l)
-
-                Spacer()
-
-                Button {
-                    viewModel?.isMistakesPracticePresented = false
-                    isShowingMistakesPractice = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                        Text("Practise Mistakes Now")
-                            .fontWeight(.bold)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 50)
-                }
-                .buttonStyle(.primary)
-                .padding(.horizontal, Theme.Spacing.l)
-
-                Button("Dismiss") {
-                    viewModel?.isMistakesPracticePresented = false
-                }
-                .font(.headline)
-                .foregroundStyle(Color.brandTurquoise)
-                .padding(.bottom, Theme.Spacing.l)
+        LessonReviewMistakesView(
+            summary: viewModel?.makeReviewMistakesSummary(signCatalog: dependencies.signCatalogService) ?? LessonCompletionSummary(mistakes: []),
+            onStartPractice: { _ in
+                viewModel?.isMistakesPracticePresented = false
+                isShowingMistakesPractice = true
             }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") {
-                        viewModel?.isMistakesPracticePresented = false
-                    }
-                }
-            }
-        }
+        )
     }
 
     // MARK: - Navigation & Deep Links
