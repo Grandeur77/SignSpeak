@@ -140,7 +140,14 @@ public final class CommunicatorLiveViewModel {
         speechTask?.cancel()
         audioLevelTask?.cancel()
 
-        // 1. Observe Audio Power Level for Waveform
+        // 1. Request Speech & Microphone Permissions
+        let granted = await speechRecognitionService.requestPermissions()
+        guard granted else {
+            errorMessage = "Microphone and Speech Recognition access are required. Please enable them in Settings."
+            return
+        }
+
+        // 2. Observe Audio Power Level for Waveform
         audioLevelTask = Task { [weak self] in
             guard let self else { return }
             let levels = self.speechRecognitionService.audioLevelStream()
@@ -150,7 +157,7 @@ public final class CommunicatorLiveViewModel {
             }
         }
 
-        // 2. Observe Speech Transcripts
+        // 3. Observe Speech Transcripts
         speechTask = Task { [weak self] in
             guard let self else { return }
             do {

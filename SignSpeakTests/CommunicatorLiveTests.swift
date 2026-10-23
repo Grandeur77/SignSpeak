@@ -214,4 +214,21 @@ struct CommunicatorLiveTests {
         vm.activeSoundAlert = nil
         #expect(vm.activeSoundAlert == nil)
     }
+
+    // MARK: - 9. Unsupported On-Device Recognition Handling
+
+    @Test("Unsupported on-device speech recognition gracefully populates error message")
+    func unsupportedOnDeviceRecognition() async {
+        let stubSpeech = StubSpeechRecognitionService(supportsOnDevice: false)
+        let vm = makeViewModel(stubSpeechRecognition: stubSpeech)
+
+        await vm.startSpeechRecognition()
+
+        let deadline = Date().addingTimeInterval(3.0)
+        while vm.errorMessage == nil && Date() < deadline {
+            try? await Task.sleep(nanoseconds: 20_000_000)
+        }
+
+        #expect(vm.errorMessage?.contains("not supported") == true)
+    }
 }

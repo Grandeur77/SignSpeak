@@ -28,6 +28,9 @@ public struct CommunicatorLiveView: View {
                     // Sound Alerts Banner Slot (Phase 12 preparation)
                     soundAlertsBannerSlot(viewModel)
 
+                    // Error & Permission Status Banner
+                    errorMessageBannerSlot(viewModel)
+
                     // Top Pane: Partner Speech Transcript (Rotatable 180°)
                     partnerTranscriptPane(viewModel, height: geometry.size.height * 0.44)
 
@@ -111,6 +114,49 @@ public struct CommunicatorLiveView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(Color.brandYellow.opacity(0.25))
+        }
+    }
+
+    // MARK: - Error & Permission Status Banner
+
+    @ViewBuilder
+    private func errorMessageBannerSlot(_ viewModel: CommunicatorLiveViewModel) -> some View {
+        if let message = viewModel.errorMessage {
+            HStack(spacing: 10) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.danger)
+
+                Text(message)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.white)
+                    .lineLimit(2)
+
+                Spacer()
+
+                if message.contains("Settings") {
+                    Button("Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.brandTurquoise)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.12), in: Capsule())
+                }
+
+                Button {
+                    viewModel.errorMessage = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.white.opacity(0.8))
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(Color.danger.opacity(0.25))
         }
     }
 
