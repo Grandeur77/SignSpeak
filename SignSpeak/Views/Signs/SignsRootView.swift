@@ -13,6 +13,7 @@ public struct SignsRootView: View {
     @State private var requestCategory: String = "General"
     @State private var requestNotes: String = ""
     @State private var selectedSignForDetail: Sign?
+    @State private var isShowingFavourites: Bool = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 14),
@@ -74,6 +75,9 @@ public struct SignsRootView: View {
         }
         .sheet(isPresented: $isShowingCameraPractice) {
             CameraPracticeLauncher(dependencies: dependencies)
+        }
+        .sheet(isPresented: $isShowingFavourites) {
+            FavouritesView()
         }
         .navigationDestination(for: Sign.self) { sign in
             SignDetailView(sign: sign)
@@ -166,6 +170,24 @@ public struct SignsRootView: View {
             }
 
             Spacer()
+
+            Button {
+                isShowingFavourites = true
+                triggerHaptic()
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(Color.cardBackground)
+                        .frame(width: 40, height: 40)
+                        .overlay(Circle().stroke(Color.gray.opacity(0.18), lineWidth: 1))
+
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.danger)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("View favourites")
 
             ProfileAvatarButton {
                 deepLinkRouter.openProfile()
