@@ -22,11 +22,14 @@ struct AppDependenciesTests {
         #expect(live.biometricAuthService is LocalAuthenticationBiometricService)
         #expect(live.credentialVault is KeychainCredentialVault)
         #expect(live.notificationService is LiveNotificationService)
-        #expect(live.speechRecognitionService is StubSpeechRecognitionService)
-        #expect(live.speechSynthesisService is StubSpeechSynthesisService)
-        #expect(live.conversationRepository is StubConversationRepository)
+        #expect(live.speechRecognitionService is OnDeviceSpeechRecognitionService)
+        #expect(live.speechSynthesisService is OnDeviceSpeechSynthesisService)
+        #expect(live.conversationRepository is FirestoreConversationRepository)
         #expect(live.communityRepository is StubCommunityRepository)
         #expect(live.signCatalogService is SignCatalogService)
+        #expect(live.signRequestRepository is FirestoreSignRequestRepository)
+        #expect(live.favouritesRepository is FirestoreFavouritesRepository)
+        #expect(live.quickPhraseRepository is FirestoreQuickPhraseRepository)
     }
 
     @Test("Preview container populates mock data and fixed clock")
@@ -51,6 +54,9 @@ struct AppDependenciesTests {
         #expect(preview.conversationRepository is StubConversationRepository)
         #expect(preview.communityRepository is StubCommunityRepository)
         #expect(preview.signCatalogService is SignCatalogService)
+        #expect(preview.signRequestRepository is StubSignRequestRepository)
+        #expect(preview.favouritesRepository is StubFavouritesRepository)
+        #expect(preview.quickPhraseRepository is StubQuickPhraseRepository)
 
         #expect(preview.dateProvider.now == Date(timeIntervalSince1970: 1_790_812_800))
         #expect(preview.authService.currentUserId == "preview-user-123")

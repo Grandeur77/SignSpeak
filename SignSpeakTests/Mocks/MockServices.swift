@@ -468,18 +468,48 @@ public final class MockBiometricAuthService: BiometricAuthServicing, @unchecked 
 public final class MockSpeechSynthesisService: SpeechSynthesisServicing, @unchecked Sendable {
     public var isSpeaking: Bool = false
     public private(set) var spokenUtterances: [String] = []
+    public private(set) var lastVoiceIdentifier: String?
+    public private(set) var lastRate: Float?
     public private(set) var stopSpeakingCallCount = 0
+    public var mockVoices: [VoiceOption] = [
+        VoiceOption(id: "mock.voice.samantha", name: "Samantha", language: "en-US", displayName: "Samantha (English - US)"),
+        VoiceOption(id: "mock.voice.daniel", name: "Daniel", language: "en-GB", displayName: "Daniel (English - UK)")
+    ]
 
     public init() {}
 
-    public func speak(text: String, voiceLanguage: String?) async throws {
+    public func speak(
+        text: String,
+        voiceIdentifier: String?,
+        language: String?,
+        rate: Float?,
+        pitchMultiplier: Float?,
+        volume: Float?
+    ) async throws {
         spokenUtterances.append(text)
+        lastVoiceIdentifier = voiceIdentifier
+        lastRate = rate
         isSpeaking = true
+    }
+
+    public func speak(text: String, voiceLanguage: String?) async throws {
+        try await speak(
+            text: text,
+            voiceIdentifier: nil,
+            language: voiceLanguage,
+            rate: nil,
+            pitchMultiplier: nil,
+            volume: nil
+        )
     }
 
     public func stopSpeaking() {
         stopSpeakingCallCount += 1
         isSpeaking = false
+    }
+
+    public func availableVoices() -> [VoiceOption] {
+        mockVoices
     }
 }
 

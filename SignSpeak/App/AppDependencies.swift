@@ -26,6 +26,9 @@ public struct AppDependencies: Sendable {
     var conversationRepository: any ConversationRepository
     var communityRepository: any CommunityRepository
     var signCatalogService: any SignCatalogServicing
+    var signRequestRepository: any SignRequestRepository
+    var favouritesRepository: any FavouritesRepository
+    var quickPhraseRepository: any QuickPhraseRepository
 
     /// Production dependency container.
     static let live: AppDependencies = {
@@ -77,11 +80,14 @@ public struct AppDependencies: Sendable {
             biometricAuthService: LocalAuthenticationBiometricService(),
             credentialVault: KeychainCredentialVault(),
             notificationService: LiveNotificationService(),
-            speechRecognitionService: StubSpeechRecognitionService(),
-            speechSynthesisService: StubSpeechSynthesisService(),
-            conversationRepository: StubConversationRepository(),
+            speechRecognitionService: OnDeviceSpeechRecognitionService(),
+            speechSynthesisService: OnDeviceSpeechSynthesisService(),
+            conversationRepository: FirestoreConversationRepository(),
             communityRepository: StubCommunityRepository(),
-            signCatalogService: SignCatalogService()
+            signCatalogService: SignCatalogService(),
+            signRequestRepository: FirestoreSignRequestRepository(),
+            favouritesRepository: FirestoreFavouritesRepository(),
+            quickPhraseRepository: FirestoreQuickPhraseRepository()
         )
     }()
 
@@ -131,7 +137,10 @@ public struct AppDependencies: Sendable {
                 likeCount: 6
             )
         ]),
-        signCatalogService: SignCatalogService()
+        signCatalogService: SignCatalogService(),
+        signRequestRepository: StubSignRequestRepository(),
+        favouritesRepository: StubFavouritesRepository(),
+        quickPhraseRepository: StubQuickPhraseRepository()
     )
 }
 
