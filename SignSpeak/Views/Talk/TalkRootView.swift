@@ -35,10 +35,17 @@ public struct TalkRootView: View {
         }
         .background(Color.appBackground.ignoresSafeArea())
         .navigationDestination(isPresented: $viewModel.isShowingLiveSession) {
-            CommunicatorLiveView(
-                mode: viewModel.selectedMode,
-                dominantHand: viewModel.dominantHand
-            )
+            if viewModel.selectedMode == .showTextToOthers {
+                CounterModeView()
+            } else {
+                CommunicatorLiveView(
+                    mode: viewModel.selectedMode,
+                    dominantHand: viewModel.dominantHand
+                )
+            }
+        }
+        .fullScreenCover(isPresented: $viewModel.isShowingCounterMode) {
+            CounterModeView()
         }
         .sheet(isPresented: $viewModel.isShowingCalibration) {
             GestureCalibrationView(viewModel: viewModel)
@@ -255,6 +262,43 @@ public struct TalkRootView: View {
                                 .foregroundStyle(Color.textPrimary)
 
                             Text("Pre-saved emergency, order & assistance cards")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Color.textSecondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .padding(Theme.Spacing.m)
+                }
+                .buttonStyle(.plain)
+
+                Divider().padding(.leading, 58)
+
+                // 2. Counter Mode Shortcut (Show Text to Others)
+                Button {
+                    viewModel.isShowingCounterMode = true
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.brandYellow.opacity(0.18))
+                                .frame(width: 38, height: 38)
+
+                            Image(systemName: "text.bubble.fill")
+                                .font(.system(size: 17))
+                                .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Counter Mode")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color.textPrimary)
+
+                            Text("Oversized high-contrast text card across the counter")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Color.textSecondary)
                         }

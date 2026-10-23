@@ -28,6 +28,7 @@ public struct AppDependencies: Sendable {
     var signCatalogService: any SignCatalogServicing
     var signRequestRepository: any SignRequestRepository
     var favouritesRepository: any FavouritesRepository
+    var quickPhraseRepository: any QuickPhraseRepository
 
     /// Production dependency container.
     static let live: AppDependencies = {
@@ -85,7 +86,8 @@ public struct AppDependencies: Sendable {
             communityRepository: StubCommunityRepository(),
             signCatalogService: SignCatalogService(),
             signRequestRepository: FirestoreSignRequestRepository(),
-            favouritesRepository: FirestoreFavouritesRepository()
+            favouritesRepository: FirestoreFavouritesRepository(),
+            quickPhraseRepository: FirestoreQuickPhraseRepository()
         )
     }()
 
@@ -137,7 +139,8 @@ public struct AppDependencies: Sendable {
         ]),
         signCatalogService: SignCatalogService(),
         signRequestRepository: StubSignRequestRepository(),
-        favouritesRepository: StubFavouritesRepository()
+        favouritesRepository: StubFavouritesRepository(),
+        quickPhraseRepository: StubQuickPhraseRepository()
     )
 }
 

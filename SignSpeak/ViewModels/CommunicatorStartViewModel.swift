@@ -21,6 +21,7 @@ public final class CommunicatorStartViewModel {
 
     public var isShowingLiveSession: Bool = false
     public var isShowingQuickPhrases: Bool = false
+    public var isShowingCounterMode: Bool = false
     public var isShowingHistory: Bool = false
     public var isShowingCalibration: Bool = false
 

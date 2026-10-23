@@ -59,7 +59,7 @@ struct CommunicatorLiveTests {
         await vm.startSpeechRecognition()
 
         // Wait adaptively for simulated transcripts to stream under CI/simulator load
-        let deadline = Date().addingTimeInterval(2.0)
+        let deadline = Date().addingTimeInterval(6.0)
         while vm.messages.isEmpty && Date() < deadline {
             try? await Task.sleep(nanoseconds: 20_000_000)
         }

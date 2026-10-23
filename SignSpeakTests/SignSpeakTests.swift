@@ -29,6 +29,7 @@ struct AppDependenciesTests {
         #expect(live.signCatalogService is SignCatalogService)
         #expect(live.signRequestRepository is FirestoreSignRequestRepository)
         #expect(live.favouritesRepository is FirestoreFavouritesRepository)
+        #expect(live.quickPhraseRepository is FirestoreQuickPhraseRepository)
     }
 
     @Test("Preview container populates mock data and fixed clock")
@@ -55,6 +56,7 @@ struct AppDependenciesTests {
         #expect(preview.signCatalogService is SignCatalogService)
         #expect(preview.signRequestRepository is StubSignRequestRepository)
         #expect(preview.favouritesRepository is StubFavouritesRepository)
+        #expect(preview.quickPhraseRepository is StubQuickPhraseRepository)
 
         #expect(preview.dateProvider.now == Date(timeIntervalSince1970: 1_790_812_800))
         #expect(preview.authService.currentUserId == "preview-user-123")
