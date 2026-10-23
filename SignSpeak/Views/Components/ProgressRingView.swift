@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// Reusable circular progress ring indicator displaying percentage completion.
-/// Matches designs `25-learn-hub`, `27-words-phrases-categories`, and `19-dashboard`.
 public struct ProgressRingView: View {
     public let progress: Double
     public let ringSize: CGFloat

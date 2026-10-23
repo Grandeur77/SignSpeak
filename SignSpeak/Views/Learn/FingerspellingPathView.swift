@@ -1,0 +1,426 @@
+import SwiftUI
+
+/// Fingerspelling Path screen showing letter mastery grid (A–Z) and lessons 1–5.
+/// Matches design `26-alphabet-lessons`.
+public struct FingerspellingPathView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dependencies) private var dependencies
+
+    @State private var allAlphabetSigns: [Sign] = []
+    @State private var alphabetLessons: [Lesson] = []
+    @State private var selectedSign: Sign?
+    @State private var selectedLesson: Lesson?
+    @State private var isShowingInfoAlert = false
+
+    private let alphabetLetters = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ").map(String.init)
+
+    public init() {}
+
+    public var body: some View {
+        ScrollView {
+            VStack(spacing: Theme.Spacing.l) {
+                // 1. Sub-Header Bar
+                subHeaderView
+                    .padding(.horizontal, Theme.Spacing.l)
+                    .padding(.top, Theme.Spacing.s)
+
+                // 2. Letter Mastery (A–Z) Grid Card
+                letterMasteryCard
+                    .padding(.horizontal, Theme.Spacing.l)
+
+                // 3. Lessons Progression (1 to 5)
+                lessonsListSection
+                    .padding(.horizontal, Theme.Spacing.l)
+
+                Spacer(minLength: Theme.Spacing.xl)
+            }
+            .padding(.bottom, Theme.Spacing.xl)
+        }
+        .background(Color.appBackground.ignoresSafeArea())
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Unit Overview")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.textPrimary)
+            }
+
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    isShowingInfoAlert = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(Color.textPrimary)
+                }
+                .accessibilityLabel("Fingerspelling unit info")
+
+                ProfileAvatarButton {}
+            }
+        }
+        .alert("Manual Alphabet Unit", isPresented: $isShowingInfoAlert) {
+            Button("Got it", role: .cancel) {}
+        } message: {
+            Text("Master all 26 letters of the American Sign Language fingerspelling alphabet. Practice with real-time computer vision joint tracking.")
+        }
+        .navigationDestination(for: Sign.self) { sign in
+            SignDetailView(sign: sign)
+        }
+        .navigationDestination(for: Lesson.self) { lesson in
+            LessonIntroView(lesson: lesson)
+        }
+        .task {
+            loadCatalog()
+        }
+    }
+
+    // MARK: - Subviews
+
+    private var subHeaderView: some View {
+        HStack {
+            HStack(spacing: 8) {
+                Image(systemName: "hand.raised.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(Color.brandTurquoise)
+
+                Text("Fingerspelling Path")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.textPrimary)
+            }
+
+            Spacer()
+
+            HStack(spacing: 4) {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.brandYellow)
+
+                Text("12 Mastered")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.brandYellow.opacity(0.18), in: Capsule())
+        }
+    }
+
+    private var letterMasteryCard: some View {
+        VStack(spacing: 12) {
+            // Header Row
+            HStack {
+                Text("Letter Mastery (A–Z)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+
+                Spacer()
+
+                Text("46% Complete")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.brandTurquoise)
+            }
+
+            // Grid of 26 letters (9 items per row)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 9)
+
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(alphabetLetters, id: \.self) { letter in
+                    letterTile(letter)
+                }
+            }
+        }
+        .padding(Theme.Spacing.m)
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+        )
+    }
+
+    private func letterTile(_ letter: String) -> some View {
+        let isMastered = isLetterMastered(letter)
+        let isCurrent = letter == "M"
+        let sign = allAlphabetSigns.first(where: { $0.name.uppercased() == letter })
+
+        return Button {
+            if let sign {
+                selectedSign = sign
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Text(letter)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(isMastered ? Color.white : (isCurrent ? Color.black : Color.textSecondary))
+
+                if isMastered {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundStyle(Color.white)
+                } else if isCurrent {
+                    Circle()
+                        .fill(Color.black)
+                        .frame(width: 4, height: 4)
+                } else {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 7))
+                        .foregroundStyle(Color.gray.opacity(0.7))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 38)
+            .background(
+                isMastered ? Color.brandTurquoise : (isCurrent ? Color.brandYellow : Color.gray.opacity(0.12)),
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Letter \(letter), \(isMastered ? "Mastered" : (isCurrent ? "In Progress" : "Locked"))")
+        .background {
+            if let sign {
+                NavigationLink(value: sign) { EmptyView() }
+                    .opacity(0)
+            }
+        }
+    }
+
+    private var lessonsListSection: some View {
+        VStack(spacing: 14) {
+            // Lesson 1: A-E (COMPLETED)
+            lesson1Card
+
+            // Lesson 2: F-J (IN PROGRESS)
+            lesson2Card
+
+            // Lesson 3: K-O (LOCKED)
+            lockedLessonCard(title: "Lesson 3 · K–O", subtitle: "Unlocks after Lesson 2")
+
+            // Lesson 4: P-T (LOCKED)
+            lockedLessonCard(title: "Lesson 4 · P–T", subtitle: "Downward Orientations")
+
+            // Lesson 5: U-Z (LOCKED)
+            lockedLessonCard(title: "Lesson 5 · U–Z", subtitle: "Crossings & Motion Letters")
+        }
+    }
+
+    // MARK: - Lesson Cards
+
+    private var lesson1Card: some View {
+        let lesson = alphabetLessons.first(where: { $0.id == "lesson-alphabet-1" })
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                ZStack {
+                    Circle()
+                        .fill(Color.brandTurquoise.opacity(0.15))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.brandTurquoise)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Lesson 1 · A–E")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+
+                    Text("Vowels & Foundational Shapes")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.textSecondary)
+                }
+
+                Spacer()
+
+                Text("COMPLETED")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.brandTurquoise)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.brandTurquoise.opacity(0.14), in: Capsule())
+            }
+
+            HStack {
+                HStack(spacing: 4) {
+                    Image(systemName: "star.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.brandTurquoise)
+
+                    Text("5 of 5 mastered")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.textPrimary)
+                }
+
+                Spacer()
+
+                if let lesson {
+                    NavigationLink(value: lesson) {
+                        HStack(spacing: 4) {
+                            Text("Review")
+                                .font(.system(size: 13, weight: .semibold))
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.textPrimary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(Color.gray.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(Theme.Spacing.m)
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+        )
+    }
+
+    private var lesson2Card: some View {
+        let lesson = alphabetLessons.first(where: { $0.id == "lesson-alphabet-2" })
+
+        return VStack(alignment: .leading, spacing: 12) {
+            // Cyan Highlight Top Accent
+            HStack(alignment: .top) {
+                ZStack {
+                    Circle()
+                        .fill(Color.brandYellow.opacity(0.2))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color.brandYellow)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Lesson 2 · F–J")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+
+                    Text("Fingertip Precision & Curves")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.textSecondary)
+                }
+
+                Spacer()
+
+                Text("IN PROGRESS")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.black)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.brandYellow, in: Capsule())
+            }
+
+            // Current Goal Box
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("CURRENT GOAL")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.6)
+                        .foregroundStyle(Color.textSecondary)
+
+                    Text("3 of 5 learned (60%)")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+                }
+
+                Spacer()
+
+                Text("Up Next: M ▷")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.brandTurquoise)
+            }
+            .padding(Theme.Spacing.m)
+            .background(Color.gray.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+
+            // Big CTA Button
+            if let lesson {
+                NavigationLink(value: lesson) {
+                    HStack(spacing: 8) {
+                        Text("Continue Lesson")
+                            .font(.system(size: 15, weight: .bold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundStyle(Color.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color.brandNavy, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(Theme.Spacing.m)
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(
+            VStack {
+                Rectangle()
+                    .fill(Color.brandTurquoise)
+                    .frame(height: 3)
+                Spacer()
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.brandTurquoise.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    private func lockedLessonCard(title: String, subtitle: String) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.gray.opacity(0.12))
+                    .frame(width: 36, height: 36)
+
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.textSecondary)
+
+                Text(subtitle)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.textSecondary.opacity(0.7))
+            }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.textSecondary.opacity(0.4))
+        }
+        .padding(Theme.Spacing.m)
+        .background(Color.cardBackground.opacity(0.7), in: RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        )
+    }
+
+    // MARK: - Helpers
+
+    private func isLetterMastered(_ letter: String) -> Bool {
+        // A through L are mastered per design 26-alphabet-lessons
+        guard let char = letter.first, let aChar = "A".first, let lChar = "L".first else { return false }
+        return char >= aChar && char <= lChar
+    }
+
+    private func loadCatalog() {
+        allAlphabetSigns = dependencies.signCatalogService.signs(forCategory: "alphabet")
+        alphabetLessons = dependencies.signCatalogService.lessons(forUnit: "unit-alphabet")
+    }
+}
+
+#Preview("Fingerspelling Path") {
+    NavigationStack {
+        FingerspellingPathView()
+            .environment(\.dependencies, .preview)
+    }
+}

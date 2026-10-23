@@ -2,7 +2,6 @@ import SwiftUI
 import AVKit
 
 /// Reusable native video and photo player for American Sign Language demonstrations.
-/// Matches designs `45-sign-detail-hello` and `33-sign-detail-letter-m`.
 /// Supports dual-angle switching (Front/Side), 0.5x slow-motion study, continuous loop,
 /// horizontal mirroring for left-handed signers, precision scrubbing, and photo fallback.
 public struct SignMediaPlayer: View {

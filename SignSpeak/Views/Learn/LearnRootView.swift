@@ -190,9 +190,8 @@ public struct LearnRootView: View {
 
         return VStack(spacing: 14) {
             // 1. Alphabet Card
-            Button {
-                triggerHaptic()
-                navigatedDestination = "alphabet"
+            NavigationLink {
+                FingerspellingPathView()
             } label: {
                 curriculumCard(
                     title: "Alphabet",
@@ -207,9 +206,8 @@ public struct LearnRootView: View {
             .buttonStyle(.plain)
 
             // 2. Words & Phrases Card
-            Button {
-                triggerHaptic()
-                navigatedDestination = "words"
+            NavigationLink {
+                WordsPhrasesCategoriesView()
             } label: {
                 curriculumCard(
                     title: "Words & Phrases",
