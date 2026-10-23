@@ -8,6 +8,8 @@ public struct FingerspellingPathView: View {
 
     @State private var allAlphabetSigns: [Sign] = []
     @State private var alphabetLessons: [Lesson] = []
+    @State private var userProgress: [String: SignProgress] = [:]
+    @State private var summaries: [LessonProgressSummary] = []
     @State private var selectedSign: Sign?
     @State private var selectedLesson: Lesson?
     @State private var isShowingInfoAlert = false
@@ -69,7 +71,7 @@ public struct FingerspellingPathView: View {
             LessonIntroView(lesson: lesson)
         }
         .task {
-            loadCatalog()
+            await loadCatalog()
         }
     }
 
@@ -184,29 +186,32 @@ public struct FingerspellingPathView: View {
 
     private var lessonsListSection: some View {
         VStack(spacing: 14) {
-            // Lesson 1: A-E (COMPLETED)
-            lesson1Card
+            ForEach(alphabetLessons) { lesson in
+                let summary = summaries.first(where: { $0.lessonId == lesson.id })
+                    ?? LessonProgressionEngine.summary(forLesson: lesson.id, in: alphabetLessons, progress: userProgress)
+                    ?? LessonProgressSummary(
+                        lessonId: lesson.id,
+                        status: lesson.id == "lesson-alphabet-1" ? .completed : (lesson.id == "lesson-alphabet-2" ? .inProgress : .locked),
+                        masteredCount: lesson.id == "lesson-alphabet-1" ? 5 : 0,
+                        totalSignsCount: lesson.signIds.count
+                    )
 
-            // Lesson 2: F-J (IN PROGRESS)
-            lesson2Card
-
-            // Lesson 3: K-O (LOCKED)
-            lockedLessonCard(title: "Lesson 3 · K–O", subtitle: "Unlocks after Lesson 2")
-
-            // Lesson 4: P-T (LOCKED)
-            lockedLessonCard(title: "Lesson 4 · P–T", subtitle: "Downward Orientations")
-
-            // Lesson 5: U-Z (LOCKED)
-            lockedLessonCard(title: "Lesson 5 · U–Z", subtitle: "Crossings & Motion Letters")
+                switch summary.status {
+                case .completed:
+                    completedLessonCard(lesson: lesson, summary: summary)
+                case .inProgress:
+                    inProgressLessonCard(lesson: lesson, summary: summary)
+                case .locked:
+                    lockedLessonCard(title: lesson.title, subtitle: lesson.subtitle)
+                }
+            }
         }
     }
 
     // MARK: - Lesson Cards
 
-    private var lesson1Card: some View {
-        let lesson = alphabetLessons.first(where: { $0.id == "lesson-alphabet-1" })
-
-        return VStack(alignment: .leading, spacing: 12) {
+    private func completedLessonCard(lesson: Lesson, summary: LessonProgressSummary) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 ZStack {
                     Circle()
@@ -219,11 +224,11 @@ public struct FingerspellingPathView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Lesson 1 · A–E")
+                    Text(lesson.title)
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.textPrimary)
 
-                    Text("Vowels & Foundational Shapes")
+                    Text(lesson.subtitle)
                         .font(.system(size: 13))
                         .foregroundStyle(Color.textSecondary)
                 }
@@ -244,28 +249,26 @@ public struct FingerspellingPathView: View {
                         .font(.system(size: 13))
                         .foregroundStyle(Color.brandTurquoise)
 
-                    Text("5 of 5 mastered")
+                    Text("\(summary.masteredCount) of \(summary.totalSignsCount) mastered")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(Color.textPrimary)
                 }
 
                 Spacer()
 
-                if let lesson {
-                    NavigationLink(value: lesson) {
-                        HStack(spacing: 4) {
-                            Text("Review")
-                                .font(.system(size: 13, weight: .semibold))
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.textPrimary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 7)
-                        .background(Color.gray.opacity(0.12), in: Capsule())
+                NavigationLink(value: lesson) {
+                    HStack(spacing: 4) {
+                        Text("Review")
+                            .font(.system(size: 13, weight: .semibold))
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 11, weight: .semibold))
                     }
-                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(Color.gray.opacity(0.12), in: Capsule())
                 }
+                .buttonStyle(.plain)
             }
         }
         .padding(Theme.Spacing.m)
@@ -276,11 +279,8 @@ public struct FingerspellingPathView: View {
         )
     }
 
-    private var lesson2Card: some View {
-        let lesson = alphabetLessons.first(where: { $0.id == "lesson-alphabet-2" })
-
-        return VStack(alignment: .leading, spacing: 12) {
-            // Cyan Highlight Top Accent
+    private func inProgressLessonCard(lesson: Lesson, summary: LessonProgressSummary) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 ZStack {
                     Circle()
@@ -293,11 +293,11 @@ public struct FingerspellingPathView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Lesson 2 · F–J")
+                    Text(lesson.title)
                         .font(.system(size: 17, weight: .bold))
                         .foregroundStyle(Color.textPrimary)
 
-                    Text("Fingertip Precision & Curves")
+                    Text(lesson.subtitle)
                         .font(.system(size: 13))
                         .foregroundStyle(Color.textSecondary)
                 }
@@ -320,36 +320,30 @@ public struct FingerspellingPathView: View {
                         .tracking(0.6)
                         .foregroundStyle(Color.textSecondary)
 
-                    Text("3 of 5 learned (60%)")
+                    Text("\(summary.masteredCount) of \(summary.totalSignsCount) learned (\(Int(summary.progressFraction * 100))%)")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Color.textPrimary)
                 }
 
                 Spacer()
-
-                Text("Up Next: M ▷")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.brandTurquoise)
             }
             .padding(Theme.Spacing.m)
             .background(Color.gray.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
 
             // Big CTA Button
-            if let lesson {
-                NavigationLink(value: lesson) {
-                    HStack(spacing: 8) {
-                        Text("Continue Lesson")
-                            .font(.system(size: 15, weight: .bold))
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(Color.brandNavy, in: Capsule())
+            NavigationLink(value: lesson) {
+                HStack(spacing: 8) {
+                    Text("Continue Lesson")
+                        .font(.system(size: 15, weight: .bold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 13, weight: .bold))
                 }
-                .buttonStyle(.plain)
+                .foregroundStyle(Color.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(Color.brandNavy, in: Capsule())
             }
+            .buttonStyle(.plain)
         }
         .padding(Theme.Spacing.m)
         .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
@@ -407,14 +401,28 @@ public struct FingerspellingPathView: View {
     // MARK: - Helpers
 
     private func isLetterMastered(_ letter: String) -> Bool {
-        // A through L are mastered per design 26-alphabet-lessons
+        let signId = "sign-letter-\(letter.lowercased())"
+        if let progress = userProgress[signId] {
+            return progress.isMastered
+        }
+        // Fallback for default seed preview (A through L)
         guard let char = letter.first, let aChar = "A".first, let lChar = "L".first else { return false }
         return char >= aChar && char <= lChar
     }
 
-    private func loadCatalog() {
+    private func loadCatalog() async {
         allAlphabetSigns = dependencies.signCatalogService.signs(forCategory: "alphabet")
         alphabetLessons = dependencies.signCatalogService.lessons(forUnit: "unit-alphabet")
+
+        let userId = dependencies.authService.currentUserId ?? "default"
+        if let list = try? await dependencies.progressRepository.fetchProgress(userId: userId) {
+            var dict: [String: SignProgress] = [:]
+            for item in list {
+                dict[item.signId] = item
+            }
+            userProgress = dict
+            summaries = LessonProgressionEngine.evaluate(lessons: alphabetLessons, progress: dict)
+        }
     }
 }
 
