@@ -67,7 +67,7 @@ public struct LearnRootView: View {
                 await viewModel?.load()
             }
         }
-        .sheet(isPresented: Binding(
+        .fullScreenCover(isPresented: Binding(
             get: { viewModel?.isQuizPresented ?? false },
             set: { viewModel?.isQuizPresented = $0 }
         )) {
@@ -498,48 +498,20 @@ public struct LearnRootView: View {
     // MARK: - Sheets
 
     private var speedRunQuizSheet: some View {
-        NavigationStack {
-            VStack(spacing: Theme.Spacing.l) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandYellow.opacity(0.2))
-                        .frame(width: 80, height: 80)
+        let allSigns = dependencies.signCatalogService.allSigns()
+        let pool = dependencies.signCatalogService.signs(forCategory: "alphabet")
+        let questions = QuizEngine.generateQuestions(
+            from: !pool.isEmpty ? pool : allSigns,
+            allCatalogSigns: allSigns,
+            count: 10,
+            isSpeedRun: true
+        )
 
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 38))
-                        .foregroundStyle(Color.brandYellow)
-                }
-                .padding(.top, Theme.Spacing.xl)
-
-                VStack(spacing: 8) {
-                    Text("Speed Run Quiz")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text("Full interactive quizzes with gesture timer and scoring arrive in Step 5.4!")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Spacing.l)
-                }
-
-                Spacer()
-
-                Button("Dismiss") {
-                    viewModel?.isQuizPresented = false
-                }
-                .font(.headline)
-                .foregroundStyle(Color.brandTurquoise)
-                .padding(.bottom, Theme.Spacing.l)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") {
-                        viewModel?.isQuizPresented = false
-                    }
-                }
-            }
-        }
+        return QuizView(
+            questions: questions,
+            quizTitle: "Speed Run Quiz",
+            isSpeedRun: true
+        )
     }
 
     private var reviewMistakesSheet: some View {

@@ -355,8 +355,17 @@ public struct LessonIntroView: View {
                 lessonTitle: lesson.title
             )
         }
-        .sheet(isPresented: $isShowingQuizSheet) {
-            lessonQuizPlaceholder
+        .fullScreenCover(isPresented: $isShowingQuizSheet) {
+            let pool = !lessonSigns.isEmpty ? lessonSigns : fallbackSignsForLesson()
+            let questions = QuizEngine.generateQuestions(
+                from: pool,
+                allCatalogSigns: dependencies.signCatalogService.allSigns(),
+                count: max(3, pool.count)
+            )
+            QuizView(
+                questions: questions,
+                quizTitle: "Quiz: \(lesson.title)"
+            )
         }
     }
 
@@ -364,51 +373,6 @@ public struct LessonIntroView: View {
         let signs = lesson.signIds.compactMap { dependencies.signCatalogService.sign(byId: $0) }
         if !signs.isEmpty { return signs }
         return dependencies.signCatalogService.signs(forCategory: "alphabet")
-    }
-
-    private var lessonQuizPlaceholder: some View {
-        NavigationStack {
-            VStack(spacing: Theme.Spacing.l) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandYellow.opacity(0.2))
-                        .frame(width: 80, height: 80)
-
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.system(size: 38))
-                        .foregroundStyle(Color.brandYellow)
-                }
-                .padding(.top, Theme.Spacing.xl)
-
-                VStack(spacing: 8) {
-                    Text("Lesson Quiz: \(lesson.title)")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text("Watch-and-choose and sign-it quizzes arrive in Step 5.4.")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Color.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Spacing.l)
-                }
-
-                Spacer()
-
-                Button("Dismiss") {
-                    isShowingQuizSheet = false
-                }
-                .font(.headline)
-                .foregroundStyle(Color.brandTurquoise)
-                .padding(.bottom, Theme.Spacing.l)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") {
-                        isShowingQuizSheet = false
-                    }
-                }
-            }
-        }
     }
 
     // MARK: - Actions
