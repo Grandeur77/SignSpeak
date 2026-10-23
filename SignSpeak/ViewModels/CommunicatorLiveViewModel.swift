@@ -93,9 +93,9 @@ public final class CommunicatorLiveViewModel {
 
     public func startSession() async {
         isPaused = false
+        await startCameraRecognition()
         setupAudioSession()
         await startSpeechRecognition()
-        await startCameraRecognition()
     }
 
     public func stopSession() async {
@@ -147,23 +147,17 @@ public final class CommunicatorLiveViewModel {
             return
         }
 
-        // 2. Observe Audio Power Level for Waveform
-        audioLevelTask = Task { [weak self] in
-            guard let self else { return }
-            let levels = self.speechRecognitionService.audioLevelStream()
-            for await level in levels {
-                if Task.isCancelled { break }
-                self.partnerAudioLevel = level
-            }
-        }
-
-        // 3. Observe Speech Transcripts
+        // 2. Observe Speech Transcripts
         speechTask = Task { [weak self] in
             guard let self else { return }
             do {
                 let stream = try await self.speechRecognitionService.startTranscription()
                 for await result in stream {
                     if Task.isCancelled { break }
+                    if let err = result.error {
+                        self.errorMessage = "Speech error: \(err)"
+                        continue
+                    }
                     self.activePartnerTranscript = result.text
                     self.isPartnerSpeaking = !result.text.isEmpty
 
@@ -177,6 +171,16 @@ public final class CommunicatorLiveViewModel {
                 if !Task.isCancelled {
                     self.errorMessage = error.localizedDescription
                 }
+            }
+        }
+
+        // 3. Observe Audio Power Level for Waveform
+        audioLevelTask = Task { [weak self] in
+            guard let self else { return }
+            let levels = self.speechRecognitionService.audioLevelStream()
+            for await level in levels {
+                if Task.isCancelled { break }
+                self.partnerAudioLevel = level
             }
         }
     }

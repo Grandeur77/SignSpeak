@@ -2,23 +2,26 @@ import Foundation
 import Speech
 import AVFoundation
 
-/// Transcription event carrying partial or final transcribed text, confidence, and timestamp.
+/// Transcription event carrying partial or final transcribed text, confidence, timestamp, and optional error.
 public struct TranscriptionResult: Sendable, Equatable {
     public let text: String
     public let isFinal: Bool
     public let confidence: Float
     public let timestamp: Date
+    public let error: String?
 
     public init(
         text: String,
         isFinal: Bool = false,
         confidence: Float = 1.0,
-        timestamp: Date = Date()
+        timestamp: Date = Date(),
+        error: String? = nil
     ) {
         self.text = text
         self.isFinal = isFinal
         self.confidence = confidence
         self.timestamp = timestamp
+        self.error = error
     }
 }
 
@@ -111,8 +114,25 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
     private var _isTranscribing: Bool = false
     private var _isVoiceProcessingEnabled: Bool = true
 
+    public static func preferredRecognitionLocale() -> Locale {
+        let current = Locale.current
+        if let rec = SFSpeechRecognizer(locale: current), rec.supportsOnDeviceRecognition {
+            return current
+        }
+        let enUS = Locale(identifier: "en-US")
+        if let rec = SFSpeechRecognizer(locale: enUS), rec.supportsOnDeviceRecognition {
+            return enUS
+        }
+        for loc in SFSpeechRecognizer.supportedLocales() {
+            if loc.identifier.hasPrefix("en"), let rec = SFSpeechRecognizer(locale: loc), rec.supportsOnDeviceRecognition {
+                return loc
+            }
+        }
+        return Locale(identifier: "en-US")
+    }
+
     public override init() {
-        let initialLocale = Locale(identifier: "en-US")
+        let initialLocale = Self.preferredRecognitionLocale()
         self._currentLocale = initialLocale
         self.speechRecognizer = SFSpeechRecognizer(locale: initialLocale)
         super.init()
@@ -234,8 +254,8 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
         lock.lock()
         defer { lock.unlock() }
 
-        // Stop any currently running task
-        cleanupInternal()
+        // Clean up previous engine & recognition task without terminating active audioLevel stream
+        cleanupEngineAndTask()
 
         // 1. Verify Permissions
         let permissions = checkPermissions()
@@ -273,14 +293,9 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
         }
         self.recognitionRequest = request
 
-        // 5. Configure Audio Engine & Voice Processing Input Node
+        // 5. Configure Audio Engine
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
-
-        if _isVoiceProcessingEnabled {
-            // Hardware voice processing filters background noise and suppresses echo
-            try? inputNode.setVoiceProcessingEnabled(true)
-        }
 
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         guard recordingFormat.sampleRate > 0 else {
@@ -340,21 +355,13 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
                 self.lock.lock()
                 self.transcriptContinuation?.yield(item)
                 self.lock.unlock()
-
-                if isFinal {
-                    self.lock.lock()
-                    self.transcriptContinuation?.finish()
-                    self.lock.unlock()
-                }
             }
 
             if let error {
+                let errorDesc = error.localizedDescription
                 self.lock.lock()
-                self.transcriptContinuation?.finish()
+                self.transcriptContinuation?.yield(TranscriptionResult(text: "", isFinal: false, error: errorDesc))
                 self.lock.unlock()
-                Task { [weak self] in
-                    await self?.stopTranscription()
-                }
             }
         }
 
@@ -378,9 +385,7 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
 
     // MARK: - Internal Teardown
 
-    private func cleanupInternal() {
-        _isTranscribing = false
-
+    private func cleanupEngineAndTask() {
         if let engine = audioEngine {
             if engine.isRunning {
                 engine.stop()
@@ -394,6 +399,11 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
 
         recognitionTask?.cancel()
         recognitionTask = nil
+    }
+
+    private func cleanupInternal() {
+        _isTranscribing = false
+        cleanupEngineAndTask()
 
         transcriptContinuation?.finish()
         transcriptContinuation = nil
