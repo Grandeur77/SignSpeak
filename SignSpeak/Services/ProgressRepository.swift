@@ -1,6 +1,9 @@
 import Foundation
+#if canImport(FirebaseFirestore)
+import FirebaseFirestore
+#endif
 
-/// Practice progress data for an individual ASL sign.
+/// Practice progress data for an individual ASL sign stored in `users/{uid}/progress/{signId}`.
 public struct SignProgress: Identifiable, Codable, Sendable, Equatable {
     public var id: String { signId }
     public let signId: String
@@ -24,6 +27,26 @@ public struct SignProgress: Identifiable, Codable, Sendable, Equatable {
         self.isMastered = isMastered
         self.lastPracticedAt = lastPracticedAt
         self.lastDetectedAs = lastDetectedAs
+    }
+
+    /// Applies an evaluation attempt according to strict mastery criteria:
+    /// A sign is considered mastered when it has at least 5 correct attempts and >= 75% accuracy.
+    public mutating func applyAttempt(isCorrect: Bool, detectedAs: String? = nil, timestamp: Date = Date()) {
+        attempts += 1
+        if isCorrect {
+            correct += 1
+        } else if let detectedAs {
+            lastDetectedAs = detectedAs
+        }
+        lastPracticedAt = timestamp
+
+        // Mastery Rule: at least 5 attempts, 5 correct, accuracy >= 75%
+        if attempts >= 5 && correct >= 5 {
+            let accuracy = Double(correct) / Double(attempts)
+            if accuracy >= 0.75 {
+                isMastered = true
+            }
+        }
     }
 }
 
@@ -69,13 +92,16 @@ public struct LearnHubMetrics: Sendable, Equatable {
     }
 }
 
-/// Protocol abstracting learning progress storage.
+/// Protocol abstracting learning progress storage, session records, and streak/XP synchronization.
 public protocol ProgressRepository: Sendable {
     func fetchProgress(userId: String) async throws -> [SignProgress]
     func recordAttempt(userId: String, signId: String, isCorrect: Bool) async throws
     func recordAttempt(userId: String, signId: String, isCorrect: Bool, detectedAs: String?) async throws
     func fetchMistakes(userId: String) async throws -> [SignProgress]
     func fetchLearnHubMetrics(userId: String) async throws -> LearnHubMetrics
+    func recordSession(userId: String, session: LearningSession) async throws -> SessionCompletionResult
+    func fetchSessions(userId: String) async throws -> [LearningSession]
+    func updateStreakAndFreezes(userId: String, dateProvider: any DateProviding) async throws -> StreakUpdateResult
 }
 
 extension ProgressRepository {
@@ -119,15 +145,32 @@ extension ProgressRepository {
     }
 }
 
-/// In-memory progress repository stub with realistic curriculum seed defaults.
+/// In-memory progress repository stub with full session, XP, level, and streak tracking for tests and previews.
 public final class StubProgressRepository: ProgressRepository, @unchecked Sendable {
+    private let lock = NSLock()
     private var progressStore: [String: [String: SignProgress]] = [:]
+    private var sessionStore: [String: [LearningSession]] = [:]
 
-    public init(initialStore: [String: [String: SignProgress]]? = nil) {
+    private var userProfileRepository: (any UserProfileRepository)?
+    private var publicProfileRepository: (any PublicProfileRepository)?
+    private var dateProvider: any DateProviding
+    private var widgetSnapshotManager: WidgetSnapshotManager
+
+    public init(
+        initialStore: [String: [String: SignProgress]]? = nil,
+        userProfileRepository: (any UserProfileRepository)? = nil,
+        publicProfileRepository: (any PublicProfileRepository)? = nil,
+        dateProvider: any DateProviding = SystemDateProvider(),
+        widgetSnapshotManager: WidgetSnapshotManager = .shared
+    ) {
+        self.userProfileRepository = userProfileRepository
+        self.publicProfileRepository = publicProfileRepository
+        self.dateProvider = dateProvider
+        self.widgetSnapshotManager = widgetSnapshotManager
+
         if let initialStore {
             self.progressStore = initialStore
         } else {
-            // Seed default mock progress matching design 25-learn-hub
             self.progressStore = [
                 "preview-user-123": Self.seedLearnerProgress(),
                 "default": Self.seedLearnerProgress()
@@ -136,32 +179,119 @@ public final class StubProgressRepository: ProgressRepository, @unchecked Sendab
     }
 
     public func fetchProgress(userId: String) async throws -> [SignProgress] {
+        lock.lock()
+        defer { lock.unlock() }
+
         if let userDict = progressStore[userId] {
             return Array(userDict.values)
         }
-        // Fallback to default seeded progress
-        return Array((progressStore["default"] ?? [:]).values)
-    }
-
-    public func recordAttempt(userId: String, signId: String, isCorrect: Bool) async throws {
-        try await recordAttempt(userId: userId, signId: signId, isCorrect: isCorrect, detectedAs: nil)
+        if userId == "default" || userId == "preview-user-123" {
+            return Array((progressStore["default"] ?? [:]).values)
+        }
+        return []
     }
 
     public func recordAttempt(userId: String, signId: String, isCorrect: Bool, detectedAs: String?) async throws {
-        var userDict = progressStore[userId] ?? progressStore["default"] ?? [:]
+        lock.lock()
+        defer { lock.unlock() }
+
+        var userDict = progressStore[userId] ?? [:]
         var item = userDict[signId] ?? SignProgress(signId: signId)
-        item.attempts += 1
-        if isCorrect {
-            item.correct += 1
-            if item.correct >= 5 {
-                item.isMastered = true
-            }
-        } else if let detectedAs {
-            item.lastDetectedAs = detectedAs
-        }
-        item.lastPracticedAt = Date()
+        item.applyAttempt(isCorrect: isCorrect, detectedAs: detectedAs, timestamp: dateProvider.now)
         userDict[signId] = item
         progressStore[userId] = userDict
+    }
+
+    public func fetchSessions(userId: String) async throws -> [LearningSession] {
+        lock.lock()
+        defer { lock.unlock() }
+        return sessionStore[userId] ?? []
+    }
+
+    public func recordSession(userId: String, session: LearningSession) async throws -> SessionCompletionResult {
+        // 1. Store session
+        lock.lock()
+        var userSessions = sessionStore[userId] ?? []
+        userSessions.append(session)
+        sessionStore[userId] = userSessions
+        lock.unlock()
+
+        // 2. Fetch or create user profile
+        var profile: UserProfile
+        if let existing = try? await userProfileRepository?.fetchProfile(userId: userId) {
+            profile = existing
+        } else {
+            profile = UserProfile(id: userId, displayName: "Learner")
+        }
+
+        let previousLevel = profile.level
+        let newXP = profile.xp + session.xpEarned
+        let newLevel = ExplorerLevel.level(forXP: newXP)
+
+        // 3. Update streak & freezes via StreakEngine
+        let streakResult = StreakEngine.evaluatePractice(
+            currentStreak: profile.currentStreak,
+            longestStreak: profile.longestStreak,
+            lastPracticeDay: profile.lastPracticeDay,
+            streakFreezes: profile.streakFreezes,
+            dateProvider: dateProvider
+        )
+
+        profile.xp = newXP
+        profile.level = newLevel
+        profile.currentStreak = streakResult.newStreak
+        profile.longestStreak = streakResult.newLongestStreak
+        profile.streakFreezes = streakResult.newStreakFreezes
+        profile.lastPracticeDay = streakResult.lastPracticeDay
+
+        // 4. Persist updated private profile
+        try? await userProfileRepository?.saveProfile(profile)
+
+        // 5. Sync to public profile
+        try? await publicProfileRepository?.syncFromPrivateProfile(profile)
+
+        // 6. Update widget snapshot
+        let metrics = try? await fetchLearnHubMetrics(userId: userId)
+        widgetSnapshotManager.update(profile: profile, metrics: metrics, dateProvider: dateProvider)
+
+        return SessionCompletionResult(
+            session: session,
+            streakResult: streakResult,
+            updatedXP: newXP,
+            updatedLevel: newLevel,
+            levelTitle: ExplorerLevel.tierTitle(forXP: newXP),
+            leveledUp: newLevel > previousLevel
+        )
+    }
+
+    public func updateStreakAndFreezes(userId: String, dateProvider: any DateProviding) async throws -> StreakUpdateResult {
+        var profile: UserProfile
+        if let existing = try? await userProfileRepository?.fetchProfile(userId: userId) {
+            profile = existing
+        } else {
+            profile = UserProfile(id: userId, displayName: "Learner")
+        }
+
+        let result = StreakEngine.evaluatePractice(
+            currentStreak: profile.currentStreak,
+            longestStreak: profile.longestStreak,
+            lastPracticeDay: profile.lastPracticeDay,
+            streakFreezes: profile.streakFreezes,
+            dateProvider: dateProvider
+        )
+
+        profile.currentStreak = result.newStreak
+        profile.longestStreak = result.newLongestStreak
+        profile.streakFreezes = result.newStreakFreezes
+        profile.lastPracticeDay = result.lastPracticeDay
+
+        try? await userProfileRepository?.saveProfile(profile)
+        try? await publicProfileRepository?.syncFromPrivateProfile(profile)
+
+        let metrics = try? await fetchLearnHubMetrics(userId: userId)
+        widgetSnapshotManager.update(profile: profile, metrics: metrics, dateProvider: dateProvider)
+
+        return result
     }
 
     private static func seedLearnerProgress() -> [String: SignProgress] {
@@ -201,3 +331,215 @@ public final class StubProgressRepository: ProgressRepository, @unchecked Sendab
         return store
     }
 }
+
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
+#if canImport(FirebaseFirestore)
+import FirebaseFirestore
+
+/// Concrete implementation of `ProgressRepository` backed by Cloud Firestore with local cache for offline persistence.
+public final class FirestoreProgressRepository: ProgressRepository, @unchecked Sendable {
+    private let customFirestore: Firestore?
+    private var db: Firestore? {
+        if let customFirestore { return customFirestore }
+        #if canImport(FirebaseCore)
+        guard FirebaseApp.app() != nil else { return nil }
+        return Firestore.firestore()
+        #else
+        return nil
+        #endif
+    }
+
+    private let userProfileRepository: any UserProfileRepository
+    private let publicProfileRepository: any PublicProfileRepository
+    private let dateProvider: any DateProviding
+    private let widgetSnapshotManager: WidgetSnapshotManager
+
+    // In-memory / offline cache
+    private let lock = NSLock()
+    private var localProgressCache: [String: [String: SignProgress]] = [:]
+    private var localSessionCache: [String: [LearningSession]] = [:]
+
+    public init(
+        firestore: Firestore? = nil,
+        userProfileRepository: any UserProfileRepository = FirestoreProfileRepository(),
+        publicProfileRepository: any PublicProfileRepository = FirestorePublicProfileRepository(),
+        dateProvider: any DateProviding = SystemDateProvider(),
+        widgetSnapshotManager: WidgetSnapshotManager = .shared
+    ) {
+        self.customFirestore = firestore
+        self.userProfileRepository = userProfileRepository
+        self.publicProfileRepository = publicProfileRepository
+        self.dateProvider = dateProvider
+        self.widgetSnapshotManager = widgetSnapshotManager
+    }
+
+    public func fetchProgress(userId: String) async throws -> [SignProgress] {
+        if let db {
+            do {
+                let snapshot = try await db.collection("users")
+                    .document(userId)
+                    .collection("progress")
+                    .getDocuments()
+
+                let items = snapshot.documents.compactMap { try? $0.data(as: SignProgress.self) }
+                lock.lock()
+                var dict: [String: SignProgress] = [:]
+                for item in items {
+                    dict[item.signId] = item
+                }
+                localProgressCache[userId] = dict
+                lock.unlock()
+
+                return items
+            } catch {
+                // Offline fallback to local cache
+            }
+        }
+
+        lock.lock()
+        defer { lock.unlock() }
+        return Array((localProgressCache[userId] ?? [:]).values)
+    }
+
+    public func recordAttempt(userId: String, signId: String, isCorrect: Bool, detectedAs: String?) async throws {
+        lock.lock()
+        var userDict = localProgressCache[userId] ?? [:]
+        var item = userDict[signId] ?? SignProgress(signId: signId)
+        item.applyAttempt(isCorrect: isCorrect, detectedAs: detectedAs, timestamp: dateProvider.now)
+        userDict[signId] = item
+        localProgressCache[userId] = userDict
+        lock.unlock()
+
+        // Asynchronously persist to Firestore (automatically queued if offline)
+        if let db {
+            try? db.collection("users")
+                .document(userId)
+                .collection("progress")
+                .document(signId)
+                .setData(from: item, merge: true)
+        }
+    }
+
+    public func fetchSessions(userId: String) async throws -> [LearningSession] {
+        if let db {
+            do {
+                let snapshot = try await db.collection("users")
+                    .document(userId)
+                    .collection("sessions")
+                    .order(by: "startedAt", descending: true)
+                    .getDocuments()
+
+                let sessions = snapshot.documents.compactMap { try? $0.data(as: LearningSession.self) }
+                lock.lock()
+                localSessionCache[userId] = sessions
+                lock.unlock()
+
+                return sessions
+            } catch {
+                // Offline fallback to local cache
+            }
+        }
+
+        lock.lock()
+        defer { lock.unlock() }
+        return localSessionCache[userId] ?? []
+    }
+
+    public func recordSession(userId: String, session: LearningSession) async throws -> SessionCompletionResult {
+        // 1. Cache session locally
+        lock.lock()
+        var sessions = localSessionCache[userId] ?? []
+        sessions.insert(session, at: 0)
+        localSessionCache[userId] = sessions
+        lock.unlock()
+
+        // 2. Persist to Firestore
+        if let db {
+            try? db.collection("users")
+                .document(userId)
+                .collection("sessions")
+                .document(session.id)
+                .setData(from: session, merge: true)
+        }
+
+        // 3. Fetch or initialize private user profile
+        var profile: UserProfile
+        if let existing = try? await userProfileRepository.fetchProfile(userId: userId) {
+            profile = existing
+        } else {
+            profile = UserProfile(id: userId, displayName: "Learner")
+        }
+
+        let previousLevel = profile.level
+        let newXP = profile.xp + session.xpEarned
+        let newLevel = ExplorerLevel.level(forXP: newXP)
+
+        // 4. Calculate streak & freezes
+        let streakResult = StreakEngine.evaluatePractice(
+            currentStreak: profile.currentStreak,
+            longestStreak: profile.longestStreak,
+            lastPracticeDay: profile.lastPracticeDay,
+            streakFreezes: profile.streakFreezes,
+            dateProvider: dateProvider
+        )
+
+        profile.xp = newXP
+        profile.level = newLevel
+        profile.currentStreak = streakResult.newStreak
+        profile.longestStreak = streakResult.newLongestStreak
+        profile.streakFreezes = streakResult.newStreakFreezes
+        profile.lastPracticeDay = streakResult.lastPracticeDay
+
+        // 5. Save updated profile
+        try? await userProfileRepository.saveProfile(profile)
+
+        // 6. Sync to public profile
+        try? await publicProfileRepository.syncFromPrivateProfile(profile)
+
+        // 7. Update widget snapshot
+        let metrics = try? await fetchLearnHubMetrics(userId: userId)
+        widgetSnapshotManager.update(profile: profile, metrics: metrics, dateProvider: dateProvider)
+
+        return SessionCompletionResult(
+            session: session,
+            streakResult: streakResult,
+            updatedXP: newXP,
+            updatedLevel: newLevel,
+            levelTitle: ExplorerLevel.tierTitle(forXP: newXP),
+            leveledUp: newLevel > previousLevel
+        )
+    }
+
+    public func updateStreakAndFreezes(userId: String, dateProvider: any DateProviding) async throws -> StreakUpdateResult {
+        var profile: UserProfile
+        if let existing = try? await userProfileRepository.fetchProfile(userId: userId) {
+            profile = existing
+        } else {
+            profile = UserProfile(id: userId, displayName: "Learner")
+        }
+
+        let result = StreakEngine.evaluatePractice(
+            currentStreak: profile.currentStreak,
+            longestStreak: profile.longestStreak,
+            lastPracticeDay: profile.lastPracticeDay,
+            streakFreezes: profile.streakFreezes,
+            dateProvider: dateProvider
+        )
+
+        profile.currentStreak = result.newStreak
+        profile.longestStreak = result.newLongestStreak
+        profile.streakFreezes = result.newStreakFreezes
+        profile.lastPracticeDay = result.lastPracticeDay
+
+        try? await userProfileRepository.saveProfile(profile)
+        try? await publicProfileRepository.syncFromPrivateProfile(profile)
+
+        let metrics = try? await fetchLearnHubMetrics(userId: userId)
+        widgetSnapshotManager.update(profile: profile, metrics: metrics, dateProvider: dateProvider)
+
+        return result
+    }
+}
+#endif

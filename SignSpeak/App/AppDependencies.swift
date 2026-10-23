@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 
 /// Central dependency-injection container for the SignSpeak app.
 /// The root application configures `AppDependencies.live`; previews and tests use `.preview` or dedicated mocks.
@@ -26,6 +29,12 @@ public struct AppDependencies: Sendable {
 
     /// Production dependency container.
     static let live: AppDependencies = {
+        #if canImport(FirebaseCore)
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        #endif
+
         let dateProvider = SystemDateProvider()
         let cameraService = CameraService()
         let handPoseDetector = HandPoseDetector()
@@ -45,6 +54,14 @@ public struct AppDependencies: Sendable {
             dateProvider: dateProvider
         )
 
+        let userProfileRepository = FirestoreProfileRepository()
+        let publicProfileRepository = FirestorePublicProfileRepository()
+        let progressRepository = FirestoreProgressRepository(
+            userProfileRepository: userProfileRepository,
+            publicProfileRepository: publicProfileRepository,
+            dateProvider: dateProvider
+        )
+
         return AppDependencies(
             dateProvider: dateProvider,
             cameraService: cameraService,
@@ -53,10 +70,10 @@ public struct AppDependencies: Sendable {
             motionSignClassifier: motionSignClassifier,
             signRecognitionService: signRecognitionService,
             authService: FirebaseAuthService(),
-            userProfileRepository: FirestoreProfileRepository(),
-            publicProfileRepository: FirestorePublicProfileRepository(),
+            userProfileRepository: userProfileRepository,
+            publicProfileRepository: publicProfileRepository,
             avatarRepository: FirestoreAvatarRepository(),
-            progressRepository: StubProgressRepository(),
+            progressRepository: progressRepository,
             biometricAuthService: LocalAuthenticationBiometricService(),
             credentialVault: KeychainCredentialVault(),
             notificationService: LiveNotificationService(),

@@ -190,6 +190,10 @@ public final class QuizViewModel {
             isCorrect: result.isCorrect,
             detectedAs: result.isCorrect ? nil : option
         )
+
+        if result.isGameOver {
+            await recordCompletedSession()
+        }
     }
 
     /// Submits camera sign verification in Sign It mode.
@@ -210,6 +214,12 @@ public final class QuizViewModel {
             isCorrect: result.isCorrect,
             detectedAs: result.isCorrect ? nil : (detectedLabel ?? "Timeout")
         )
+
+        if result.isGameOver {
+            Task {
+                await recordCompletedSession()
+            }
+        }
     }
 
     /// Advances to the next question in the session.
@@ -222,7 +232,26 @@ public final class QuizViewModel {
         recognitionState = .noHand
         signRecognitionService.reset()
 
+        if quizEngine.isComplete {
+            Task {
+                await recordCompletedSession()
+            }
+        }
+
         setupCurrentQuestionState()
+    }
+
+    public func recordCompletedSession() async {
+        let duration = Int(Date().timeIntervalSince(quizEngine.startTime))
+        let session = LearningSession(
+            durationSeconds: max(1, duration),
+            kind: "quiz",
+            attempts: quizEngine.questions.count,
+            correct: quizEngine.score,
+            signIds: quizEngine.questions.map(\.targetSign.id),
+            xpEarned: quizEngine.totalXP
+        )
+        try? await progressRepository.recordSession(userId: userId, session: session)
     }
 
     /// Restarts the quiz from the beginning.

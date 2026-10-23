@@ -227,7 +227,24 @@ public final class PracticeViewModel {
             resetSignRecognitionState()
         } else {
             isSessionCompleted = true
+            Task {
+                await recordCompletedSession()
+            }
         }
+    }
+
+    public func recordCompletedSession() async {
+        let duration = Int(Date().timeIntervalSince(startTime))
+        let totalAttempts = max(signs.count, signs.count + sessionMistakes.count)
+        let session = LearningSession(
+            durationSeconds: max(1, duration),
+            kind: "lesson",
+            attempts: totalAttempts,
+            correct: max(0, signs.count - sessionMistakes.count),
+            signIds: signs.map(\.id),
+            xpEarned: 100
+        )
+        try? await progressRepository.recordSession(userId: userId, session: session)
     }
 
     public func skipSign() {

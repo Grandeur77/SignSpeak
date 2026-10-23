@@ -18,7 +18,7 @@ struct AppDependenciesTests {
         #expect(live.userProfileRepository is FirestoreProfileRepository)
         #expect(live.publicProfileRepository is FirestorePublicProfileRepository)
         #expect(live.avatarRepository is FirestoreAvatarRepository)
-        #expect(live.progressRepository is StubProgressRepository)
+        #expect(live.progressRepository is FirestoreProgressRepository)
         #expect(live.biometricAuthService is LocalAuthenticationBiometricService)
         #expect(live.credentialVault is KeychainCredentialVault)
         #expect(live.notificationService is LiveNotificationService)
