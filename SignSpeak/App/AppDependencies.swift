@@ -79,7 +79,7 @@ public struct AppDependencies: Sendable {
             biometricAuthService: LocalAuthenticationBiometricService(),
             credentialVault: KeychainCredentialVault(),
             notificationService: LiveNotificationService(),
-            speechRecognitionService: StubSpeechRecognitionService(),
+            speechRecognitionService: OnDeviceSpeechRecognitionService(),
             speechSynthesisService: StubSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),
             communityRepository: StubCommunityRepository(),

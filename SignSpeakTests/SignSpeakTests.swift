@@ -22,7 +22,7 @@ struct AppDependenciesTests {
         #expect(live.biometricAuthService is LocalAuthenticationBiometricService)
         #expect(live.credentialVault is KeychainCredentialVault)
         #expect(live.notificationService is LiveNotificationService)
-        #expect(live.speechRecognitionService is StubSpeechRecognitionService)
+        #expect(live.speechRecognitionService is OnDeviceSpeechRecognitionService)
         #expect(live.speechSynthesisService is StubSpeechSynthesisService)
         #expect(live.conversationRepository is StubConversationRepository)
         #expect(live.communityRepository is StubCommunityRepository)
