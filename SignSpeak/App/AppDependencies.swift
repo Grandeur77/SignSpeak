@@ -80,7 +80,7 @@ public struct AppDependencies: Sendable {
             credentialVault: KeychainCredentialVault(),
             notificationService: LiveNotificationService(),
             speechRecognitionService: OnDeviceSpeechRecognitionService(),
-            speechSynthesisService: StubSpeechSynthesisService(),
+            speechSynthesisService: OnDeviceSpeechSynthesisService(),
             conversationRepository: StubConversationRepository(),
             communityRepository: StubCommunityRepository(),
             signCatalogService: SignCatalogService(),

@@ -23,7 +23,7 @@ struct AppDependenciesTests {
         #expect(live.credentialVault is KeychainCredentialVault)
         #expect(live.notificationService is LiveNotificationService)
         #expect(live.speechRecognitionService is OnDeviceSpeechRecognitionService)
-        #expect(live.speechSynthesisService is StubSpeechSynthesisService)
+        #expect(live.speechSynthesisService is OnDeviceSpeechSynthesisService)
         #expect(live.conversationRepository is StubConversationRepository)
         #expect(live.communityRepository is StubCommunityRepository)
         #expect(live.signCatalogService is SignCatalogService)

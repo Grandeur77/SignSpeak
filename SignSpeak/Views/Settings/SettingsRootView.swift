@@ -97,7 +97,12 @@ public struct SettingsRootView: View {
                     VStack(spacing: 0) {
                         settingsRow(icon: "bell.badge.fill", color: Color.brandYellow, title: "Reminders & Notifications")
                         Divider().padding(.leading, 52)
-                        settingsRow(icon: "waveform.badge.mic", color: Color.brandTurquoise, title: "Voice & Speech")
+                        NavigationLink {
+                            VoiceAndSpeechSettingsView()
+                        } label: {
+                            settingsRow(icon: "waveform.badge.mic", color: Color.brandTurquoise, title: "Voice & Speech")
+                        }
+                        .buttonStyle(.plain)
                         Divider().padding(.leading, 52)
                         settingsRow(icon: "figure.walk.motion", color: Color.brandNavy, title: "Accessibility")
                         Divider().padding(.leading, 52)
