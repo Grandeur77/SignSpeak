@@ -21,7 +21,7 @@ public struct AppShellView: View {
         }
         .environment(deepLinkRouter)
         .sheet(isPresented: $deepLinkRouter.isPresentingProfile) {
-            ProfileSheetView()
+            ProfileView()
         }
         .onOpenURL { url in
             deepLinkRouter.handle(url: url)
