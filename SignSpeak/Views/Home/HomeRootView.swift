@@ -7,6 +7,7 @@ public struct HomeRootView: View {
     @Bindable var deepLinkRouter: DeepLinkRouter
 
     @State private var isShowingInbox = false
+    @State private var isShowingCommunity = false
     @State private var unreadNotificationCount = 0
     @State private var userProfile: UserProfile?
     @State private var isLearningJourneyExpanded: Bool = true
@@ -114,6 +115,9 @@ public struct HomeRootView: View {
         .navigationDestination(isPresented: $isShowingInbox) {
             NotificationsInboxView()
         }
+        .navigationDestination(isPresented: $isShowingCommunity) {
+            CommunityFeedView()
+        }
         .onChange(of: deepLinkRouter.activeDestination) { _, newDest in
             if newDest == .communicator {
                 deepLinkRouter.selectedTab = .talk
@@ -123,6 +127,9 @@ public struct HomeRootView: View {
                 deepLinkRouter.activeDestination = newDest
             } else if newDest == .inbox {
                 isShowingInbox = true
+                deepLinkRouter.activeDestination = nil
+            } else if newDest == .community {
+                isShowingCommunity = true
                 deepLinkRouter.activeDestination = nil
             }
         }

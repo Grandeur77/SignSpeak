@@ -136,7 +136,7 @@ public struct AppDependencies: Sendable {
                 authorId: "preview-user-123",
                 authorName: "Alex Rivera",
                 body: "Completed the Alphabet chapter today! 🎉",
-                likeCount: 6
+                reactions: [.party: 6]
             )
         ]),
         signCatalogService: SignCatalogService(),
