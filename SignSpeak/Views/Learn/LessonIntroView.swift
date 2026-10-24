@@ -43,7 +43,7 @@ public struct LessonIntroView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("Lesson Intro Video")
+                Text(lesson.title)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Color.textPrimary)
             }
@@ -69,6 +69,9 @@ public struct LessonIntroView: View {
         }
         .navigationDestination(for: Sign.self) { sign in
             SignDetailView(sign: sign)
+        }
+        .onAppear {
+            loadSigns()
         }
         .task {
             loadSigns()
@@ -147,34 +150,37 @@ public struct LessonIntroView: View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack {
-                Text("Signs in this lesson")
-                    .font(.system(size: 16, weight: .bold))
+                Text("Letters in this lesson")
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(Color.textPrimary)
 
                 Spacer()
 
-                Text("Tap to inspect")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.textSecondary)
+                Text("Tap to learn & practice")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.brandTurquoise)
             }
 
             // Horizontal Carousel of Cards
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 14) {
                     ForEach(lessonSigns) { sign in
-                        NavigationLink(value: sign) {
+                        NavigationLink {
+                            SignDetailView(sign: sign)
+                        } label: {
                             signLessonCard(sign)
                         }
                         .buttonStyle(.plain)
+                        .hoverEffect(.lift)
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, 4)
             }
         }
     }
 
     private func signLessonCard(_ sign: Sign) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 8) {
             // Sign Photo Box
             ZStack(alignment: .topTrailing) {
                 Group {
@@ -183,15 +189,15 @@ public struct LessonIntroView: View {
                             .resizable()
                             .scaledToFit()
                     } else {
-                        Color.brandNavy.opacity(0.08)
+                        Color.brandNavy.opacity(0.12)
                             .overlay(
                                 Text(sign.name)
-                                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                                    .font(.system(size: 38, weight: .bold, design: .rounded))
                                     .foregroundStyle(Color.brandTurquoise)
                             )
                     }
                 }
-                .frame(width: 96, height: 96)
+                .frame(width: 104, height: 104)
                 .background(Color.gray.opacity(0.06))
                 .clipShape(RoundedRectangle(cornerRadius: 14))
 
@@ -199,11 +205,11 @@ public struct LessonIntroView: View {
                 ZStack {
                     Circle()
                         .fill(Color.white)
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .shadow(radius: 2)
 
                     Image(systemName: "star.fill")
-                        .font(.system(size: 10))
+                        .font(.system(size: 11))
                         .foregroundStyle(Color.brandYellow)
                 }
                 .padding(6)
@@ -212,25 +218,40 @@ public struct LessonIntroView: View {
             // Bottom Name & Tag Row
             HStack {
                 Text(sign.name)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(Color.textPrimary)
 
                 Spacer()
 
                 Text("ASL")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Color.textSecondary)
+                    .foregroundStyle(Color.brandTurquoise)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.gray.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                    .background(Color.brandTurquoise.opacity(0.16), in: RoundedRectangle(cornerRadius: 4))
             }
-            .frame(width: 96)
+            .frame(width: 104)
+
+            // Learn & Practice CTA Pill
+            HStack(spacing: 4) {
+                Image(systemName: "hand.raised.fill")
+                    .font(.system(size: 10, weight: .bold))
+                Text("Learn & Practice")
+                    .font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(Color.brandNavy)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.brandTurquoise.opacity(0.22), in: Capsule())
+            .overlay(
+                Capsule().stroke(Color.brandTurquoise.opacity(0.4), lineWidth: 1)
+            )
         }
-        .padding(8)
-        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 16))
+        .padding(10)
+        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(Color.gray.opacity(0.14), lineWidth: 1)
         )
     }
 
@@ -304,7 +325,7 @@ public struct LessonIntroView: View {
 
     private var bottomActionButtons: some View {
         VStack(spacing: 10) {
-            // 1. Start Practice Button
+            // 1. Start Practice Button (Primary CTA)
             Button {
                 triggerHaptic()
                 isShowingPracticeSheet = true
@@ -315,15 +336,16 @@ public struct LessonIntroView: View {
                     Text("Start practice")
                         .font(.system(size: 16, weight: .bold))
                 }
-                .foregroundStyle(Color.white)
+                .foregroundStyle(Color.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.brandNavy, in: Capsule())
-                .shadow(color: Color.black.opacity(0.18), radius: 8, y: 4)
+                .background(Color.brandTurquoise, in: Capsule())
+                .shadow(color: Color.brandTurquoise.opacity(0.3), radius: 8, y: 3)
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
 
-            // 2. Take Quiz Button
+            // 2. Take Quiz Button (Secondary CTA)
             Button {
                 triggerHaptic()
                 isShowingQuizSheet = true
@@ -334,12 +356,14 @@ public struct LessonIntroView: View {
                     Text("Take quiz")
                         .font(.system(size: 16, weight: .bold))
                 }
-                .foregroundStyle(Color.brandTurquoise)
+                .foregroundStyle(Color.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
-                .background(Color.brandTurquoise.opacity(0.14), in: Capsule())
+                .background(Color.cardBackground, in: Capsule())
+                .overlay(Capsule().stroke(Color.gray.opacity(0.2), lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
         }
         .padding(.horizontal, Theme.Spacing.l)
         .padding(.vertical, Theme.Spacing.s)

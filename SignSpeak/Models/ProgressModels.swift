@@ -166,6 +166,12 @@ public struct WidgetSnapshot: Codable, Sendable, Equatable {
     public let lastPracticeDay: String?
     public let lastUpdated: Date
 
+    // Phase 13 Extensions
+    public let remainingMinutes: Int
+    public let isGoalCompleted: Bool
+    public let signOfTheDay: SignOfTheDaySnapshot
+    public let quickPhrases: [QuickPhraseSnapshot]
+
     public init(
         currentStreak: Int = 0,
         longestStreak: Int = 0,
@@ -177,7 +183,11 @@ public struct WidgetSnapshot: Codable, Sendable, Equatable {
         dailyGoalVerified: Int = 0,
         dailyGoalTarget: Int = 3,
         lastPracticeDay: String? = nil,
-        lastUpdated: Date = Date()
+        lastUpdated: Date = Date(),
+        remainingMinutes: Int? = nil,
+        isGoalCompleted: Bool? = nil,
+        signOfTheDay: SignOfTheDaySnapshot = .fallback,
+        quickPhrases: [QuickPhraseSnapshot] = QuickPhraseSnapshot.defaultPhrases
     ) {
         self.currentStreak = currentStreak
         self.longestStreak = longestStreak
@@ -190,5 +200,37 @@ public struct WidgetSnapshot: Codable, Sendable, Equatable {
         self.dailyGoalTarget = dailyGoalTarget
         self.lastPracticeDay = lastPracticeDay
         self.lastUpdated = lastUpdated
+        self.remainingMinutes = remainingMinutes ?? max(0, dailyGoalTarget - dailyGoalVerified)
+        self.isGoalCompleted = isGoalCompleted ?? (dailyGoalVerified >= dailyGoalTarget && dailyGoalTarget > 0)
+        self.signOfTheDay = signOfTheDay
+        self.quickPhrases = quickPhrases
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case currentStreak, longestStreak, xp, level, levelTitle, streakFreezes
+        case dailyGoalMinutes, dailyGoalVerified, dailyGoalTarget, lastPracticeDay, lastUpdated
+        case remainingMinutes, isGoalCompleted, signOfTheDay, quickPhrases
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.currentStreak = try container.decodeIfPresent(Int.self, forKey: .currentStreak) ?? 0
+        self.longestStreak = try container.decodeIfPresent(Int.self, forKey: .longestStreak) ?? 0
+        self.xp = try container.decodeIfPresent(Int.self, forKey: .xp) ?? 0
+        self.level = try container.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        self.levelTitle = try container.decodeIfPresent(String.self, forKey: .levelTitle) ?? "Explorer I"
+        self.streakFreezes = try container.decodeIfPresent(Int.self, forKey: .streakFreezes) ?? 0
+        self.dailyGoalMinutes = try container.decodeIfPresent(Int.self, forKey: .dailyGoalMinutes) ?? 10
+        self.dailyGoalVerified = try container.decodeIfPresent(Int.self, forKey: .dailyGoalVerified) ?? 0
+        self.dailyGoalTarget = try container.decodeIfPresent(Int.self, forKey: .dailyGoalTarget) ?? 3
+        self.lastPracticeDay = try container.decodeIfPresent(String.self, forKey: .lastPracticeDay)
+        self.lastUpdated = try container.decodeIfPresent(Date.self, forKey: .lastUpdated) ?? Date()
+
+        let target = self.dailyGoalTarget
+        let verified = self.dailyGoalVerified
+        self.remainingMinutes = try container.decodeIfPresent(Int.self, forKey: .remainingMinutes) ?? max(0, target - verified)
+        self.isGoalCompleted = try container.decodeIfPresent(Bool.self, forKey: .isGoalCompleted) ?? (verified >= target && target > 0)
+        self.signOfTheDay = try container.decodeIfPresent(SignOfTheDaySnapshot.self, forKey: .signOfTheDay) ?? .fallback
+        self.quickPhrases = try container.decodeIfPresent([QuickPhraseSnapshot].self, forKey: .quickPhrases) ?? QuickPhraseSnapshot.defaultPhrases
     }
 }

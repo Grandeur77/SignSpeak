@@ -11,6 +11,7 @@ public enum DeepLinkDestination: Equatable, Sendable {
     case soundAlerts
     case inbox
     case community
+    case speakPhrase(phrase: String)
 }
 
 /// Central deep-link coordinator handling `signspeak://` custom scheme URLs
@@ -65,6 +66,17 @@ public final class DeepLinkRouter {
             selectedTab = .learn
             let signId = queryItems.first(where: { $0.name == "sign" })?.value
             activeDestination = .practice(signId: signId)
+            return true
+
+        case "streak":
+            selectedTab = .home
+            activeDestination = .tab(.home)
+            return true
+
+        case "speak":
+            selectedTab = .talk
+            let phrase = queryItems.first(where: { $0.name == "phrase" })?.value ?? ""
+            activeDestination = .speakPhrase(phrase: phrase)
             return true
 
         case "communicator", "talk-live":

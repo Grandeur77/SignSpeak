@@ -30,6 +30,8 @@ public struct AppDependencies: Sendable {
     var favouritesRepository: any FavouritesRepository
     var quickPhraseRepository: any QuickPhraseRepository
     var inboxRepository: any InboxRepository
+    var soundAlertService: any SoundAlerting
+    var soundAlertHistoryRepository: any SoundAlertHistoryRepository
 
     /// Production dependency container.
     static let live: AppDependencies = {
@@ -89,7 +91,9 @@ public struct AppDependencies: Sendable {
             signRequestRepository: FirestoreSignRequestRepository(),
             favouritesRepository: FirestoreFavouritesRepository(),
             quickPhraseRepository: FirestoreQuickPhraseRepository(),
-            inboxRepository: FirestoreInboxRepository()
+            inboxRepository: FirestoreInboxRepository(),
+            soundAlertService: SoundAlertService(),
+            soundAlertHistoryRepository: LocalSoundAlertHistoryRepository()
         )
     }()
 
@@ -143,7 +147,13 @@ public struct AppDependencies: Sendable {
         signRequestRepository: StubSignRequestRepository(),
         favouritesRepository: StubFavouritesRepository(),
         quickPhraseRepository: StubQuickPhraseRepository(),
-        inboxRepository: StubInboxRepository()
+        inboxRepository: StubInboxRepository(),
+        soundAlertService: MockSoundAlertService(),
+        soundAlertHistoryRepository: StubSoundAlertHistoryRepository(initialRecords: [
+            SoundAlertRecord(type: .doorbell, timestamp: Date().addingTimeInterval(-600), confidence: 0.94),
+            SoundAlertRecord(type: .knocking, timestamp: Date().addingTimeInterval(-3600), confidence: 0.88),
+            SoundAlertRecord(type: .fireAlarm, timestamp: Date().addingTimeInterval(-86400), confidence: 0.98, isEmergency: true)
+        ])
     )
 }
 

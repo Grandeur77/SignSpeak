@@ -31,6 +31,7 @@ public struct CameraPreviewView: UIViewRepresentable {
         }
         uiView.previewLayer.videoGravity = videoGravity
         updateMirroring(for: uiView.previewLayer)
+        uiView.updateOrientation()
     }
 
     private func updateMirroring(for layer: AVCaptureVideoPreviewLayer) {
@@ -61,6 +62,40 @@ public struct CameraPreviewView: UIViewRepresentable {
         required init?(coder: NSCoder) {
             super.init(coder: coder)
             backgroundColor = .black
+        }
+
+        override public func layoutSubviews() {
+            super.layoutSubviews()
+            updateOrientation()
+        }
+
+        public func updateOrientation() {
+            guard let connection = previewLayer.connection else { return }
+            let orientation = window?.windowScene?.interfaceOrientation ?? .portrait
+
+            if #available(iOS 17.0, *) {
+                let angle: CGFloat
+                switch orientation {
+                case .portrait: angle = 90.0
+                case .portraitUpsideDown: angle = 270.0
+                case .landscapeRight: angle = 0.0
+                case .landscapeLeft: angle = 180.0
+                @unknown default: angle = 90.0
+                }
+                if connection.isVideoRotationAngleSupported(angle) {
+                    connection.videoRotationAngle = angle
+                }
+            } else {
+                if connection.isVideoOrientationSupported {
+                    switch orientation {
+                    case .portrait: connection.videoOrientation = .portrait
+                    case .portraitUpsideDown: connection.videoOrientation = .portraitUpsideDown
+                    case .landscapeLeft: connection.videoOrientation = .landscapeLeft
+                    case .landscapeRight: connection.videoOrientation = .landscapeRight
+                    @unknown default: connection.videoOrientation = .portrait
+                    }
+                }
+            }
         }
     }
 }

@@ -79,6 +79,14 @@ public final class MockCameraService: CameraServicing, @unchecked Sendable {
     public func switchCamera() async {
         switchCameraCallCount += 1
     }
+
+    public var currentOrientation: AVCaptureVideoOrientation = .portrait
+    public private(set) var setOrientationCallCount = 0
+
+    public func setOrientation(_ orientation: AVCaptureVideoOrientation) async {
+        currentOrientation = orientation
+        setOrientationCallCount += 1
+    }
 }
 
 /// Configurable mock authentication service for testing sign-in flows and session gates.

@@ -566,11 +566,11 @@ public struct SignDetailView: View {
                     Text(isRecognizable ? "Practise with camera" : "Practise (Watch & Choose)")
                         .font(.system(size: 16, weight: .bold))
                 }
-                .foregroundStyle(Color.white)
+                .foregroundStyle(Color.black)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.brandNavy, in: Capsule())
-                .shadow(color: Color.black.opacity(0.18), radius: 8, y: 4)
+                .background(Color.brandTurquoise, in: Capsule())
+                .shadow(color: Color.brandTurquoise.opacity(0.35), radius: 8, y: 3)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isRecognizable ? "Practise \(sign.name) with camera" : "Practise \(sign.name) with watch and choose quiz")

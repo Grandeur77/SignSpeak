@@ -6,6 +6,7 @@ import SwiftUI
 /// words & phrases categories card with progress ring, and fast-track practice & review cards.
 public struct LearnRootView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Bindable var deepLinkRouter: DeepLinkRouter
 
     @State private var viewModel: LearnHubViewModel?
@@ -29,24 +30,11 @@ public struct LearnRootView: View {
                     .padding(.horizontal, Theme.Spacing.l)
                     .padding(.top, Theme.Spacing.s)
 
-                // 2. Daily Mastery Goal Card
-                dailyGoalCard
-                    .padding(.horizontal, Theme.Spacing.l)
-
-                // 3. Curriculum Cards (Alphabet & Words & Phrases)
-                curriculumSection
-                    .padding(.horizontal, Theme.Spacing.l)
-
-                // 4. Practice & Review Fast Track Cards
-                practiceAndReviewSection
-                    .padding(.horizontal, Theme.Spacing.l)
-
-                #if DEBUG
-                // Developer Tools Section
-                developerSection
-                    .padding(.horizontal, Theme.Spacing.l)
-                    .padding(.top, Theme.Spacing.m)
-                #endif
+                if horizontalSizeClass == .regular {
+                    ipadCurriculumGrid
+                } else {
+                    iphoneCurriculumStack
+                }
 
                 Spacer(minLength: Theme.Spacing.xl)
             }
@@ -144,6 +132,46 @@ public struct LearnRootView: View {
         }
     }
 
+    // MARK: - Layout Adapters (iPad Step 14.1)
+
+    private var ipadCurriculumGrid: some View {
+        HStack(alignment: .top, spacing: Theme.Spacing.l) {
+            VStack(spacing: Theme.Spacing.l) {
+                dailyGoalCard
+                curriculumSection
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: Theme.Spacing.l) {
+                practiceAndReviewSection
+                #if DEBUG
+                developerSection
+                #endif
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, Theme.Spacing.l)
+    }
+
+    private var iphoneCurriculumStack: some View {
+        VStack(spacing: Theme.Spacing.l) {
+            dailyGoalCard
+                .padding(.horizontal, Theme.Spacing.l)
+
+            curriculumSection
+                .padding(.horizontal, Theme.Spacing.l)
+
+            practiceAndReviewSection
+                .padding(.horizontal, Theme.Spacing.l)
+
+            #if DEBUG
+            developerSection
+                .padding(.horizontal, Theme.Spacing.l)
+                .padding(.top, Theme.Spacing.m)
+            #endif
+        }
+    }
+
     // MARK: - Daily Mastery Goal Card
 
     private var dailyGoalCard: some View {
@@ -214,6 +242,7 @@ public struct LearnRootView: View {
                 )
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
 
             // 2. Words & Phrases Card
             NavigationLink {
@@ -230,6 +259,7 @@ public struct LearnRootView: View {
                 )
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
         }
     }
 
@@ -393,6 +423,7 @@ public struct LearnRootView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .hoverEffect(.lift)
                 .accessibilityLabel("Quiz yourself: Test your recognition speed. Start speed run.")
 
                 // Card 2: Review Mistakes
@@ -452,6 +483,7 @@ public struct LearnRootView: View {
                     )
                 }
                 .buttonStyle(.plain)
+                .hoverEffect(.lift)
                 .accessibilityLabel("Review mistakes: \(metrics.mistakesCount) signs to polish. Quick practice.")
             }
         }

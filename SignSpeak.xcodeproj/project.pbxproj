@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6B3E2B0D306C45350078EC6C /* SignSpeakWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 6B3E2B02306C45350078EC6C /* SignSpeakWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6BC04314306D908B006121C7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 6BC04313306D908B006121C7 /* FirebaseAuth */; };
 		6BC04316306D909C006121C7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 6BC04315306D909C006121C7 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
@@ -19,11 +20,33 @@
 			remoteGlobalIDString = 6B3E2A33306C45330078EC6C;
 			remoteInfo = SignSpeak;
 		};
+		6B3E2B0B306C45350078EC6C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6B3E2A2C306C45330078EC6C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6B3E2B01306C45350078EC6C;
+			remoteInfo = SignSpeakWidgets;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6B3E2B0C306C45350078EC6C /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6B3E2B0D306C45350078EC6C /* SignSpeakWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6B3E2A34306C45330078EC6C /* SignSpeak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SignSpeak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B3E2A41306C45350078EC6C /* SignSpeakTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignSpeakTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B3E2B02306C45350078EC6C /* SignSpeakWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SignSpeakWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -35,6 +58,11 @@
 		6B3E2A44306C45350078EC6C /* SignSpeakTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = SignSpeakTests;
+			sourceTree = "<group>";
+		};
+		6B3E2B03306C45350078EC6C /* SignSpeakWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SignSpeakWidgets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -56,6 +84,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6B3E2B05306C45350078EC6C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -64,6 +99,7 @@
 			children = (
 				6B3E2A36306C45330078EC6C /* SignSpeak */,
 				6B3E2A44306C45350078EC6C /* SignSpeakTests */,
+				6B3E2B03306C45350078EC6C /* SignSpeakWidgets */,
 				6BC04312306D908A006121C7 /* Frameworks */,
 				6B3E2A35306C45330078EC6C /* Products */,
 			);
@@ -74,6 +110,7 @@
 			children = (
 				6B3E2A34306C45330078EC6C /* SignSpeak.app */,
 				6B3E2A41306C45350078EC6C /* SignSpeakTests.xctest */,
+				6B3E2B02306C45350078EC6C /* SignSpeakWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,10 +132,12 @@
 				6B3E2A30306C45330078EC6C /* Sources */,
 				6B3E2A31306C45330078EC6C /* Frameworks */,
 				6B3E2A32306C45330078EC6C /* Resources */,
+				6B3E2B0C306C45350078EC6C /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6B3E2B0A306C45350078EC6C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6B3E2A36306C45330078EC6C /* SignSpeak */,
@@ -135,6 +174,28 @@
 			productReference = 6B3E2A41306C45350078EC6C /* SignSpeakTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		6B3E2B01306C45350078EC6C /* SignSpeakWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6B3E2B07306C45350078EC6C /* Build configuration list for PBXNativeTarget "SignSpeakWidgets" */;
+			buildPhases = (
+				6B3E2B04306C45350078EC6C /* Sources */,
+				6B3E2B05306C45350078EC6C /* Frameworks */,
+				6B3E2B06306C45350078EC6C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6B3E2B03306C45350078EC6C /* SignSpeakWidgets */,
+			);
+			name = SignSpeakWidgets;
+			packageProductDependencies = (
+			);
+			productName = SignSpeakWidgets;
+			productReference = 6B3E2B02306C45350078EC6C /* SignSpeakWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -151,6 +212,9 @@
 					6B3E2A40306C45350078EC6C = {
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = 6B3E2A33306C45330078EC6C;
+					};
+					6B3E2B01306C45350078EC6C = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -173,6 +237,7 @@
 			targets = (
 				6B3E2A33306C45330078EC6C /* SignSpeak */,
 				6B3E2A40306C45350078EC6C /* SignSpeakTests */,
+				6B3E2B01306C45350078EC6C /* SignSpeakWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -186,6 +251,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		6B3E2A3F306C45350078EC6C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6B3E2B06306C45350078EC6C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -209,6 +281,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6B3E2B04306C45350078EC6C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -216,6 +295,11 @@
 			isa = PBXTargetDependency;
 			target = 6B3E2A33306C45330078EC6C /* SignSpeak */;
 			targetProxy = 6B3E2A42306C45350078EC6C /* PBXContainerItemProxy */;
+		};
+		6B3E2B0A306C45350078EC6C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6B3E2B01306C45350078EC6C /* SignSpeakWidgets */;
+			targetProxy = 6B3E2B0B306C45350078EC6C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -357,7 +441,7 @@
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "SignSpeak uses the camera to recognise your hand signs during lessons and in Communicator. Video is processed on your device and never uploaded.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "SignSpeak uses Face ID to securely unlock the app and protect your private conversations. Biometric authentication is processed on your device and never uploaded.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "SignSpeak uses the microphone so Communicator can transcribe a hearing person's speech into text. Audio is processed on your device and never uploaded.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "SignSpeak uses the microphone to listen for important environmental sounds like alarms, doorbells, and knocking, and to transcribe speech in Communicator. Audio is processed on your device and never uploaded.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SignSpeak transcribes speech into text so you can read what a hearing person says. Speech recognition is processed on your device and never uploaded.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -403,7 +487,7 @@
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "SignSpeak uses the camera to recognise your hand signs during lessons and in Communicator. Video is processed on your device and never uploaded.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "SignSpeak uses Face ID to securely unlock the app and protect your private conversations. Biometric authentication is processed on your device and never uploaded.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "SignSpeak uses the microphone so Communicator can transcribe a hearing person's speech into text. Audio is processed on your device and never uploaded.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "SignSpeak uses the microphone to listen for important environmental sounds like alarms, doorbells, and knocking, and to transcribe speech in Communicator. Audio is processed on your device and never uploaded.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "SignSpeak transcribes speech into text so you can read what a hearing person says. Speech recognition is processed on your device and never uploaded.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -477,6 +561,73 @@
 			};
 			name = Release;
 		};
+		6B3E2B08306C45350078EC6C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 72Q7VNCU42;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SignSpeakWidgets-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SignSpeakWidgets;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mileesha.SignSpeak.SignSpeakWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6B3E2B09306C45350078EC6C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 72Q7VNCU42;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SignSpeakWidgets-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = SignSpeakWidgets;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mileesha.SignSpeak.SignSpeakWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -503,6 +654,15 @@
 			buildConfigurations = (
 				6B3E2A59306C45350078EC6C /* Debug */,
 				6B3E2A5A306C45350078EC6C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6B3E2B07306C45350078EC6C /* Build configuration list for PBXNativeTarget "SignSpeakWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B3E2B08306C45350078EC6C /* Debug */,
+				6B3E2B09306C45350078EC6C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

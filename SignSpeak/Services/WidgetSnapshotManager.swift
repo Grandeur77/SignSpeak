@@ -11,13 +11,18 @@ public final class WidgetSnapshotManager: Sendable {
     public static let appGroupSuiteName = "group.com.signspeak.app"
     public static let snapshotKey = "signspeak_widget_snapshot"
 
+    private let sharedStore: SharedStore
     private let defaults: UserDefaults
 
     public init(defaults: UserDefaults? = nil) {
         if let defaults {
             self.defaults = defaults
+            self.sharedStore = SharedStore(defaults: defaults)
         } else {
-            self.defaults = UserDefaults(suiteName: Self.appGroupSuiteName) ?? .standard
+            self.sharedStore = SharedStore.shared
+            self.defaults = UserDefaults(suiteName: SharedStore.primaryAppGroupSuiteName)
+                ?? UserDefaults(suiteName: SharedStore.legacyAppGroupSuiteName)
+                ?? .standard
         }
     }
 
@@ -33,34 +38,11 @@ public final class WidgetSnapshotManager: Sendable {
         metrics: LearnHubMetrics? = nil,
         dateProvider: any DateProviding = SystemDateProvider()
     ) {
-        let level = profile.level
-        let tierTitle = ExplorerLevel.tierTitle(forXP: profile.xp)
-
-        let snapshot = WidgetSnapshot(
-            currentStreak: profile.currentStreak,
-            longestStreak: profile.longestStreak,
-            xp: profile.xp,
-            level: level,
-            levelTitle: tierTitle,
-            streakFreezes: profile.streakFreezes,
-            dailyGoalMinutes: profile.dailyGoalMinutes,
-            dailyGoalVerified: metrics?.dailyGoalVerified ?? 0,
-            dailyGoalTarget: metrics?.dailyGoalTarget ?? 3,
-            lastPracticeDay: profile.lastPracticeDay,
-            lastUpdated: dateProvider.now
-        )
-
-        saveSnapshot(snapshot)
+        sharedStore.update(profile: profile, metrics: metrics, dateProvider: dateProvider)
     }
 
     /// Explicitly saves a snapshot and invalidates widget timelines.
     public func saveSnapshot(_ snapshot: WidgetSnapshot) {
-        if let data = try? JSONEncoder().encode(snapshot) {
-            defaults.set(data, forKey: Self.snapshotKey)
-        }
-
-        #if canImport(WidgetKit)
-        WidgetCenter.shared.reloadAllTimelines()
-        #endif
+        sharedStore.saveSnapshot(snapshot)
     }
 }

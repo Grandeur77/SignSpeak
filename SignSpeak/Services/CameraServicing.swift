@@ -35,12 +35,16 @@ public protocol CameraServicing: Sendable {
 
     /// Toggles between front and rear cameras.
     func switchCamera() async
+
+    /// Updates video output orientation to match iPad device/interface rotation.
+    func setOrientation(_ orientation: AVCaptureVideoOrientation) async
 }
 
 public final class StubCameraService: CameraServicing, @unchecked Sendable {
     public var authorizationState: CameraAuthorizationState
     public var captureSession: AVCaptureSession? { nil }
     public var currentPosition: AVCaptureDevice.Position { .front }
+    public var currentOrientation: AVCaptureVideoOrientation = .portrait
 
     public var frameStream: AsyncStream<CMSampleBuffer> {
         AsyncStream { $0.finish() }
@@ -55,4 +59,7 @@ public final class StubCameraService: CameraServicing, @unchecked Sendable {
     public func startSession() async {}
     public func stopSession() async {}
     public func switchCamera() async {}
+    public func setOrientation(_ orientation: AVCaptureVideoOrientation) async {
+        currentOrientation = orientation
+    }
 }

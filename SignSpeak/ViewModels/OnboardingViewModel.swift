@@ -95,54 +95,6 @@ public enum DailyGoalOption: Int, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Sound detection category options for deaf / hard of hearing users (62-sound-alerts-setup).
-public enum SoundAlertType: String, CaseIterable, Identifiable, Sendable {
-    case doorbell
-    case knocking
-    case fireAlarm
-    case sirens
-    case babyCrying
-    case nameCalling
-
-    public var id: String { rawValue }
-
-    public var title: String {
-        switch self {
-        case .doorbell: return "Doorbell"
-        case .knocking: return "Knocking"
-        case .fireAlarm: return "Fire alarm"
-        case .sirens: return "Emergency sirens"
-        case .babyCrying: return "Baby crying"
-        case .nameCalling: return "Someone calling your name"
-        }
-    }
-
-    public var subtitle: String {
-        switch self {
-        case .doorbell: return "Chimes & digital rings"
-        case .knocking: return "Solid door thumps & raps"
-        case .fireAlarm: return "Smoke detectors & continuous horn"
-        case .sirens: return "Ambulance, police & public alarms"
-        case .babyCrying: return "Distress sounds & sudden shrieks"
-        case .nameCalling: return "Directional voice spikes & shouts"
-        }
-    }
-
-    public var icon: String {
-        switch self {
-        case .doorbell: return "bell.fill"
-        case .knocking: return "hand.tap.fill"
-        case .fireAlarm: return "flame.fill"
-        case .sirens: return "light.beacon.max.fill"
-        case .babyCrying: return "figure.and.child.holdinghands"
-        case .nameCalling: return "waveform.badge.magnifyingglass"
-        }
-    }
-
-    public var isUrgent: Bool {
-        self == .fireAlarm || self == .sirens
-    }
-}
 
 /// View model driving the Step 3.9 multi-step onboarding journey.
 @Observable
