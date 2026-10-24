@@ -75,7 +75,9 @@ struct CameraTestView: View {
                 }
             }
         }
-        .sheet(isPresented: $viewModel.showTryAgainGuidance) {
+        .sheet(isPresented: $viewModel.showTryAgainGuidance, onDismiss: {
+            viewModel.tryAgain()
+        }) {
             tryAgainGuidanceSheet
                 .presentationDetents([.fraction(0.85), .large])
                 .presentationDragIndicator(.visible)

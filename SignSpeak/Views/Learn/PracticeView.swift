@@ -76,12 +76,16 @@ public struct PracticeView: View {
             }
         }
         .navigationBarHidden(true)
-        .sheet(isPresented: $viewModel.showTryAgainGuidance) {
+        .sheet(isPresented: $viewModel.showTryAgainGuidance, onDismiss: {
+            viewModel.resetSignRecognitionState()
+        }) {
             tryAgainGuidanceSheet
                 .presentationDetents([.fraction(0.85), .large])
                 .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $viewModel.showHelpModal) {
+        .sheet(isPresented: $viewModel.showHelpModal, onDismiss: {
+            viewModel.resetSignRecognitionState()
+        }) {
             signHelpSheet
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)

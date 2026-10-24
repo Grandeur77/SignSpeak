@@ -240,5 +240,26 @@ struct LivePracticeTests {
         #expect(signHello.matchesRecognitionLabel("hello"))
         #expect(signHello.matchesRecognitionLabel("Goodbye") == false)
     }
+
+    @Test("PracticeViewModel recognises sign on 1st attempt and on subsequent attempts after reset")
+    @MainActor
+    func testMultiAttemptRecognition() async {
+        let (vm, _, _, _) = makeViewModel()
+
+        // 1st Attempt: simulate match for sign "F"
+        await vm.simulateMatch()
+        #expect(vm.currentTargetLabel == "F")
+        #expect(vm.isTargetMatched == true)
+
+        // Reset for 2nd Attempt
+        vm.tryAgain()
+        #expect(vm.isTargetMatched == false)
+        #expect(vm.recognitionState == .noHand)
+
+        // 2nd Attempt: match again
+        await vm.simulateMatch()
+        #expect(vm.isTargetMatched == true)
+        #expect(vm.currentPrecision >= 0.90)
+    }
 }
 #endif

@@ -14,7 +14,8 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
     private var position: AVCaptureDevice.Position = .front
     private var isConfigured = false
 
-    private var frameContinuation: AsyncStream<CMSampleBuffer>.Continuation?
+    private let streamLock = NSLock()
+    private var frameContinuations: [UUID: AsyncStream<CMSampleBuffer>.Continuation] = [:]
 
     public var captureSession: AVCaptureSession? {
         session
@@ -43,16 +44,24 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
         #endif
     }
 
-    public private(set) lazy var frameStream: AsyncStream<CMSampleBuffer> = {
-        AsyncStream(bufferingPolicy: .bufferingNewest(1)) { [weak self] continuation in
-            self?.frameContinuation = continuation
+    public var frameStream: AsyncStream<CMSampleBuffer> {
+        AsyncStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
+            let id = UUID()
+            streamLock.lock()
+            frameContinuations[id] = continuation
+            streamLock.unlock()
+
             continuation.onTermination = { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    self?.frameContinuation = nil
-                }
+                self?.removeFrameContinuation(id: id)
             }
         }
-    }()
+    }
+
+    private func removeFrameContinuation(id: UUID) {
+        streamLock.lock()
+        frameContinuations.removeValue(forKey: id)
+        streamLock.unlock()
+    }
 
     public override init() {
         super.init()
@@ -61,7 +70,13 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
 
     deinit {
         stopSessionSync()
-        frameContinuation?.finish()
+        streamLock.lock()
+        let targets = Array(frameContinuations.values)
+        frameContinuations.removeAll()
+        streamLock.unlock()
+        for continuation in targets {
+            continuation.finish()
+        }
     }
 
     /// Requests camera authorization if not already determined.
@@ -222,7 +237,13 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        frameContinuation?.yield(sampleBuffer)
+        streamLock.lock()
+        let targets = Array(frameContinuations.values)
+        streamLock.unlock()
+
+        for continuation in targets {
+            continuation.yield(sampleBuffer)
+        }
     }
 
     public func captureOutput(

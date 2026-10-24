@@ -35,6 +35,7 @@ public final class HandPoseDetector: HandPoseDetecting, @unchecked Sendable {
             lock.unlock()
             return cached
         }
+        lastExecutionTime = currentTime
         lock.unlock()
 
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
@@ -42,12 +43,13 @@ public final class HandPoseDetector: HandPoseDetecting, @unchecked Sendable {
         }
 
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HandPose?, Error>) in
-            visionQueue.async { [weak self] in
+            visionQueue.async { [weak self, sampleBuffer] in
                 guard let self else {
                     continuation.resume(returning: nil)
                     return
                 }
 
+                _ = sampleBuffer // retain buffer for pixelBuffer lifetime
                 do {
                     let pose = try self.performDetection(on: pixelBuffer)
                     self.lock.lock()
@@ -56,6 +58,9 @@ public final class HandPoseDetector: HandPoseDetecting, @unchecked Sendable {
                     self.lock.unlock()
                     continuation.resume(returning: pose)
                 } catch {
+                    self.lock.lock()
+                    self.lastResult = nil
+                    self.lock.unlock()
                     continuation.resume(throwing: error)
                 }
             }
