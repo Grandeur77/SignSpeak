@@ -883,12 +883,20 @@ public final class MockAvatarRepository: AvatarRepository, @unchecked Sendable {
 public final class MockNotificationService: NotificationServicing, @unchecked Sendable {
     private let lock = NSLock()
     public var authorizationResult: Bool = true
+    public var authorizationStatus: NotificationAuthorizationStatus = .authorized
     public private(set) var requestAuthorizationCallCount = 0
     public private(set) var scheduledReminders: [(hour: Int, minute: Int)] = []
+    public private(set) var scheduledRemindersWithDays: [(hour: Int, minute: Int, activeDays: [Int])] = []
+    public private(set) var scheduledEveningReminders: [(hour: Int, minute: Int)] = []
+    public private(set) var scheduledPreviews: [(title: String, body: String)] = []
+    public private(set) var scheduledSettings: [ReminderSettings] = []
+    public private(set) var cancelledIdentifiers: [String] = []
     public private(set) var cancelAllRemindersCallCount = 0
+    public var pendingIdentifiers: [String] = []
 
-    public init(authorizationResult: Bool = true) {
+    public init(authorizationResult: Bool = true, authorizationStatus: NotificationAuthorizationStatus = .authorized) {
         self.authorizationResult = authorizationResult
+        self.authorizationStatus = authorizationStatus
     }
 
     public func requestAuthorization() async throws -> Bool {
@@ -898,16 +906,58 @@ public final class MockNotificationService: NotificationServicing, @unchecked Se
         return authorizationResult
     }
 
+    public func getAuthorizationStatus() async -> NotificationAuthorizationStatus {
+        lock.lock()
+        defer { lock.unlock() }
+        return authorizationStatus
+    }
+
+    public func scheduleReminders(settings: ReminderSettings) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        scheduledSettings.append(settings)
+    }
+
     public func scheduleDailyReminder(hour: Int, minute: Int) async throws {
         lock.lock()
         defer { lock.unlock() }
         scheduledReminders.append((hour: hour, minute: minute))
     }
 
+    public func scheduleDailyReminder(hour: Int, minute: Int, activeDays: [Int]) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        scheduledRemindersWithDays.append((hour: hour, minute: minute, activeDays: activeDays))
+    }
+
+    public func scheduleEveningReminder(hour: Int, minute: Int) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        scheduledEveningReminders.append((hour: hour, minute: minute))
+    }
+
+    public func scheduleTestPreview(title: String, body: String) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        scheduledPreviews.append((title: title, body: body))
+    }
+
     public func cancelAllReminders() async {
         lock.lock()
         defer { lock.unlock() }
         cancelAllRemindersCallCount += 1
+    }
+
+    public func cancelReminder(identifier: String) async {
+        lock.lock()
+        defer { lock.unlock() }
+        cancelledIdentifiers.append(identifier)
+    }
+
+    public func getPendingReminderIdentifiers() async -> [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        return pendingIdentifiers
     }
 }
 
