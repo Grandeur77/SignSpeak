@@ -60,6 +60,12 @@ public struct TalkRootView: View {
             if newDest == .communicator {
                 viewModel.startConversation()
                 deepLinkRouter.activeDestination = nil
+            } else if case .speakPhrase(let phrase) = newDest {
+                viewModel.startConversation()
+                Task {
+                    try? await dependencies.speechSynthesisService.speak(text: phrase)
+                }
+                deepLinkRouter.activeDestination = nil
             }
         }
     }
