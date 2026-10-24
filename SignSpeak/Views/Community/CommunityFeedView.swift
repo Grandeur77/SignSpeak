@@ -8,6 +8,7 @@ public struct CommunityFeedView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(DeepLinkRouter.self) private var deepLinkRouter: DeepLinkRouter?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorSchemeContrast) private var contrast
 
     @State private var viewModel: CommunityFeedViewModel
 
@@ -188,168 +189,206 @@ public struct CommunityFeedView: View {
 
     // MARK: - Post Card
     private func postCard(_ post: CommunityPost) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Author row
-            HStack(spacing: 10) {
-                Circle()
-                    .fill(Color.brandTurquoise.opacity(0.18))
-                    .frame(width: 40, height: 40)
-                    .overlay {
-                        Text(String(post.authorName.prefix(1)))
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(Color.brandTurquoise)
-                    }
+        let label = "Post by \(post.authorName), \(post.authorRole.capitalized): \(post.body). \(post.totalReactionCount) reactions, \(post.commentCount) comments."
+        let strokeColor = (contrast == .increased) ? Color.textPrimary : Color.clear
+        let strokeWidth: CGFloat = (contrast == .increased) ? 1.5 : 0
 
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(post.authorName)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(Color.textPrimary)
+        return VStack(alignment: .leading, spacing: 12) {
+            postAuthorRow(post)
 
-                        roleBadge(post.authorRole)
-                    }
-
-                    Text(viewModel.relativeTimeString(from: post.createdAt))
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.textSecondary)
-                }
-
-                Spacer()
-
-                // Ellipsis menu
-                Menu {
-                    Button {
-                        Task { await viewModel.toggleFollow(targetUserId: post.authorId) }
-                    } label: {
-                        Label("Follow / Unfollow", systemImage: "person.badge.plus")
-                    }
-
-                    Button(role: .destructive) {
-                        viewModel.activeReportPost = post
-                    } label: {
-                        Label("Report Post", systemImage: "exclamationmark.bubble")
-                    }
-
-                    Button(role: .destructive) {
-                        Task { await viewModel.blockUser(targetUserId: post.authorId) }
-                    } label: {
-                        Label("Block Author", systemImage: "hand.raised.slash")
-                    }
-
-                    if post.authorId == (dependencies.authService.currentUserId ?? "guest") {
-                        Button(role: .destructive) {
-                            Task { await viewModel.deletePost(postId: post.id) }
-                        } label: {
-                            Label("Delete Post", systemImage: "trash")
-                        }
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color.textSecondary)
-                        .frame(width: 28, height: 28)
-                }
-            }
-
-            // Milestone Badge if any
             if let badge = post.milestoneBadge {
-                HStack(spacing: 6) {
-                    Image(systemName: "trophy.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(Color.brandNavy)
-                    Text(badge)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color.brandNavy)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.brandYellow, in: Capsule())
+                postMilestoneBadge(badge)
             }
 
-            // Body
             Text(post.body)
                 .font(.system(size: 14))
                 .foregroundStyle(Color.textPrimary)
                 .lineSpacing(3)
 
-            // Video demo thumbnail if applicable
             if let signName = post.demonstrationSignName {
-                HStack(spacing: 12) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundStyle(Color.brandTurquoise)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Demonstration: '\(signName)'")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(Color.textPrimary)
-                        Text("Tap to practice this sign")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Color.textSecondary)
-                    }
-                    Spacer()
-                }
-                .padding(Theme.Spacing.m)
-                .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10))
+                postDemonstrationBox(signName)
             }
 
             Divider()
 
-            // Reaction & Comment Actions Bar
-            HStack(spacing: 12) {
-                // Reaction summary & React button
-                Button {
-                    viewModel.activeReactionPickerPost = post
-                } label: {
-                    HStack(spacing: 5) {
-                        if let userReact = post.userReaction {
-                            Text(userReact.emoji)
-                                .font(.system(size: 15))
-                        } else {
-                            Image(systemName: "hand.thumbsup")
-                                .font(.system(size: 13, weight: .semibold))
-                        }
-                        Text("\(post.totalReactionCount)")
-                            .font(.system(size: 12, weight: .bold))
-                    }
-                    .foregroundStyle(post.userReaction != nil ? Color.brandTurquoise : Color.textSecondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.appBackground, in: Capsule())
-                }
-                .buttonStyle(.plain)
-
-                // Comments button
-                Button {
-                    viewModel.activeDetailPost = post
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "bubble.left")
-                            .font(.system(size: 13))
-                        Text("\(post.commentCount)")
-                            .font(.system(size: 12, weight: .bold))
-                    }
-                    .foregroundStyle(Color.textSecondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.appBackground, in: Capsule())
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                // Share button
-                ShareLink(item: "\(post.authorName) on SignSpeak: \(post.body)") {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.textSecondary)
-                        .padding(6)
-                }
-                .buttonStyle(.plain)
-            }
+            postActionBar(post)
         }
         .padding(Theme.Spacing.l)
         .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.Radius.card)
+                .stroke(strokeColor, lineWidth: strokeWidth)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityAction(named: "React to post") {
+            viewModel.activeReactionPickerPost = post
+        }
+        .accessibilityAction(named: "View comments") {
+            viewModel.activeDetailPost = post
+        }
+    }
+
+    private func postAuthorRow(_ post: CommunityPost) -> some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(Color.brandTurquoise.opacity(0.18))
+                .frame(width: 40, height: 40)
+                .overlay {
+                    Text(String(post.authorName.prefix(1)))
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Color.brandTurquoise)
+                }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(post.authorName)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+
+                    roleBadge(post.authorRole)
+                }
+
+                Text(viewModel.relativeTimeString(from: post.createdAt))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            Spacer()
+
+            // Ellipsis menu
+            Menu {
+                Button {
+                    Task { await viewModel.toggleFollow(targetUserId: post.authorId) }
+                } label: {
+                    Label("Follow / Unfollow", systemImage: "person.badge.plus")
+                }
+
+                Button(role: .destructive) {
+                    viewModel.activeReportPost = post
+                } label: {
+                    Label("Report Post", systemImage: "exclamationmark.bubble")
+                }
+
+                Button(role: .destructive) {
+                    Task { await viewModel.blockUser(targetUserId: post.authorId) }
+                } label: {
+                    Label("Block Author", systemImage: "hand.raised.slash")
+                }
+
+                if post.authorId == (dependencies.authService.currentUserId ?? "guest") {
+                    Button(role: .destructive) {
+                        Task { await viewModel.deletePost(postId: post.id) }
+                    } label: {
+                        Label("Delete Post", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(Color.textSecondary)
+                    .frame(width: 28, height: 28)
+            }
+        }
+    }
+
+    private func postMilestoneBadge(_ badge: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 11))
+                .foregroundStyle(Color.brandNavy)
+            Text(badge)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(Color.brandNavy)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color.brandYellow, in: Capsule())
+    }
+
+    private func postDemonstrationBox(_ signName: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "play.circle.fill")
+                .font(.system(size: 26))
+                .foregroundStyle(Color.brandTurquoise)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Demonstration: '\(signName)'")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+                Text("Tap to practice this sign")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            Spacer()
+        }
+        .padding(Theme.Spacing.m)
+        .background(Color.appBackground, in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    // MARK: - Post Actions Bar
+    private func postActionBar(_ post: CommunityPost) -> some View {
+        let reactionText = post.userReaction != nil
+            ? "Reaction: \(post.userReaction?.emoji ?? ""). Total reactions: \(post.totalReactionCount)"
+            : "Add reaction. Current total: \(post.totalReactionCount)"
+
+        return HStack(spacing: 12) {
+            // Reaction summary & React button
+            Button {
+                viewModel.activeReactionPickerPost = post
+            } label: {
+                HStack(spacing: 5) {
+                    if let userReact = post.userReaction {
+                        Text(userReact.emoji)
+                            .font(.system(size: 15))
+                    } else {
+                        Image(systemName: "hand.thumbsup")
+                            .font(.system(size: 13, weight: .semibold))
+                    }
+                    Text("\(post.totalReactionCount)")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .foregroundStyle(post.userReaction != nil ? Color.brandTurquoise : Color.textSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.appBackground, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(reactionText)
+            .accessibilityInputLabels(["React", "Like post"])
+
+            // Comments button
+            Button {
+                viewModel.activeDetailPost = post
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "bubble.left")
+                        .font(.system(size: 13))
+                    Text("\(post.commentCount)")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .foregroundStyle(Color.textSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.appBackground, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Comments: \(post.commentCount)")
+            .accessibilityInputLabels(["Comments", "Reply"])
+
+            Spacer()
+
+            // Share button
+            ShareLink(item: "\(post.authorName) on SignSpeak: \(post.body)") {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.textSecondary)
+                    .padding(6)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Share post by \(post.authorName)")
+            .accessibilityInputLabels(["Share", "Share post"])
+        }
     }
 
     // MARK: - Role Badge

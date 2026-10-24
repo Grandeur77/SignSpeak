@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreMedia
 import UIKit
+import os
 
 /// Concrete camera service capturing video frames via AVFoundation on dedicated serial queues.
 /// Delivers video frames via `AsyncStream<CMSampleBuffer>` without blocking the main UI thread.
@@ -99,9 +100,13 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
     /// Starts the camera session on a background queue.
     public func startSession() async {
         #if targetEnvironment(simulator)
+        AppLogger.camera.notice("Camera startSession requested on simulator (stubbed).")
         return
         #else
-        guard authorizationState == .authorized else { return }
+        guard authorizationState == .authorized else {
+            AppLogger.camera.warning("startSession aborted: camera authorization is \(String(describing: self.authorizationState))")
+            return
+        }
 
         await withCheckedContinuation { continuation in
             sessionQueue.async { [weak self] in
@@ -116,6 +121,7 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
 
                 if !self.session.isRunning {
                     self.session.startRunning()
+                    AppLogger.camera.info("AVCaptureSession started running (position: \(String(describing: self.position)))")
                 }
                 continuation.resume()
             }
@@ -128,6 +134,7 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
         await withCheckedContinuation { continuation in
             sessionQueue.async { [weak self] in
                 self?.stopSessionSync()
+                AppLogger.camera.info("AVCaptureSession stopped running.")
                 continuation.resume()
             }
         }
@@ -144,14 +151,15 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
                     continuation.resume()
                     return
                 }
-
                 let newPosition: AVCaptureDevice.Position = (self.position == .front) ? .back : .front
                 self.setupInput(for: newPosition)
+                AppLogger.camera.info("Camera position switched to: \(String(describing: self.position))")
                 continuation.resume()
             }
         }
         #endif
     }
+
 
     /// Updates video output orientation to match iPad device/interface rotation.
     public func setOrientation(_ orientation: AVCaptureVideoOrientation) async {

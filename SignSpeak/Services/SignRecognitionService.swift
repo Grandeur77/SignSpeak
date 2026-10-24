@@ -1,5 +1,7 @@
 import Foundation
 import CoreMedia
+import QuartzCore
+import os
 
 /// Production sign recognition coordinator pipeline.
 /// Pipes camera frames -> Vision Hand Pose -> Combined Static/Motion Classifiers -> Stability Filter.
@@ -23,6 +25,9 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
     private var _currentPose: HandPose?
     private var _currentClassification: SignClassification?
     private var frameCount: Int = 0
+    private var isProcessingFrame: Bool = false
+    private var lastProcessedFrameTimestamp: TimeInterval = 0
+    public var minFrameInterval: TimeInterval = 0.045 // ~22 fps maximum inference rate (Phase 15.2)
 
     public var currentState: RecognitionState {
         lock.lock()
@@ -120,12 +125,23 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
 
     public func startRecognition() async {
         stopPipeline()
+        AppLogger.recognition.info("Sign recognition pipeline started (frame rate throttled to ~22 fps max)")
 
         activeTask = Task { [weak self] in
             guard let self else { return }
             for await sampleBuffer in self.cameraService.frameStream {
                 if Task.isCancelled { break }
+                let now = CACurrentMediaTime()
+                if now - self.lastProcessedFrameTimestamp < self.minFrameInterval {
+                    continue // Frame skipped to conserve CPU and energy (Phase 15.2)
+                }
+                if self.isProcessingFrame {
+                    continue // Drop frame when previous inference is in-flight
+                }
+                self.isProcessingFrame = true
+                self.lastProcessedFrameTimestamp = now
                 await self.processFrame(sampleBuffer)
+                self.isProcessingFrame = false
             }
         }
     }
@@ -234,11 +250,25 @@ public final class SignRecognitionService: SignRecognitionServicing, @unchecked 
 
     private func broadcast(state: RecognitionState, pose: HandPose?, classification: SignClassification?) {
         lock.lock()
+        let previous = _currentState
         _currentState = state
         _currentPose = pose
         _currentClassification = classification
         let targets = Array(continuations.values)
         lock.unlock()
+
+        if previous != state {
+            switch state {
+            case .recognized(let sign, let confidence, _):
+                AppLogger.recognition.info("Sign recognized: \(sign, privacy: .public) (\(Int(confidence * 100))%)")
+            case .detecting(let sign, _, let progress, _):
+                AppLogger.recognition.debug("Sign detecting: \(sign, privacy: .public) (\(Int(progress * 100))%)")
+            case .lowConfidence:
+                AppLogger.recognition.debug("Low confidence hand gesture")
+            case .noHand:
+                AppLogger.recognition.debug("No hand visible")
+            }
+        }
 
         for continuation in targets {
             continuation.yield(state)

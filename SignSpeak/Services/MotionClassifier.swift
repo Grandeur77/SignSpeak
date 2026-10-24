@@ -10,11 +10,19 @@ public final class MotionClassifier: MotionSignClassifying, @unchecked Sendable 
     private let model: MLModel?
     private let modelURL: URL?
 
+    /// Produces an optimized MLModelConfiguration with Neural Engine and GPU acceleration.
+    public static func defaultConfiguration() -> MLModelConfiguration {
+        let configuration = MLModelConfiguration()
+        configuration.computeUnits = .all
+        configuration.allowLowPrecisionAccumulationOnGPU = true
+        return configuration
+    }
+
     public init(
         targetFrameRate: Double = 30.0,
         predictionWindow: Int = 45,
         model: MLModel? = nil,
-        configuration: MLModelConfiguration = MLModelConfiguration()
+        configuration: MLModelConfiguration = MotionClassifier.defaultConfiguration()
     ) {
         self.targetFrameRate = targetFrameRate
         self.predictionWindow = predictionWindow

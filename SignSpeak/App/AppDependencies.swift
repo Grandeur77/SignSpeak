@@ -32,8 +32,63 @@ public struct AppDependencies: Sendable {
     var inboxRepository: any InboxRepository
     var soundAlertService: any SoundAlerting
     var soundAlertHistoryRepository: any SoundAlertHistoryRepository
+    var networkMonitorService: any NetworkMonitorServicing
 
-    /// Production dependency container.
+    public init(
+        dateProvider: any DateProviding,
+        cameraService: any CameraServicing,
+        handPoseDetector: any HandPoseDetecting,
+        signClassifier: any SignClassifying,
+        motionSignClassifier: any MotionSignClassifying,
+        signRecognitionService: any SignRecognitionServicing,
+        authService: any AuthServicing,
+        userProfileRepository: any UserProfileRepository,
+        publicProfileRepository: any PublicProfileRepository,
+        avatarRepository: any AvatarRepository,
+        progressRepository: any ProgressRepository,
+        biometricAuthService: any BiometricAuthServicing,
+        credentialVault: any CredentialVaultProtocol,
+        notificationService: any NotificationServicing,
+        speechRecognitionService: any SpeechRecognitionServicing,
+        speechSynthesisService: any SpeechSynthesisServicing,
+        conversationRepository: any ConversationRepository,
+        communityRepository: any CommunityRepository,
+        signCatalogService: any SignCatalogServicing,
+        signRequestRepository: any SignRequestRepository,
+        favouritesRepository: any FavouritesRepository,
+        quickPhraseRepository: any QuickPhraseRepository,
+        inboxRepository: any InboxRepository,
+        soundAlertService: any SoundAlerting,
+        soundAlertHistoryRepository: any SoundAlertHistoryRepository,
+        networkMonitorService: (any NetworkMonitorServicing)? = nil
+    ) {
+        self.dateProvider = dateProvider
+        self.cameraService = cameraService
+        self.handPoseDetector = handPoseDetector
+        self.signClassifier = signClassifier
+        self.motionSignClassifier = motionSignClassifier
+        self.signRecognitionService = signRecognitionService
+        self.authService = authService
+        self.userProfileRepository = userProfileRepository
+        self.publicProfileRepository = publicProfileRepository
+        self.avatarRepository = avatarRepository
+        self.progressRepository = progressRepository
+        self.biometricAuthService = biometricAuthService
+        self.credentialVault = credentialVault
+        self.notificationService = notificationService
+        self.speechRecognitionService = speechRecognitionService
+        self.speechSynthesisService = speechSynthesisService
+        self.conversationRepository = conversationRepository
+        self.communityRepository = communityRepository
+        self.signCatalogService = signCatalogService
+        self.signRequestRepository = signRequestRepository
+        self.favouritesRepository = favouritesRepository
+        self.quickPhraseRepository = quickPhraseRepository
+        self.inboxRepository = inboxRepository
+        self.soundAlertService = soundAlertService
+        self.soundAlertHistoryRepository = soundAlertHistoryRepository
+        self.networkMonitorService = networkMonitorService ?? StubNetworkMonitorService()
+    }
     static let live: AppDependencies = {
         #if canImport(FirebaseCore)
         if FirebaseApp.app() == nil {
@@ -93,7 +148,8 @@ public struct AppDependencies: Sendable {
             quickPhraseRepository: FirestoreQuickPhraseRepository(),
             inboxRepository: FirestoreInboxRepository(),
             soundAlertService: SoundAlertService(),
-            soundAlertHistoryRepository: LocalSoundAlertHistoryRepository()
+            soundAlertHistoryRepository: LocalSoundAlertHistoryRepository(),
+            networkMonitorService: NetworkMonitorService()
         )
     }()
 
@@ -153,7 +209,8 @@ public struct AppDependencies: Sendable {
             SoundAlertRecord(type: .doorbell, timestamp: Date().addingTimeInterval(-600), confidence: 0.94),
             SoundAlertRecord(type: .knocking, timestamp: Date().addingTimeInterval(-3600), confidence: 0.88),
             SoundAlertRecord(type: .fireAlarm, timestamp: Date().addingTimeInterval(-86400), confidence: 0.98, isEmergency: true)
-        ])
+        ]),
+        networkMonitorService: StubNetworkMonitorService(isConnected: true)
     )
 }
 
