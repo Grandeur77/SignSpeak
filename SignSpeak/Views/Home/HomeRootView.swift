@@ -9,6 +9,8 @@ public struct HomeRootView: View {
     @State private var isShowingInbox = false
     @State private var unreadNotificationCount = 0
     @State private var userProfile: UserProfile?
+    @State private var isLearningJourneyExpanded: Bool = true
+    @State private var isCommunityExpanded: Bool = true
 
     public init(deepLinkRouter: DeepLinkRouter) {
         self.deepLinkRouter = deepLinkRouter
@@ -16,6 +18,17 @@ public struct HomeRootView: View {
 
     private var isDeafRole: Bool {
         userProfile?.role == "deaf"
+    }
+
+    private var greetingByTimeOfDay: String {
+        let hour = Calendar.current.component(.hour, from: dependencies.dateProvider.now)
+        if hour >= 5 && hour < 12 {
+            return "Good morning"
+        } else if hour >= 12 && hour < 17 {
+            return "Good afternoon"
+        } else {
+            return "Good evening"
+        }
     }
 
     public var body: some View {
@@ -27,7 +40,7 @@ public struct HomeRootView: View {
                 // MARK: - Greeting
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text("Good morning, \(userProfile?.displayName ?? "Learner")")
+                        Text("\(greetingByTimeOfDay), \(userProfile?.displayName ?? "Learner")")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundStyle(Color.textPrimary)
 
@@ -46,15 +59,25 @@ public struct HomeRootView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Theme.Spacing.l)
 
-                // MARK: - 7-Day Streak Card
-                streakHeroCard
-
-                // MARK: - Quick Stats Row
-                HStack(spacing: 10) {
-                    quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "\(userProfile?.currentStreak ?? 7)", label: "DAYS STREAK")
-                    quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "\(userProfile?.xp ?? 420)", label: "TOTAL XP")
-                    quickStatPill(icon: "clock.fill", iconColor: Color.brandTurquoise, value: "\(userProfile?.dailyGoalMinutes ?? 10)m", label: "DAILY GOAL")
+                // MARK: - 7-Day Streak Card (Tappable -> Streaks & Challenges)
+                NavigationLink {
+                    StreakAndChallengesView()
+                } label: {
+                    streakHeroCard
                 }
+                .buttonStyle(.plain)
+
+                // MARK: - Quick Stats Row (Tappable -> Progress Analytics)
+                NavigationLink {
+                    AnalyticsView()
+                } label: {
+                    HStack(spacing: 10) {
+                        quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "\(userProfile?.currentStreak ?? 7)", label: "DAYS STREAK")
+                        quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "\(userProfile?.xp ?? 420)", label: "TOTAL XP")
+                        quickStatPill(icon: "clock.fill", iconColor: Color.brandTurquoise, value: "\(userProfile?.dailyGoalMinutes ?? 10)m", label: "DAILY GOAL")
+                    }
+                }
+                .buttonStyle(.plain)
                 .padding(.horizontal, Theme.Spacing.l)
 
                 // MARK: - Role-Personalised Section Ordering
@@ -66,12 +89,14 @@ public struct HomeRootView: View {
 
                     communicatorCard
                     dailySignCard
+                    communityHighlightsSection
                     learningJourneySection
                 } else {
                     // For ASL learners: prioritize daily sign & learning journey
                     dailySignCard
                     learningJourneySection
                     communicatorCard
+                    communityHighlightsSection
 
                     if userProfile?.soundAlertsEnabled == true {
                         soundAlertsPill
@@ -485,6 +510,113 @@ public struct HomeRootView: View {
         }
         .padding(Theme.Spacing.m)
         .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+    }
+
+    // MARK: - Community Highlights Section
+    private var communityHighlightsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "person.3.fill")
+                        .foregroundStyle(Color.brandTurquoise)
+                    Text("Community Highlights")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color.textPrimary)
+                }
+
+                Spacer()
+
+                Button {
+                    withAnimation {
+                        isCommunityExpanded.toggle()
+                    }
+                } label: {
+                    Image(systemName: isCommunityExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.textSecondary)
+                }
+            }
+
+            if isCommunityExpanded {
+                VStack(spacing: 10) {
+                    // Highlight 1: Demonstration Clip
+                    Button {
+                        deepLinkRouter.activeDestination = .community
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.brandTurquoise.opacity(0.18))
+                                    .frame(width: 40, height: 40)
+                                Image(systemName: "play.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(Color.brandTurquoise)
+                            }
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Maya demonstrated 'Coffee' ☕️")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(Color.textPrimary)
+                                Text("34 reactions • Polite & Everyday ASL")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.textSecondary)
+                            }
+
+                            Spacer()
+
+                            Text("Watch →")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color.brandTurquoise)
+                        }
+                        .padding(Theme.Spacing.m)
+                        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+
+                    // Highlight 2: Community Sign of the Day
+                    communitySignOfTheDayCard
+                }
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.l)
+    }
+
+    // MARK: - Community Sign of the Day
+    private var communitySignOfTheDayCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("COMMUNITY SIGN OF THE DAY")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color.brandYellow)
+                    .tracking(0.8)
+
+                Spacer()
+
+                Text("12 Clips")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.textSecondary)
+            }
+
+            Text("Connect 🤝")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(Color.textPrimary)
+
+            Text("Join learners sharing video variations for 'Connect'. Tap to view community submissions or submit your sign clip.")
+                .font(.system(size: 12))
+                .foregroundStyle(Color.textSecondary)
+
+            Button("View Community Clip Wall →") {
+                deepLinkRouter.activeDestination = .community
+            }
+            .font(.system(size: 13, weight: .bold))
+            .foregroundStyle(Color.brandTurquoise)
+            .padding(.top, 2)
+        }
+        .padding(Theme.Spacing.m)
+        .background(
+            Color.brandTurquoise.opacity(0.06),
+            in: RoundedRectangle(cornerRadius: 12)
+        )
     }
 }
 
