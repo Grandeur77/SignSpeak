@@ -8,6 +8,7 @@ public struct HomeRootView: View {
 
     @State private var isShowingInbox = false
     @State private var isShowingCommunity = false
+    @State private var isShowingSoundAlerts = false
     @State private var unreadNotificationCount = 0
     @State private var userProfile: UserProfile?
     @State private var isLearningJourneyExpanded: Bool = true
@@ -118,6 +119,9 @@ public struct HomeRootView: View {
         .navigationDestination(isPresented: $isShowingCommunity) {
             CommunityFeedView()
         }
+        .navigationDestination(isPresented: $isShowingSoundAlerts) {
+            SoundAlertsHomeView()
+        }
         .onChange(of: deepLinkRouter.activeDestination) { _, newDest in
             if newDest == .communicator {
                 deepLinkRouter.selectedTab = .talk
@@ -130,6 +134,9 @@ public struct HomeRootView: View {
                 deepLinkRouter.activeDestination = nil
             } else if newDest == .community {
                 isShowingCommunity = true
+                deepLinkRouter.activeDestination = nil
+            } else if newDest == .soundAlerts {
+                isShowingSoundAlerts = true
                 deepLinkRouter.activeDestination = nil
             }
         }
@@ -295,36 +302,41 @@ public struct HomeRootView: View {
 
     // MARK: - Sound Alerts Status Pill
     private var soundAlertsPill: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(Color.brandTurquoise.opacity(0.15))
-                    .frame(width: 32, height: 32)
-                Image(systemName: "waveform")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(Color.brandTurquoise)
-            }
+        Button {
+            isShowingSoundAlerts = true
+        } label: {
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(Color.brandTurquoise.opacity(0.15))
+                        .frame(width: 32, height: 32)
+                    Image(systemName: "waveform")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.brandTurquoise)
+                }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Sound Alerts • Listening")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.textPrimary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Sound Alerts • Listening")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.textPrimary)
 
-                Text("Last alert: Doorbell, 10 min ago")
-                    .font(.system(size: 11))
+                    Text("Tap to view active ambient alerts")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.textSecondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.textSecondary)
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.textSecondary)
+            .padding(.horizontal, Theme.Spacing.m)
+            .padding(.vertical, 10)
+            .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal, Theme.Spacing.l)
         }
-        .padding(.horizontal, Theme.Spacing.m)
-        .padding(.vertical, 10)
-        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 14))
-        .padding(.horizontal, Theme.Spacing.l)
+        .buttonStyle(.plain)
     }
 
     // MARK: - Daily Sign Card

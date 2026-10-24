@@ -224,23 +224,32 @@ public struct SettingsRootView: View {
 
             Divider().padding(.leading, 52)
 
-            HStack(spacing: 12) {
-                Image(systemName: "waveform.path.badge.plus")
-                    .font(.system(size: 18))
-                    .foregroundStyle(Color.brandTurquoise)
-                    .frame(width: 28, height: 28)
+            NavigationLink {
+                SoundAlertsHomeView()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "waveform.path.badge.plus")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color.brandTurquoise)
+                        .frame(width: 28, height: 28)
 
-                Text("Sound Alerts Awareness")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color.textPrimary)
+                    Text("Sound Alerts Awareness")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.textPrimary)
 
-                Spacer()
+                    Spacer()
 
-                Text(userProfile?.soundAlertsEnabled == true ? "Active" : "Disabled")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(userProfile?.soundAlertsEnabled == true ? Color.brandTurquoise : Color.textSecondary)
+                    Text(userProfile?.soundAlertsEnabled == true ? "Active" : "Disabled")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(userProfile?.soundAlertsEnabled == true ? Color.brandTurquoise : Color.textSecondary)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .padding(Theme.Spacing.m)
             }
-            .padding(Theme.Spacing.m)
+            .buttonStyle(.plain)
         }
     }
 
