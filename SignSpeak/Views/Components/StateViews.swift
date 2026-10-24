@@ -3,6 +3,8 @@ import SwiftUI
 /// Reusable empty state view displaying an icon, title, message, and an optional call-to-action button.
 /// Designed for 44pt minimum tap targets, full VoiceOver navigation, and Dynamic Type scaling.
 struct EmptyStateView: View {
+    @Environment(\.colorSchemeContrast) private var contrast
+
     let title: LocalizedStringKey
     let message: LocalizedStringKey
     var systemImage: String = "tray"
@@ -16,6 +18,9 @@ struct EmptyStateView: View {
                 .foregroundStyle(.brandTurquoise)
                 .frame(width: 80, height: 80)
                 .background(.cardBackground, in: Circle())
+                .overlay(
+                    Circle().stroke(contrast == .increased ? Color.textPrimary : Color.clear, lineWidth: 1.5)
+                )
                 .accessibilityHidden(true)
 
             VStack(spacing: Theme.Spacing.s) {
@@ -37,6 +42,10 @@ struct EmptyStateView: View {
                     .buttonStyle(.secondary)
                     .frame(maxWidth: 240)
                     .padding(.top, Theme.Spacing.xs)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.Radius.button)
+                            .stroke(contrast == .increased ? Color.textPrimary : Color.clear, lineWidth: 1.5)
+                    )
             }
         }
         .padding(Theme.Spacing.xl)
@@ -48,6 +57,8 @@ struct EmptyStateView: View {
 /// Reusable error state view providing a clear explanation of what went wrong and a retry button.
 /// Fully accessible, adhering to Deaf Flag styling and WCAG contrast.
 struct ErrorStateView: View {
+    @Environment(\.colorSchemeContrast) private var contrast
+
     var title: LocalizedStringKey = "Something went wrong"
     let message: LocalizedStringKey
     var systemImage: String = "exclamationmark.triangle.fill"
@@ -61,6 +72,9 @@ struct ErrorStateView: View {
                 .foregroundStyle(.danger)
                 .frame(width: 80, height: 80)
                 .background(Color.danger.opacity(0.12), in: Circle())
+                .overlay(
+                    Circle().stroke(contrast == .increased ? Color.danger : Color.clear, lineWidth: 1.5)
+                )
                 .accessibilityHidden(true)
 
             VStack(spacing: Theme.Spacing.s) {
@@ -87,6 +101,11 @@ struct ErrorStateView: View {
             .buttonStyle(.primary)
             .frame(maxWidth: 240)
             .padding(.top, Theme.Spacing.xs)
+            .accessibilityHint("Retries the failed operation")
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.button)
+                    .stroke(contrast == .increased ? Color.textPrimary : Color.clear, lineWidth: 1.5)
+            )
         }
         .padding(Theme.Spacing.xl)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

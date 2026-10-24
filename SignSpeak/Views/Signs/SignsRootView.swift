@@ -6,6 +6,7 @@ import SwiftUI
 public struct SignsRootView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.colorSchemeContrast) private var contrast
     @Bindable var deepLinkRouter: DeepLinkRouter
 
     @State private var viewModel: SignsDirectoryViewModel?
@@ -609,8 +610,17 @@ public struct SignsRootView: View {
         .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+                .stroke(contrast == .increased ? Color.textPrimary : Color.gray.opacity(0.12), lineWidth: contrast == .increased ? 1.5 : 1)
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(sign.name), category \(sign.category), level \(sign.level.displayName), \(status == .mastered ? "Mastered" : (status == .learning ? "Learning" : "New sign")), \(isBookmarked ? "Bookmarked" : "Not bookmarked")")
+        .accessibilityHint("Double tap to view details, watch reference video, and practice with camera")
+        .accessibilityAction(named: isBookmarked ? "Remove bookmark" : "Add to bookmarks") {
+            Task {
+                await vm.toggleBookmark(sign: sign)
+                triggerHaptic()
+            }
+        }
     }
 
     // MARK: - Empty State (42-search-results-empty)

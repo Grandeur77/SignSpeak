@@ -12,6 +12,8 @@ public struct CommunicatorLiveView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var contrast
 
     @State private var viewModel: CommunicatorLiveViewModel?
     @State private var isShowingEndConfirmation: Bool = false
@@ -244,6 +246,9 @@ public struct CommunicatorLiveView: View {
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.highlight)
+                    .accessibilityLabel(viewModel.isPartnerRotated180 ? "Flip transcript back" : "Flip transcript 180 degrees")
+                    .accessibilityHint("Rotates transcript for face-to-face partner viewing")
+                    .accessibilityInputLabels(["Flip", "Rotate transcript"])
 
                     // Listening State Pill
                     HStack(spacing: 6) {
@@ -258,6 +263,8 @@ public struct CommunicatorLiveView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.white.opacity(0.08), in: Capsule())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(viewModel.isPaused ? "Microphone paused" : (viewModel.isPartnerSpeaking ? "Partner speaking" : "Listening for partner speech"))
 
                     Spacer()
 
@@ -273,6 +280,9 @@ public struct CommunicatorLiveView: View {
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.highlight)
+                    .accessibilityLabel("Replay last message")
+                    .accessibilityHint("Speaks the previous message aloud")
+                    .accessibilityInputLabels(["Replay", "Repeat message"])
 
                     // Thumbs-Up Quick Button
                     Button {
@@ -286,6 +296,8 @@ public struct CommunicatorLiveView: View {
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.highlight)
+                    .accessibilityLabel("Send thumbs up acknowledgment")
+                    .accessibilityInputLabels(["Thumbs up", "Acknowledge"])
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
@@ -294,6 +306,7 @@ public struct CommunicatorLiveView: View {
                 liveWaveformView(audioLevel: viewModel.partnerAudioLevel, isPaused: viewModel.isPaused)
                     .frame(height: 20)
                     .padding(.horizontal, 20)
+                    .accessibilityHidden(true)
 
                 Spacer(minLength: 4)
 
@@ -307,35 +320,32 @@ public struct CommunicatorLiveView: View {
                                     .foregroundStyle(Color.white.opacity(0.4))
                                     .multilineTextAlignment(.leading)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .accessibilityLabel("Transcript is empty. Spoken words will appear here in real time.")
                             } else {
                                 ForEach(viewModel.messages) { msg in
-                                    HStack(alignment: .top, spacing: 6) {
-                                        Text(msg.speaker == "Partner" ? "🗣️" : "🤟")
-                                            .font(.system(size: 14))
-
-                                        Text(msg.text)
-                                            .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                            .foregroundStyle(msg.speaker == "Partner" ? Color.white : Color.brandTurquoise)
-                                    }
+                                    portraitMessageRow(msg, viewModel: viewModel)
                                 }
 
                                 if !viewModel.activePartnerTranscript.isEmpty {
                                     HStack(alignment: .top, spacing: 6) {
                                         Text("🗣️")
                                             .font(.system(size: 14))
+                                            .accessibilityHidden(true)
 
                                         Text(viewModel.activePartnerTranscript)
                                             .font(.system(size: 22, weight: .bold, design: .rounded))
                                             .foregroundStyle(Color.brandYellow)
                                     }
                                     .id("activeTranscript")
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityLabel("Live: \(viewModel.activePartnerTranscript)")
                                 }
                             }
                         }
                         .padding(.horizontal, 16)
                     }
                     .onChange(of: viewModel.activePartnerTranscript) { _, _ in
-                        withAnimation {
+                        withAnimation(reduceMotion ? nil : .default) {
                             proxy.scrollTo("activeTranscript", anchor: .bottom)
                         }
                     }
@@ -349,7 +359,7 @@ public struct CommunicatorLiveView: View {
                     .padding(.bottom, 6)
             }
             .rotationEffect(.degrees(viewModel.isPartnerRotated180 ? 180 : 0))
-            .animation(.spring(response: 0.35, dampingFraction: 0.75), value: viewModel.isPartnerRotated180)
+            .animation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.75), value: viewModel.isPartnerRotated180)
         }
         .frame(height: height)
     }
@@ -380,6 +390,9 @@ public struct CommunicatorLiveView: View {
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.highlight)
+                    .accessibilityLabel(viewModel.isPartnerRotated180 ? "Flip transcript back" : "Flip transcript 180 degrees")
+                    .accessibilityHint("Rotates transcript for face-to-face partner viewing")
+                    .accessibilityInputLabels(["Flip", "Rotate transcript"])
 
                     // Listening State Pill
                     HStack(spacing: 6) {
@@ -394,6 +407,8 @@ public struct CommunicatorLiveView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.white.opacity(0.08), in: Capsule())
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(viewModel.isPaused ? "Microphone paused" : (viewModel.isPartnerSpeaking ? "Partner speaking" : "Listening for partner speech"))
 
                     Spacer()
 
@@ -407,6 +422,9 @@ public struct CommunicatorLiveView: View {
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.highlight)
+                    .accessibilityLabel("Replay last message")
+                    .accessibilityHint("Speaks the previous message aloud")
+                    .accessibilityInputLabels(["Replay", "Repeat message"])
 
                     // Thumbs-Up Quick Button
                     Button {
@@ -418,6 +436,8 @@ public struct CommunicatorLiveView: View {
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.highlight)
+                    .accessibilityLabel("Send thumbs up acknowledgment")
+                    .accessibilityInputLabels(["Thumbs up", "Acknowledge"])
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 14)
@@ -426,6 +446,7 @@ public struct CommunicatorLiveView: View {
                 liveWaveformView(audioLevel: viewModel.partnerAudioLevel, isPaused: viewModel.isPaused)
                     .frame(height: 22)
                     .padding(.horizontal, 20)
+                    .accessibilityHidden(true)
 
                 // Partner Transcript Text
                 ScrollViewReader { proxy in
@@ -438,34 +459,17 @@ public struct CommunicatorLiveView: View {
                                     .multilineTextAlignment(.leading)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.top, 24)
+                                    .accessibilityLabel("Transcript is empty. Spoken words and signed messages will appear here.")
                             } else {
                                 ForEach(viewModel.messages) { msg in
-                                    HStack(alignment: .top, spacing: 10) {
-                                        Text(msg.speaker == "Partner" ? "🗣️" : "🤟")
-                                            .font(.system(size: 16))
-
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(msg.speaker)
-                                                .font(.system(size: 11, weight: .bold))
-                                                .foregroundStyle(msg.speaker == "Partner" ? Color.brandYellow : Color.brandTurquoise)
-
-                                            Text(msg.text)
-                                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                                .foregroundStyle(Color.white)
-                                        }
-                                        Spacer()
-                                    }
-                                    .padding(10)
-                                    .background(
-                                        msg.speaker == "Partner" ? Color.white.opacity(0.08) : Color.brandTurquoise.opacity(0.15),
-                                        in: RoundedRectangle(cornerRadius: 12)
-                                    )
+                                    landscapeMessageRow(msg, viewModel: viewModel)
                                 }
 
                                 if !viewModel.activePartnerTranscript.isEmpty {
                                     HStack(alignment: .top, spacing: 10) {
                                         Text("🗣️")
                                             .font(.system(size: 16))
+                                            .accessibilityHidden(true)
 
                                         Text(viewModel.activePartnerTranscript)
                                             .font(.system(size: 20, weight: .bold, design: .rounded))
@@ -474,13 +478,15 @@ public struct CommunicatorLiveView: View {
                                     .padding(10)
                                     .background(Color.brandYellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
                                     .id("activeTranscriptLandscape")
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityLabel("Live: \(viewModel.activePartnerTranscript)")
                                 }
                             }
                         }
                         .padding(.horizontal, 16)
                     }
                     .onChange(of: viewModel.activePartnerTranscript) { _, _ in
-                        withAnimation {
+                        withAnimation(reduceMotion ? nil : .default) {
                             proxy.scrollTo("activeTranscriptLandscape", anchor: .bottom)
                         }
                     }
@@ -534,6 +540,7 @@ public struct CommunicatorLiveView: View {
             )
             .frame(height: height)
             .clipped()
+            .accessibilityLabel("Camera preview for sign recognition")
 
             // Hand Skeleton Overlay
             HandSkeletonOverlay(
@@ -542,6 +549,7 @@ public struct CommunicatorLiveView: View {
                 isLeftHanded: viewModel.dominantHand == .left
             )
             .frame(height: height)
+            .accessibilityHidden(true)
 
             // Spoken Aloud Notification Chip
             if viewModel.showSpokenAloudChip, let word = viewModel.spokenAloudWord {
@@ -550,6 +558,7 @@ public struct CommunicatorLiveView: View {
                         Image(systemName: "speaker.wave.3.fill")
                             .font(.system(size: 15))
                             .foregroundStyle(Color(red: 11/255, green: 42/255, blue: 74/255))
+                            .accessibilityHidden(true)
 
                         Text("Spoken aloud:")
                             .font(.system(size: 13, weight: .bold))
@@ -564,7 +573,10 @@ public struct CommunicatorLiveView: View {
                     .background(Color.brandTurquoise, in: Capsule())
                     .shadow(color: Color.brandTurquoise.opacity(0.4), radius: 8, y: 3)
                     .padding(.top, 14)
-                    .transition(.scale.combined(with: .opacity))
+                    .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Spoken aloud: \(word)")
+                    .accessibilityAddTraits(.isStaticText)
 
                     Spacer()
                 }
@@ -578,7 +590,7 @@ public struct CommunicatorLiveView: View {
                 if !viewModel.fingerspellingBuffer.isEmpty {
                     fingerspellingBarView(viewModel)
                         .padding(.horizontal, 16)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
                 }
 
                 // Bottom Action Toolbar
@@ -616,6 +628,7 @@ public struct CommunicatorLiveView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "speaker.wave.2.fill")
                         .font(.system(size: 12))
+                        .accessibilityHidden(true)
                     Text("Speak")
                         .font(.system(size: 13, weight: .bold))
                 }
@@ -626,6 +639,8 @@ public struct CommunicatorLiveView: View {
             }
             .buttonStyle(.plain)
             .hoverEffect(.lift)
+            .accessibilityLabel("Speak fingerspelled word aloud")
+            .accessibilityInputLabels(["Speak", "Speak word"])
 
             // Delete Last Letter
             Button {
@@ -639,6 +654,8 @@ public struct CommunicatorLiveView: View {
             }
             .buttonStyle(.plain)
             .hoverEffect(.lift)
+            .accessibilityLabel("Delete last fingerspelled letter")
+            .accessibilityInputLabels(["Delete letter", "Backspace"])
 
             // Clear Buffer
             Button {
@@ -652,14 +669,18 @@ public struct CommunicatorLiveView: View {
             }
             .buttonStyle(.plain)
             .hoverEffect(.lift)
+            .accessibilityLabel("Clear fingerspelling")
+            .accessibilityInputLabels(["Clear", "Clear word"])
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .background(Color.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .strokeBorder(Color.brandTurquoise.opacity(0.3), lineWidth: 1)
+                .strokeBorder(contrast == .increased ? Color.white : Color.brandTurquoise.opacity(0.3), lineWidth: contrast == .increased ? 1.5 : 1)
         )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Fingerspelling: \(viewModel.fingerspellingBuffer)")
     }
 
     // MARK: - Bottom Action Toolbar
@@ -673,6 +694,7 @@ public struct CommunicatorLiveView: View {
                 HStack(spacing: 6) {
                     Image(systemName: viewModel.isPaused ? "play.fill" : "pause.fill")
                         .font(.system(size: 14))
+                        .accessibilityHidden(true)
                     Text(viewModel.isPaused ? "Resume" : "Pause")
                         .font(.system(size: 13, weight: .semibold))
                 }
@@ -680,10 +702,13 @@ public struct CommunicatorLiveView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background(Color.black.opacity(0.65), in: Capsule())
-                .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+                .overlay(Capsule().strokeBorder(contrast == .increased ? Color.white : Color.white.opacity(0.2), lineWidth: contrast == .increased ? 1.5 : 1))
             }
             .buttonStyle(.plain)
             .hoverEffect(.lift)
+            .accessibilityLabel(viewModel.isPaused ? "Resume conversation" : "Pause conversation")
+            .accessibilityHint(viewModel.isPaused ? "Resumes audio listening and video recognition" : "Pauses audio listening and video recognition")
+            .accessibilityInputLabels(viewModel.isPaused ? ["Resume", "Resume conversation"] : ["Pause", "Pause conversation"])
 
             // Switch Camera Button
             Button {
@@ -696,10 +721,13 @@ public struct CommunicatorLiveView: View {
                     .foregroundStyle(Color.white)
                     .frame(width: 40, height: 40)
                     .background(Color.black.opacity(0.65), in: Circle())
-                    .overlay(Circle().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+                    .overlay(Circle().strokeBorder(contrast == .increased ? Color.white : Color.white.opacity(0.2), lineWidth: contrast == .increased ? 1.5 : 1))
             }
             .buttonStyle(.plain)
             .hoverEffect(.lift)
+            .accessibilityLabel("Switch camera")
+            .accessibilityHint("Switches between front and rear cameras")
+            .accessibilityInputLabels(["Flip camera", "Switch camera", "Rotate camera"])
 
             Spacer()
 
@@ -710,6 +738,7 @@ public struct CommunicatorLiveView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "phone.down.fill")
                         .font(.system(size: 13, weight: .bold))
+                        .accessibilityHidden(true)
                     Text("End")
                         .font(.system(size: 13, weight: .bold))
                 }
@@ -721,6 +750,9 @@ public struct CommunicatorLiveView: View {
             }
             .buttonStyle(.plain)
             .hoverEffect(.lift)
+            .accessibilityLabel("End conversation")
+            .accessibilityHint("Ends session and saves transcript to history")
+            .accessibilityInputLabels(["End", "End conversation", "Hang up"])
         }
     }
 
@@ -739,6 +771,11 @@ public struct CommunicatorLiveView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .strokeBorder(contrast == .increased ? Color.white : Color.clear, lineWidth: 1)
+                )
+                .accessibilityLabel("Type phrase to speak aloud")
 
             Button {
                 submitTypeToSpeak(viewModel)
@@ -750,6 +787,8 @@ public struct CommunicatorLiveView: View {
             .buttonStyle(.plain)
             .disabled(typeToSpeakText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .hoverEffect(.highlight)
+            .accessibilityLabel("Speak typed phrase")
+            .accessibilityInputLabels(["Send", "Speak text"])
         }
     }
 
@@ -766,9 +805,14 @@ public struct CommunicatorLiveView: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .background(Color.white.opacity(0.12), in: Capsule())
+                            .overlay(
+                                Capsule().strokeBorder(contrast == .increased ? Color.white : Color.clear, lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
                     .hoverEffect(.lift)
+                    .accessibilityLabel("Speak phrase: \(phrase)")
+                    .accessibilityInputLabels([phrase])
                 }
             }
         }
@@ -793,9 +837,64 @@ public struct CommunicatorLiveView: View {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(isPaused ? Color.white.opacity(0.2) : Color.brandTurquoise)
                     .frame(width: 3, height: max(4, CGFloat(heightFactor * 22)))
-                    .animation(.easeInOut(duration: 0.1), value: audioLevel)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.1), value: audioLevel)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
+        .accessibilityHidden(true)
+    }
+
+    // MARK: - Accessible Message Rows
+
+    private func portraitMessageRow(_ msg: ConversationMessage, viewModel: CommunicatorLiveViewModel) -> some View {
+        HStack(alignment: .top, spacing: 6) {
+            Text(msg.speaker == "Partner" ? "🗣️" : "🤟")
+                .font(.system(size: 14))
+                .accessibilityHidden(true)
+
+            Text(msg.text)
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .foregroundStyle(msg.speaker == "Partner" ? Color.white : Color.brandTurquoise)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(msg.speaker): \(msg.text)")
+        .accessibilityAction(named: "Speak message") {
+            Task { await viewModel.typeAndSpeak(msg.text) }
+        }
+        .accessibilityAction(named: "Copy message") {
+            UIPasteboard.general.string = msg.text
+        }
+    }
+
+    private func landscapeMessageRow(_ msg: ConversationMessage, viewModel: CommunicatorLiveViewModel) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(msg.speaker == "Partner" ? "🗣️" : "🤟")
+                .font(.system(size: 16))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(msg.speaker)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(msg.speaker == "Partner" ? Color.brandYellow : Color.brandTurquoise)
+
+                Text(msg.text)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color.white)
+            }
+            Spacer()
+        }
+        .padding(10)
+        .background(
+            msg.speaker == "Partner" ? Color.white.opacity(0.08) : Color.brandTurquoise.opacity(0.15),
+            in: RoundedRectangle(cornerRadius: 12)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(msg.speaker): \(msg.text)")
+        .accessibilityAction(named: "Speak message") {
+            Task { await viewModel.typeAndSpeak(msg.text) }
+        }
+        .accessibilityAction(named: "Copy message") {
+            UIPasteboard.general.string = msg.text
+        }
     }
 }

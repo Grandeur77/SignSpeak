@@ -1,5 +1,6 @@
 import Foundation
 import CoreML
+import os
 
 /// Production Core ML sign classifier wrapping `StaticSignClassifier`.
 /// Evaluates raw 3x21 MLMultiArray hand pose keypoints, returns the top predicted sign,
@@ -7,11 +8,21 @@ import CoreML
 public final class SignClassifier: SignClassifying, @unchecked Sendable {
     private let model: StaticSignClassifier
 
+    /// Produces an optimized MLModelConfiguration with Neural Engine and GPU acceleration.
+    public static func defaultConfiguration() -> MLModelConfiguration {
+        let configuration = MLModelConfiguration()
+        configuration.computeUnits = .all
+        configuration.allowLowPrecisionAccumulationOnGPU = true
+        return configuration
+    }
+
     /// Initializes the classifier with an optional preconfigured Core ML model configuration.
-    public init(configuration: MLModelConfiguration = MLModelConfiguration()) throws {
+    public init(configuration: MLModelConfiguration = SignClassifier.defaultConfiguration()) throws {
         do {
             self.model = try StaticSignClassifier(configuration: configuration)
+            AppLogger.recognition.info("StaticSignClassifier initialized with computeUnits=.all and GPU low precision accumulation.")
         } catch {
+            AppLogger.recognition.error("StaticSignClassifier initialization failed: \(error.localizedDescription)")
             throw SignClassificationError.modelInitializationFailed(error.localizedDescription)
         }
     }

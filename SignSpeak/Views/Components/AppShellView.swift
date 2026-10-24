@@ -67,11 +67,15 @@ public struct AppShellView: View {
     }
 
     public var body: some View {
-        Group {
-            if horizontalSizeClass == .regular {
-                ipadSplitShell
-            } else {
-                iphoneTabShell
+        VStack(spacing: 0) {
+            OfflineBannerView()
+
+            Group {
+                if horizontalSizeClass == .regular {
+                    ipadSplitShell
+                } else {
+                    iphoneTabShell
+                }
             }
         }
         .environment(deepLinkRouter)
