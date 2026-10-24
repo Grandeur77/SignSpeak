@@ -499,7 +499,7 @@ public struct LearnRootView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "camera.viewfinder")
-                    Text("AI Practice Mirror (Step 5.3 Preview)")
+                    Text("Practice Mirror")
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundStyle(Color.brandTurquoise)

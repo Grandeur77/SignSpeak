@@ -115,20 +115,20 @@ public final class OnDeviceSpeechRecognitionService: NSObject, SpeechRecognition
     private var _isVoiceProcessingEnabled: Bool = true
 
     public static func preferredRecognitionLocale() -> Locale {
-        let current = Locale.current
-        if let rec = SFSpeechRecognizer(locale: current), rec.supportsOnDeviceRecognition {
-            return current
-        }
         let enUS = Locale(identifier: "en-US")
         if let rec = SFSpeechRecognizer(locale: enUS), rec.supportsOnDeviceRecognition {
             return enUS
+        }
+        let current = Locale.current
+        if let rec = SFSpeechRecognizer(locale: current), rec.supportsOnDeviceRecognition {
+            return current
         }
         for loc in SFSpeechRecognizer.supportedLocales() {
             if loc.identifier.hasPrefix("en"), let rec = SFSpeechRecognizer(locale: loc), rec.supportsOnDeviceRecognition {
                 return loc
             }
         }
-        return Locale(identifier: "en-US")
+        return enUS
     }
 
     public override init() {

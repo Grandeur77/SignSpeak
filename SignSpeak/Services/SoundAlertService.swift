@@ -46,10 +46,8 @@ public final class SoundAlertService: NSObject, SoundAlerting, @unchecked Sendab
 
     public init(settings: SoundAlertSettings = SoundAlertSettings()) {
         self._settings = settings
-        var continuation: AsyncStream<SoundAlertRecord>.Continuation?
-        self.alertStream = AsyncStream { cont in
-            continuation = cont
-        }
+        let (stream, continuation) = AsyncStream<SoundAlertRecord>.makeStream()
+        self.alertStream = stream
         self.alertContinuation = continuation
         super.init()
     }
@@ -286,10 +284,8 @@ public final class MockSoundAlertService: SoundAlerting, @unchecked Sendable {
 
     public init(settings: SoundAlertSettings = SoundAlertSettings()) {
         self.settings = settings
-        var continuation: AsyncStream<SoundAlertRecord>.Continuation?
-        self.alertStream = AsyncStream { cont in
-            continuation = cont
-        }
+        let (stream, continuation) = AsyncStream<SoundAlertRecord>.makeStream()
+        self.alertStream = stream
         self.alertContinuation = continuation
     }
 
