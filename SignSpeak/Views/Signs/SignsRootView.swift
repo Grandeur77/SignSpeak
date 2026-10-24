@@ -5,6 +5,7 @@ import SwiftUI
 /// Matches designs `43-signs-directory` and `42-search-results-empty`.
 public struct SignsRootView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Bindable var deepLinkRouter: DeepLinkRouter
 
     @State private var viewModel: SignsDirectoryViewModel?
@@ -15,10 +16,16 @@ public struct SignsRootView: View {
     @State private var selectedSignForDetail: Sign?
     @State private var isShowingFavourites: Bool = false
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 14),
-        GridItem(.flexible(), spacing: 14)
-    ]
+    private var columns: [GridItem] {
+        if horizontalSizeClass == .regular {
+            return [GridItem(.adaptive(minimum: 180, maximum: 280), spacing: 16)]
+        } else {
+            return [
+                GridItem(.flexible(), spacing: 14),
+                GridItem(.flexible(), spacing: 14)
+            ]
+        }
+    }
 
     public init(deepLinkRouter: DeepLinkRouter) {
         self.deepLinkRouter = deepLinkRouter
@@ -27,7 +34,11 @@ public struct SignsRootView: View {
     public var body: some View {
         Group {
             if let viewModel {
-                mainContentView(viewModel)
+                if horizontalSizeClass == .regular {
+                    ipadSplitSignsView(viewModel)
+                } else {
+                    mainContentView(viewModel)
+                }
             } else {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -81,6 +92,34 @@ public struct SignsRootView: View {
         }
         .navigationDestination(for: Sign.self) { sign in
             SignDetailView(sign: sign)
+        }
+    }
+
+    // MARK: - iPad List-Detail Split View (Step 14.1)
+
+    private func ipadSplitSignsView(_ vm: SignsDirectoryViewModel) -> some View {
+        HStack(spacing: 0) {
+            // Left Pane: Search, Category Chips and Adaptive Grid
+            mainContentView(vm)
+                .frame(maxWidth: .infinity)
+
+            Divider()
+
+            // Right Pane: Sign Video & Detail Pane
+            VStack {
+                if let sign = selectedSignForDetail ?? vm.filteredSigns.first {
+                    SignDetailView(sign: sign)
+                        .id(sign.id)
+                } else {
+                    ContentUnavailableView(
+                        "Select a Sign",
+                        systemImage: "hand.raised.fill",
+                        description: Text("Choose any sign from the directory to view its video demonstration, tips, and practice actions.")
+                    )
+                }
+            }
+            .frame(width: 460)
+            .background(Color.appBackground)
         }
     }
 
@@ -392,10 +431,27 @@ public struct SignsRootView: View {
     private func signsGridView(_ vm: SignsDirectoryViewModel) -> some View {
         LazyVGrid(columns: columns, spacing: 14) {
             ForEach(vm.filteredSigns) { sign in
-                NavigationLink(value: sign) {
-                    signGridCard(sign, vm: vm)
+                Group {
+                    if horizontalSizeClass == .regular {
+                        Button {
+                            selectedSignForDetail = sign
+                            triggerHaptic()
+                        } label: {
+                            signGridCard(sign, vm: vm)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(selectedSignForDetail?.id == sign.id ? Color.brandTurquoise : Color.clear, lineWidth: 2.5)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        NavigationLink(value: sign) {
+                            signGridCard(sign, vm: vm)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .buttonStyle(.plain)
+                .hoverEffect(.lift)
             }
         }
     }

@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 /// Screen 52: Settings Root view (`52-settings`).
 /// Includes profile card and sections Account, Practice, Communicator, Awareness,
 /// Accessibility, Security, Support, Sign Out alert (`58-sign-out-alert`),
@@ -8,6 +9,7 @@ public struct SettingsRootView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(AppRouter.self) private var router
     @Environment(\.accessibilityPreferences) private var accessibilityPreferences
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Bindable var deepLinkRouter: DeepLinkRouter
 
     @State private var userProfile: UserProfile?
@@ -34,31 +36,11 @@ public struct SettingsRootView: View {
                 // MARK: - Profile Card
                 profileCard
 
-                // MARK: - Section 1: Account
-                accountSection
-
-                // MARK: - Section 2: Practice & Learning
-                practiceSection
-
-                // MARK: - Section 3: Communicator
-                communicatorSection
-
-                // MARK: - Section 4: Accessibility
-                accessibilitySection
-
-                // MARK: - Section 5: Security & Privacy
-                securityAndPrivacySection
-
-                // MARK: - Section 6: Support & About
-                supportSection
-
-                #if DEBUG
-                // Developer Tools (DEBUG only)
-                developerToolsSection
-                #endif
-
-                // MARK: - Section 7: Account Actions (Sign Out & Delete)
-                accountActionsSection
+                if horizontalSizeClass == .regular {
+                    ipadSettingsGrid
+                } else {
+                    iphoneSettingsStack
+                }
 
                 // MARK: - Footer: App Version
                 versionFooter
@@ -409,6 +391,46 @@ public struct SettingsRootView: View {
         .padding(.top, Theme.Spacing.s)
     }
 
+    // MARK: - Layout Adapters (iPad Step 14.1)
+
+    private var ipadSettingsGrid: some View {
+        HStack(alignment: .top, spacing: Theme.Spacing.l) {
+            VStack(spacing: Theme.Spacing.l) {
+                accountSection
+                practiceSection
+                communicatorSection
+                accountActionsSection
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: Theme.Spacing.l) {
+                accessibilitySection
+                securityAndPrivacySection
+                supportSection
+                #if DEBUG
+                developerToolsSection
+                #endif
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, Theme.Spacing.l)
+    }
+
+    private var iphoneSettingsStack: some View {
+        VStack(spacing: Theme.Spacing.l) {
+            accountSection
+            practiceSection
+            communicatorSection
+            accessibilitySection
+            securityAndPrivacySection
+            supportSection
+            #if DEBUG
+            developerToolsSection
+            #endif
+            accountActionsSection
+        }
+    }
+
     // MARK: - Footer: Version
     private var versionFooter: some View {
         VStack(spacing: 4) {
@@ -437,6 +459,10 @@ public struct SettingsRootView: View {
                 content()
             }
             .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: Theme.Radius.card))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Radius.card)
+                    .stroke(Color.gray.opacity(0.12), lineWidth: 1)
+            )
             .padding(.horizontal, Theme.Spacing.l)
         }
     }
@@ -463,6 +489,8 @@ public struct SettingsRootView: View {
                 .foregroundStyle(Color.textSecondary)
         }
         .padding(Theme.Spacing.m)
+        .contentShape(Rectangle())
+        .hoverEffect(.highlight)
     }
 }
 

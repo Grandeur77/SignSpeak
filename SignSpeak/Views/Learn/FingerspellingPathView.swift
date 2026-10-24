@@ -70,6 +70,9 @@ public struct FingerspellingPathView: View {
         .navigationDestination(for: Lesson.self) { lesson in
             LessonIntroView(lesson: lesson)
         }
+        .onAppear {
+            loadCatalogSync()
+        }
         .task {
             await loadCatalog()
         }
@@ -140,48 +143,61 @@ public struct FingerspellingPathView: View {
 
     private func letterTile(_ letter: String) -> some View {
         let isMastered = isLetterMastered(letter)
-        let isCurrent = letter == "M"
+        let isCurrent = letter == "A" || letter == "M"
         let sign = allAlphabetSigns.first(where: { $0.name.uppercased() == letter })
+            ?? dependencies.signCatalogService.sign(byId: "sign-letter-\(letter.lowercased())")
 
-        return Button {
+        return Group {
             if let sign {
-                selectedSign = sign
-            }
-        } label: {
-            VStack(spacing: 2) {
-                Text(letter)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(isMastered ? Color.white : (isCurrent ? Color.black : Color.textSecondary))
-
-                if isMastered {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 8, weight: .black))
-                        .foregroundStyle(Color.white)
-                } else if isCurrent {
-                    Circle()
-                        .fill(Color.black)
-                        .frame(width: 4, height: 4)
-                } else {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 7))
-                        .foregroundStyle(Color.gray.opacity(0.7))
+                NavigationLink {
+                    SignDetailView(sign: sign)
+                } label: {
+                    letterTileContent(letter: letter, isMastered: isMastered, isCurrent: isCurrent)
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 38)
-            .background(
-                isMastered ? Color.brandTurquoise : (isCurrent ? Color.brandYellow : Color.gray.opacity(0.12)),
-                in: RoundedRectangle(cornerRadius: 8)
-            )
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Letter \(letter), \(isMastered ? "Mastered" : (isCurrent ? "In Progress" : "Locked"))")
-        .background {
-            if let sign {
-                NavigationLink(value: sign) { EmptyView() }
-                    .opacity(0)
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    // Fallback
+                } label: {
+                    letterTileContent(letter: letter, isMastered: isMastered, isCurrent: isCurrent)
+                }
+                .buttonStyle(.plain)
             }
         }
+        .hoverEffect(.lift)
+    }
+
+    private func letterTileContent(letter: String, isMastered: Bool, isCurrent: Bool) -> some View {
+        VStack(spacing: 2) {
+            Text(letter)
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(isMastered ? Color.white : (isCurrent ? Color.black : Color.textPrimary))
+
+            if isMastered {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundStyle(Color.white)
+            } else if isCurrent {
+                Circle()
+                    .fill(Color.black)
+                    .frame(width: 4, height: 4)
+            } else {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 7))
+                    .foregroundStyle(Color.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 38)
+        .background(
+            isMastered ? Color.brandTurquoise : (isCurrent ? Color.brandYellow : Color.cardBackground),
+            in: RoundedRectangle(cornerRadius: 8)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isMastered ? Color.clear : Color.gray.opacity(0.18), lineWidth: 1)
+        )
+        .accessibilityLabel("Letter \(letter), \(isMastered ? "Mastered" : (isCurrent ? "In Progress" : "Available"))")
     }
 
     private var lessonsListSection: some View {
@@ -191,8 +207,8 @@ public struct FingerspellingPathView: View {
                     ?? LessonProgressionEngine.summary(forLesson: lesson.id, in: alphabetLessons, progress: userProgress)
                     ?? LessonProgressSummary(
                         lessonId: lesson.id,
-                        status: lesson.id == "lesson-alphabet-1" ? .completed : (lesson.id == "lesson-alphabet-2" ? .inProgress : .locked),
-                        masteredCount: lesson.id == "lesson-alphabet-1" ? 5 : 0,
+                        status: lesson.id == "lesson-alphabet-1" ? .inProgress : .locked,
+                        masteredCount: 0,
                         totalSignsCount: lesson.signIds.count
                     )
 
@@ -211,155 +227,162 @@ public struct FingerspellingPathView: View {
     // MARK: - Lesson Cards
 
     private func completedLessonCard(lesson: Lesson, summary: LessonProgressSummary) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandTurquoise.opacity(0.15))
-                        .frame(width: 36, height: 36)
+        NavigationLink {
+            LessonIntroView(lesson: lesson)
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.brandTurquoise.opacity(0.15))
+                            .frame(width: 36, height: 36)
 
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color.brandTurquoise)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(lesson.title)
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text(lesson.subtitle)
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.textSecondary)
-                }
-
-                Spacer()
-
-                Text("COMPLETED")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.brandTurquoise)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.brandTurquoise.opacity(0.14), in: Capsule())
-            }
-
-            HStack {
-                HStack(spacing: 4) {
-                    Image(systemName: "star.circle.fill")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.brandTurquoise)
-
-                    Text("\(summary.masteredCount) of \(summary.totalSignsCount) mastered")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.textPrimary)
-                }
-
-                Spacer()
-
-                NavigationLink(value: lesson) {
-                    HStack(spacing: 4) {
-                        Text("Review")
-                            .font(.system(size: 13, weight: .semibold))
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.system(size: 11, weight: .semibold))
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.brandTurquoise)
                     }
-                    .foregroundStyle(Color.textPrimary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(Color.gray.opacity(0.12), in: Capsule())
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(lesson.title)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(Color.textPrimary)
+
+                        Text(lesson.subtitle)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Text("COMPLETED")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(Color.brandTurquoise)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.brandTurquoise.opacity(0.14), in: Capsule())
                 }
-                .buttonStyle(.plain)
+
+                HStack {
+                    HStack(spacing: 4) {
+                        Image(systemName: "star.circle.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.brandTurquoise)
+
+                        Text("\(summary.masteredCount) of \(summary.totalSignsCount) mastered")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 6) {
+                        Text("Review Lesson")
+                            .font(.system(size: 13, weight: .bold))
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 11, weight: .bold))
+                    }
+                    .foregroundStyle(Color.black)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color.brandTurquoise, in: Capsule())
+                }
             }
+            .padding(Theme.Spacing.m)
+            .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color.gray.opacity(0.15), lineWidth: 1)
+            )
         }
-        .padding(Theme.Spacing.m)
-        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.gray.opacity(0.12), lineWidth: 1)
-        )
+        .buttonStyle(.plain)
+        .hoverEffect(.lift)
     }
 
     private func inProgressLessonCard(lesson: Lesson, summary: LessonProgressSummary) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandYellow.opacity(0.2))
-                        .frame(width: 36, height: 36)
+        NavigationLink {
+            LessonIntroView(lesson: lesson)
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.brandYellow.opacity(0.2))
+                            .frame(width: 36, height: 36)
 
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color.brandYellow)
-                }
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color.brandYellow)
+                    }
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(lesson.title)
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(Color.textPrimary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(lesson.title)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundStyle(Color.textPrimary)
 
-                    Text(lesson.subtitle)
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.textSecondary)
-                }
+                        Text(lesson.subtitle)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.textSecondary)
+                    }
 
-                Spacer()
+                    Spacer()
 
-                Text("IN PROGRESS")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.black)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.brandYellow, in: Capsule())
-            }
-
-            // Current Goal Box
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("CURRENT GOAL")
+                    Text("IN PROGRESS")
                         .font(.system(size: 10, weight: .bold))
-                        .tracking(0.6)
-                        .foregroundStyle(Color.textSecondary)
-
-                    Text("\(summary.masteredCount) of \(summary.totalSignsCount) learned (\(Int(summary.progressFraction * 100))%)")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(Color.textPrimary)
+                        .foregroundStyle(Color.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.brandYellow, in: Capsule())
                 }
 
-                Spacer()
-            }
-            .padding(Theme.Spacing.m)
-            .background(Color.gray.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+                // Current Goal Box
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("CURRENT GOAL")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(0.6)
+                            .foregroundStyle(Color.textSecondary)
 
-            // Big CTA Button
-            NavigationLink(value: lesson) {
+                        Text("\(summary.masteredCount) of \(summary.totalSignsCount) learned (\(Int(summary.progressFraction * 100))%)")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+
+                    Spacer()
+                }
+                .padding(Theme.Spacing.m)
+                .background(Color.gray.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+
+                // Big CTA Button: vibrant turquoise with bold high-contrast text!
                 HStack(spacing: 8) {
-                    Text("Continue Lesson")
+                    Text("Continue Lesson: Letters A – E")
                         .font(.system(size: 15, weight: .bold))
                     Image(systemName: "arrow.right")
                         .font(.system(size: 13, weight: .bold))
                 }
-                .foregroundStyle(Color.white)
+                .foregroundStyle(Color.black)
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Color.brandNavy, in: Capsule())
+                .frame(height: 50)
+                .background(Color.brandTurquoise, in: Capsule())
+                .shadow(color: Color.brandTurquoise.opacity(0.35), radius: 8, y: 3)
             }
-            .buttonStyle(.plain)
+            .padding(Theme.Spacing.m)
+            .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                VStack {
+                    Rectangle()
+                        .fill(Color.brandTurquoise)
+                        .frame(height: 3)
+                    Spacer()
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 18))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color.brandTurquoise.opacity(0.3), lineWidth: 1)
+            )
         }
-        .padding(Theme.Spacing.m)
-        .background(Color.cardBackground, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(
-            VStack {
-                Rectangle()
-                    .fill(Color.brandTurquoise)
-                    .frame(height: 3)
-                Spacer()
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(Color.brandTurquoise.opacity(0.3), lineWidth: 1)
-        )
+        .buttonStyle(.plain)
+        .hoverEffect(.lift)
     }
 
     private func lockedLessonCard(title: String, subtitle: String) -> some View {
@@ -422,6 +445,15 @@ public struct FingerspellingPathView: View {
             }
             userProgress = dict
             summaries = LessonProgressionEngine.evaluate(lessons: alphabetLessons, progress: dict)
+        }
+    }
+
+    private func loadCatalogSync() {
+        if allAlphabetSigns.isEmpty {
+            allAlphabetSigns = dependencies.signCatalogService.signs(forCategory: "alphabet")
+        }
+        if alphabetLessons.isEmpty {
+            alphabetLessons = dependencies.signCatalogService.lessons(forUnit: "unit-alphabet")
         }
     }
 }

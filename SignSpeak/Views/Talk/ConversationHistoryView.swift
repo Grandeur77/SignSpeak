@@ -5,6 +5,7 @@ public struct ConversationHistoryView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(AppRouter.self) private var router
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var viewModel: ConversationHistoryViewModel
     @State private var selectedConversation: SavedConversation?
@@ -24,41 +25,11 @@ public struct ConversationHistoryView: View {
     }
 
     public var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.appBackground.ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: Theme.Spacing.m) {
-                    // Security Privacy Banner
-                    securityPrivacyBanner
-
-                    // Search & Voice Dictation Bar
-                    searchDictationBar
-
-                    // Filter Chips Bar
-                    filterChipsBar
-
-                    // Swipe Tip Row
-                    swipeTipRow
-
-                    // Conversation Cards Stack
-                    conversationCardsStack
-
-                    // Weekly Digest Summary Card
-                    weeklyDigestCard
-
-                    // End of Feed Indicator
-                    endOfFeedIndicator
-                }
-                .padding(.horizontal, Theme.Spacing.m)
-                .padding(.bottom, 40)
-            }
-
-            // Toast Alert Banner
-            if let toast = viewModel.toastMessage {
-                toastView(toast)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(10)
+        Group {
+            if horizontalSizeClass == .regular {
+                ipadSplitView
+            } else {
+                iphoneListView
             }
         }
         .navigationTitle("Conversation History")
@@ -70,12 +41,16 @@ public struct ConversationHistoryView: View {
                 }
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.brandTurquoise)
+                .hoverEffect(.highlight)
             }
         }
         .task {
             await viewModel.loadConversations()
         }
-        .sheet(item: $selectedConversation) { convo in
+        .sheet(item: Binding(
+            get: { horizontalSizeClass == .regular ? nil : selectedConversation },
+            set: { selectedConversation = $0 }
+        )) { convo in
             NavigationStack {
                 ConversationTranscriptView(
                     conversation: convo,
@@ -87,6 +62,89 @@ public struct ConversationHistoryView: View {
         }
         .sheet(isPresented: $isShowingExportSheet) {
             ActivityShareSheet(items: [exportText])
+        }
+    }
+
+    // MARK: - iPad List-Detail Split View (Step 14.1)
+
+    private var ipadSplitView: some View {
+        HStack(spacing: 0) {
+            // Left Pane: Conversation List & Filters
+            ZStack(alignment: .bottom) {
+                Color.appBackground.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: Theme.Spacing.m) {
+                        securityPrivacyBanner
+                        searchDictationBar
+                        filterChipsBar
+                        swipeTipRow
+                        conversationCardsStack
+                        weeklyDigestCard
+                        endOfFeedIndicator
+                    }
+                    .padding(.horizontal, Theme.Spacing.m)
+                    .padding(.bottom, 40)
+                }
+
+                if let toast = viewModel.toastMessage {
+                    toastView(toast)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(10)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            Divider()
+
+            // Right Pane: Transcript & Playback
+            VStack {
+                if let convo = selectedConversation ?? viewModel.conversations.first {
+                    ConversationTranscriptView(
+                        conversation: convo,
+                        repository: dependencies.conversationRepository,
+                        speechSynthesisService: dependencies.speechSynthesisService,
+                        userId: viewModel.userId
+                    )
+                    .id(convo.id)
+                } else {
+                    ContentUnavailableView(
+                        "No Conversation Selected",
+                        systemImage: "bubble.left.and.bubble.right.fill",
+                        description: Text("Choose a conversation from the left to view messages, play back speech, or export transcript.")
+                    )
+                }
+            }
+            .frame(width: 480)
+            .background(Color.appBackground)
+        }
+    }
+
+    // MARK: - iPhone Compact List View
+
+    private var iphoneListView: some View {
+        ZStack(alignment: .bottom) {
+            Color.appBackground.ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: Theme.Spacing.m) {
+                    securityPrivacyBanner
+                    searchDictationBar
+                    filterChipsBar
+                    swipeTipRow
+                    conversationCardsStack
+                    weeklyDigestCard
+                    endOfFeedIndicator
+                }
+                .padding(.horizontal, Theme.Spacing.m)
+                .padding(.bottom, 40)
+            }
+
+            if let toast = viewModel.toastMessage {
+                toastView(toast)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(10)
+            }
         }
     }
 
@@ -408,9 +466,14 @@ public struct ConversationHistoryView: View {
             .padding(Theme.Spacing.m)
             .background(Color.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(selectedConversation?.id == convo.id && horizontalSizeClass == .regular ? Color.brandTurquoise : Color.clear, lineWidth: 2)
+            )
             .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
         }
         .buttonStyle(.plain)
+        .hoverEffect(.lift)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 Task {

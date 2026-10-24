@@ -12,6 +12,7 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
     private let videoOutput = AVCaptureVideoDataOutput()
     private var videoInput: AVCaptureDeviceInput?
     private var position: AVCaptureDevice.Position = .front
+    private var videoOrientation: AVCaptureVideoOrientation = .portrait
     private var isConfigured = false
 
     private let streamLock = NSLock()
@@ -152,6 +153,25 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
         #endif
     }
 
+    /// Updates video output orientation to match iPad device/interface rotation.
+    public func setOrientation(_ orientation: AVCaptureVideoOrientation) async {
+        #if targetEnvironment(simulator)
+        return
+        #else
+        await withCheckedContinuation { continuation in
+            sessionQueue.async { [weak self] in
+                guard let self else {
+                    continuation.resume()
+                    return
+                }
+                self.videoOrientation = orientation
+                self.updateConnection()
+                continuation.resume()
+            }
+        }
+        #endif
+    }
+
     // MARK: - Private Configuration
 
     private func configureSession() {
@@ -209,12 +229,20 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
     private func updateConnection() {
         if let connection = videoOutput.connection(with: .video) {
             if #available(iOS 17.0, *) {
-                if connection.isVideoRotationAngleSupported(90.0) {
-                    connection.videoRotationAngle = 90.0
+                let angle: CGFloat
+                switch videoOrientation {
+                case .portrait: angle = 90.0
+                case .portraitUpsideDown: angle = 270.0
+                case .landscapeRight: angle = 0.0
+                case .landscapeLeft: angle = 180.0
+                @unknown default: angle = 90.0
+                }
+                if connection.isVideoRotationAngleSupported(angle) {
+                    connection.videoRotationAngle = angle
                 }
             } else {
                 if connection.isVideoOrientationSupported {
-                    connection.videoOrientation = .portrait
+                    connection.videoOrientation = videoOrientation
                 }
             }
             if connection.isVideoMirroringSupported {

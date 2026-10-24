@@ -282,6 +282,24 @@ public final class CommunicatorLiveViewModel {
         await speakWordImmediately(text)
     }
 
+    /// External keyboard type-to-speak: speaks phrase aloud immediately via TTS and logs to transcript.
+    public func typeAndSpeak(_ text: String) async {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        appendMessage(speaker: "You", text: trimmed, source: "typed")
+        spokenAloudWord = trimmed
+        showSpokenAloudChip = true
+
+        try? await speechSynthesisService.speak(text: trimmed, voiceLanguage: "en-US")
+
+        spokenChipDismissTask?.cancel()
+        spokenChipDismissTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            self?.showSpokenAloudChip = false
+        }
+    }
+
     // MARK: - Shortcuts & Interactions
 
     public func sendThumbsUp() async {

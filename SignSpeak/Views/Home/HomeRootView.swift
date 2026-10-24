@@ -4,6 +4,7 @@ import SwiftUI
 /// and learning journey categories.
 public struct HomeRootView: View {
     @Environment(\.dependencies) private var dependencies
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Bindable var deepLinkRouter: DeepLinkRouter
 
     @State private var isShowingInbox = false
@@ -35,77 +36,13 @@ public struct HomeRootView: View {
 
     public var body: some View {
         ScrollView {
-            VStack(spacing: Theme.Spacing.l) {
-                // MARK: - Header
-                headerBar
-
-                // MARK: - Greeting
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("\(greetingByTimeOfDay), \(userProfile?.displayName ?? "Learner")")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.textPrimary)
-
-                        Text("👋")
-                            .font(.system(size: 26))
-
-                        Circle()
-                            .fill(Color.brandTurquoise)
-                            .frame(width: 8, height: 8)
-                    }
-
-                    Text("Ready for today's \(userProfile?.dailyGoalMinutes ?? 10)-minute sign practice?")
-                        .font(.system(size: 15, weight: .regular))
-                        .foregroundStyle(Color.textSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Theme.Spacing.l)
-
-                // MARK: - 7-Day Streak Card (Tappable -> Streaks & Challenges)
-                NavigationLink {
-                    StreakAndChallengesView()
-                } label: {
-                    streakHeroCard
-                }
-                .buttonStyle(.plain)
-
-                // MARK: - Quick Stats Row (Tappable -> Progress Analytics)
-                NavigationLink {
-                    AnalyticsView()
-                } label: {
-                    HStack(spacing: 10) {
-                        quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "\(userProfile?.currentStreak ?? 7)", label: "DAYS STREAK")
-                        quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "\(userProfile?.xp ?? 420)", label: "TOTAL XP")
-                        quickStatPill(icon: "clock.fill", iconColor: Color.brandTurquoise, value: "\(userProfile?.dailyGoalMinutes ?? 10)m", label: "DAILY GOAL")
-                    }
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, Theme.Spacing.l)
-
-                // MARK: - Role-Personalised Section Ordering
-                if isDeafRole {
-                    // For Deaf / Hard of Hearing users: prioritize sound alerts & live communicator
-                    if userProfile?.soundAlertsEnabled ?? true {
-                        soundAlertsPill
-                    }
-
-                    communicatorCard
-                    dailySignCard
-                    communityHighlightsSection
-                    learningJourneySection
-                } else {
-                    // For ASL learners: prioritize daily sign & learning journey
-                    dailySignCard
-                    learningJourneySection
-                    communicatorCard
-                    communityHighlightsSection
-
-                    if userProfile?.soundAlertsEnabled == true {
-                        soundAlertsPill
-                    }
-                }
+            if horizontalSizeClass == .regular {
+                ipadDashboardContent
+                    .padding(.bottom, Theme.Spacing.xl)
+            } else {
+                iphoneDashboardContent
+                    .padding(.bottom, Theme.Spacing.xl)
             }
-            .padding(.bottom, Theme.Spacing.xl)
         }
         .task {
             let userId = dependencies.authService.currentUserId ?? "guest"
@@ -140,6 +77,147 @@ public struct HomeRootView: View {
                 deepLinkRouter.activeDestination = nil
             }
         }
+    }
+
+    // MARK: - iPhone Dashboard Content (Linear Stack)
+    private var iphoneDashboardContent: some View {
+        VStack(spacing: Theme.Spacing.l) {
+            headerBar
+            greetingSection
+
+            NavigationLink {
+                StreakAndChallengesView()
+            } label: {
+                streakHeroCard
+            }
+            .buttonStyle(.plain)
+            .hoverEffect(.lift)
+
+            NavigationLink {
+                AnalyticsView()
+            } label: {
+                HStack(spacing: 10) {
+                    quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "\(userProfile?.currentStreak ?? 7)", label: "DAYS STREAK")
+                    quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "\(userProfile?.xp ?? 420)", label: "TOTAL XP")
+                    quickStatPill(icon: "clock.fill", iconColor: Color.brandTurquoise, value: "\(userProfile?.dailyGoalMinutes ?? 10)m", label: "DAILY GOAL")
+                }
+            }
+            .buttonStyle(.plain)
+            .hoverEffect(.lift)
+            .padding(.horizontal, Theme.Spacing.l)
+
+            if isDeafRole {
+                if userProfile?.soundAlertsEnabled ?? true {
+                    soundAlertsPill
+                        .hoverEffect(.lift)
+                }
+
+                communicatorCard
+                    .hoverEffect(.lift)
+                dailySignCard
+                    .hoverEffect(.lift)
+                communityHighlightsSection
+                    .hoverEffect(.lift)
+                learningJourneySection
+            } else {
+                dailySignCard
+                    .hoverEffect(.lift)
+                learningJourneySection
+                communicatorCard
+                    .hoverEffect(.lift)
+                communityHighlightsSection
+                    .hoverEffect(.lift)
+
+                if userProfile?.soundAlertsEnabled == true {
+                    soundAlertsPill
+                        .hoverEffect(.lift)
+                }
+            }
+        }
+    }
+
+    // MARK: - iPad Dashboard Content (Adaptive Multi-Column Grid)
+    private var ipadDashboardContent: some View {
+        VStack(spacing: Theme.Spacing.l) {
+            headerBar
+            greetingSection
+
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 20),
+                    GridItem(.flexible(), spacing: 20)
+                ],
+                spacing: 20
+            ) {
+                // Left Column
+                VStack(spacing: 20) {
+                    NavigationLink {
+                        StreakAndChallengesView()
+                    } label: {
+                        streakHeroCard
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect(.lift)
+
+                    NavigationLink {
+                        AnalyticsView()
+                    } label: {
+                        HStack(spacing: 10) {
+                            quickStatPill(icon: "flame.fill", iconColor: Color.brandYellow, value: "\(userProfile?.currentStreak ?? 7)", label: "DAYS STREAK")
+                            quickStatPill(icon: "star.fill", iconColor: Color.brandYellow, value: "\(userProfile?.xp ?? 420)", label: "TOTAL XP")
+                            quickStatPill(icon: "clock.fill", iconColor: Color.brandTurquoise, value: "\(userProfile?.dailyGoalMinutes ?? 10)m", label: "DAILY GOAL")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect(.lift)
+
+                    dailySignCard
+                        .hoverEffect(.lift)
+                }
+
+                // Right Column
+                VStack(spacing: 20) {
+                    if userProfile?.soundAlertsEnabled ?? true {
+                        soundAlertsPill
+                            .hoverEffect(.lift)
+                    }
+
+                    communicatorCard
+                        .hoverEffect(.lift)
+
+                    communityHighlightsSection
+                        .hoverEffect(.lift)
+                }
+            }
+            .padding(.horizontal, Theme.Spacing.l)
+
+            learningJourneySection
+                .padding(.horizontal, Theme.Spacing.l)
+        }
+    }
+
+    // MARK: - Greeting Section
+    private var greetingSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                Text("\(greetingByTimeOfDay), \(userProfile?.displayName ?? "Learner")")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.textPrimary)
+
+                Text("👋")
+                    .font(.system(size: 26))
+
+                Circle()
+                    .fill(Color.brandTurquoise)
+                    .frame(width: 8, height: 8)
+            }
+
+            Text("Ready for today's \(userProfile?.dailyGoalMinutes ?? 10)-minute sign practice?")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(Color.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Theme.Spacing.l)
     }
 
     // MARK: - Header Bar

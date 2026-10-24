@@ -2,16 +2,21 @@ import SwiftUI
 import AVFoundation
 
 /// Live two-way Communicator session view (`39a-communicator-live`).
-/// Split-screen interface:
-/// - Top: Partner transcript with 180° rotation toggle, live waveform, and listening state.
-/// - Bottom: Camera preview with hand skeleton overlay, immediate text-to-speech chip for recognized words,
-///   fingerspelling buffer controls (speak/delete/clear), pause, camera switch, and end conversation.
+/// Supports:
+/// - iPhone & iPad Portrait: Top partner transcript with 180° rotation toggle, live waveform; Bottom camera preview with hand skeleton.
+/// - iPad Landscape (Step 14.2): Side-by-side layout (Left: camera preview + hand skeleton overlay; Right: partner speech transcript, type-to-speak input, quick phrases).
+/// - Dynamic orientation adaptation for all 4 iPad orientations (`portrait`, `portraitUpsideDown`, `landscapeLeft`, `landscapeRight`).
+/// - Multitasking adaptability: fluid transitions across Split View (1/3, 1/2, 2/3), Slide Over, and Stage Manager.
+/// - External keyboard type-to-speak: type phrase and press Return to immediately speak aloud and log to transcript.
 public struct CommunicatorLiveView: View {
     @Environment(\.dependencies) private var dependencies
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var viewModel: CommunicatorLiveViewModel?
     @State private var isShowingEndConfirmation: Bool = false
+    @State private var typeToSpeakText: String = ""
+    @FocusState private var isTypeToSpeakFocused: Bool
 
     public let mode: ConversationMode
     public let dominantHand: DominantHand
@@ -23,30 +28,30 @@ public struct CommunicatorLiveView: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            if let viewModel {
-                VStack(spacing: 0) {
-                    // Sound Alerts Banner Slot (Phase 12 preparation)
-                    soundAlertsBannerSlot(viewModel)
+            let isLandscape = geometry.size.width > geometry.size.height
+            let isSideBySide = (horizontalSizeClass == .regular && isLandscape)
 
-                    // Error & Permission Status Banner
-                    errorMessageBannerSlot(viewModel)
-
-                    // Top Pane: Partner Speech Transcript (Rotatable 180°)
-                    partnerTranscriptPane(viewModel, height: geometry.size.height * 0.44)
-
-                    // Middle Divider Bar
-                    middleDividerBar(viewModel)
-
-                    // Bottom Pane: Camera & Sign Recognition
-                    cameraSignPane(viewModel, height: geometry.size.height * 0.56 - 1)
+            Group {
+                if let viewModel {
+                    if isSideBySide {
+                        landscapeSideBySideView(viewModel, geometry: geometry)
+                    } else {
+                        portraitStackedView(viewModel, geometry: geometry)
+                    }
+                } else {
+                    ZStack {
+                        Color.black.ignoresSafeArea()
+                        ProgressView("Connecting Communicator…")
+                            .tint(Color.brandTurquoise)
+                            .foregroundStyle(Color.white)
+                    }
                 }
-            } else {
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    ProgressView("Connecting Communicator…")
-                        .tint(Color.brandTurquoise)
-                        .foregroundStyle(Color.white)
-                }
+            }
+            .onAppear {
+                updateCameraOrientation(isLandscape: isLandscape)
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                updateCameraOrientation(isLandscape: newSize.width > newSize.height)
             }
         }
         .background(Color.black.ignoresSafeArea())
@@ -85,6 +90,59 @@ public struct CommunicatorLiveView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Your conversation transcript will be saved to Conversation History.")
+        }
+    }
+
+    // MARK: - Camera Orientation Sync (iPad Step 14.2)
+
+    private func updateCameraOrientation(isLandscape: Bool) {
+        let orientation: AVCaptureVideoOrientation = isLandscape ? .landscapeRight : .portrait
+        Task {
+            await dependencies.cameraService.setOrientation(orientation)
+        }
+    }
+
+    // MARK: - Portrait / Compact Stacked Layout
+
+    private func portraitStackedView(_ viewModel: CommunicatorLiveViewModel, geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            // Sound Alerts Banner Slot (Phase 12)
+            soundAlertsBannerSlot(viewModel)
+
+            // Error & Permission Status Banner
+            errorMessageBannerSlot(viewModel)
+
+            // Top Pane: Partner Speech Transcript (Rotatable 180°)
+            partnerTranscriptPane(viewModel, height: geometry.size.height * 0.44)
+
+            // Middle Divider Bar
+            middleDividerBar(viewModel)
+
+            // Bottom Pane: Camera & Sign Recognition
+            cameraSignPane(viewModel, height: geometry.size.height * 0.56 - 1)
+        }
+    }
+
+    // MARK: - Landscape Side-by-Side Layout (iPad Step 14.2)
+
+    private func landscapeSideBySideView(_ viewModel: CommunicatorLiveViewModel, geometry: GeometryProxy) -> some View {
+        HStack(spacing: 0) {
+            // Left Pane: Camera & Hand Skeleton Sign Recognition (50% width)
+            cameraSignPane(viewModel, height: geometry.size.height)
+                .frame(width: geometry.size.width * 0.50)
+
+            // Vertical Border
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 1)
+
+            // Right Pane: Partner Speech Transcript, Type-to-Speak & Controls (50% width)
+            VStack(spacing: 0) {
+                soundAlertsBannerSlot(viewModel)
+                errorMessageBannerSlot(viewModel)
+                partnerTranscriptSidePane(viewModel, height: geometry.size.height)
+            }
+            .frame(width: geometry.size.width * 0.50 - 1)
         }
     }
 
@@ -160,7 +218,7 @@ public struct CommunicatorLiveView: View {
         }
     }
 
-    // MARK: - Top Pane: Partner Speech Transcript
+    // MARK: - Top Pane: Partner Speech Transcript (Portrait)
 
     private func partnerTranscriptPane(_ viewModel: CommunicatorLiveViewModel, height: CGFloat) -> some View {
         ZStack {
@@ -185,6 +243,7 @@ public struct CommunicatorLiveView: View {
                         .background(Color.white.opacity(0.12), in: Capsule())
                     }
                     .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
 
                     // Listening State Pill
                     HStack(spacing: 6) {
@@ -213,6 +272,7 @@ public struct CommunicatorLiveView: View {
                             .foregroundStyle(Color.white.opacity(0.85))
                     }
                     .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
 
                     // Thumbs-Up Quick Button
                     Button {
@@ -225,6 +285,7 @@ public struct CommunicatorLiveView: View {
                             .foregroundStyle(Color.brandTurquoise)
                     }
                     .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
@@ -281,9 +342,159 @@ public struct CommunicatorLiveView: View {
                 }
 
                 Spacer(minLength: 4)
+
+                // Type to speak in portrait
+                typeToSpeakInputField(viewModel)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 6)
             }
             .rotationEffect(.degrees(viewModel.isPartnerRotated180 ? 180 : 0))
             .animation(.spring(response: 0.35, dampingFraction: 0.75), value: viewModel.isPartnerRotated180)
+        }
+        .frame(height: height)
+    }
+
+    // MARK: - Right Side Pane: Partner Speech Transcript & Type-To-Speak (Landscape iPad)
+
+    private func partnerTranscriptSidePane(_ viewModel: CommunicatorLiveViewModel, height: CGFloat) -> some View {
+        ZStack {
+            Color(red: 16/255, green: 22/255, blue: 34/255)
+
+            VStack(spacing: 10) {
+                // Partner Controls Header
+                HStack(spacing: 12) {
+                    // Rotate 180° Toggle
+                    Button {
+                        viewModel.toggleRotation()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 12, weight: .bold))
+                            Text(viewModel.isPartnerRotated180 ? "180° Flipped" : "Normal")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.white.opacity(0.9))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.white.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
+
+                    // Listening State Pill
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(viewModel.isPaused ? Color.brandYellow : Color.green)
+                            .frame(width: 8, height: 8)
+
+                        Text(viewModel.isPaused ? "Paused" : (viewModel.isPartnerSpeaking ? "Hearing Speech" : "Listening…"))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.white.opacity(0.85))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.white.opacity(0.08), in: Capsule())
+
+                    Spacer()
+
+                    // Replay Button
+                    Button {
+                        Task { await viewModel.replayLastMessage() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.white.opacity(0.85))
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
+
+                    // Thumbs-Up Quick Button
+                    Button {
+                        Task { await viewModel.sendThumbsUp() }
+                    } label: {
+                        Image(systemName: "hand.thumbsup.fill")
+                            .font(.system(size: 19))
+                            .foregroundStyle(Color.brandTurquoise)
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect(.highlight)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+
+                // Waveform Audio Meter
+                liveWaveformView(audioLevel: viewModel.partnerAudioLevel, isPaused: viewModel.isPaused)
+                    .frame(height: 22)
+                    .padding(.horizontal, 20)
+
+                // Partner Transcript Text
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 10) {
+                            if viewModel.messages.isEmpty && viewModel.activePartnerTranscript.isEmpty {
+                                Text("Partner's spoken words and your signed/typed messages appear here…")
+                                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                                    .foregroundStyle(Color.white.opacity(0.4))
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.top, 24)
+                            } else {
+                                ForEach(viewModel.messages) { msg in
+                                    HStack(alignment: .top, spacing: 10) {
+                                        Text(msg.speaker == "Partner" ? "🗣️" : "🤟")
+                                            .font(.system(size: 16))
+
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(msg.speaker)
+                                                .font(.system(size: 11, weight: .bold))
+                                                .foregroundStyle(msg.speaker == "Partner" ? Color.brandYellow : Color.brandTurquoise)
+
+                                            Text(msg.text)
+                                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                                .foregroundStyle(Color.white)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding(10)
+                                    .background(
+                                        msg.speaker == "Partner" ? Color.white.opacity(0.08) : Color.brandTurquoise.opacity(0.15),
+                                        in: RoundedRectangle(cornerRadius: 12)
+                                    )
+                                }
+
+                                if !viewModel.activePartnerTranscript.isEmpty {
+                                    HStack(alignment: .top, spacing: 10) {
+                                        Text("🗣️")
+                                            .font(.system(size: 16))
+
+                                        Text(viewModel.activePartnerTranscript)
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundStyle(Color.brandYellow)
+                                    }
+                                    .padding(10)
+                                    .background(Color.brandYellow.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+                                    .id("activeTranscriptLandscape")
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    .onChange(of: viewModel.activePartnerTranscript) { _, _ in
+                        withAnimation {
+                            proxy.scrollTo("activeTranscriptLandscape", anchor: .bottom)
+                        }
+                    }
+                }
+
+                // Quick Phrases Bar
+                quickPhrasesRow(viewModel)
+                    .padding(.horizontal, 14)
+
+                // External Keyboard Type-to-Speak Input Field
+                typeToSpeakInputField(viewModel)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 16)
+            }
         }
         .frame(height: height)
     }
@@ -312,7 +523,7 @@ public struct CommunicatorLiveView: View {
         .background(Color.black)
     }
 
-    // MARK: - Bottom Pane: Camera & Sign Recognition
+    // MARK: - Camera & Sign Recognition Pane
 
     private func cameraSignPane(_ viewModel: CommunicatorLiveViewModel, height: CGFloat) -> some View {
         ZStack {
@@ -414,6 +625,7 @@ public struct CommunicatorLiveView: View {
                 .background(Color.brandTurquoise, in: Capsule())
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
 
             // Delete Last Letter
             Button {
@@ -426,6 +638,7 @@ public struct CommunicatorLiveView: View {
                     .background(Color.white.opacity(0.15), in: Circle())
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
 
             // Clear Buffer
             Button {
@@ -438,6 +651,7 @@ public struct CommunicatorLiveView: View {
                     .background(Color.white.opacity(0.15), in: Circle())
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
@@ -469,6 +683,7 @@ public struct CommunicatorLiveView: View {
                 .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
 
             // Switch Camera Button
             Button {
@@ -484,6 +699,7 @@ public struct CommunicatorLiveView: View {
                     .overlay(Circle().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
 
             Spacer()
 
@@ -504,6 +720,66 @@ public struct CommunicatorLiveView: View {
                 .shadow(color: Color.danger.opacity(0.3), radius: 6, y: 3)
             }
             .buttonStyle(.plain)
+            .hoverEffect(.lift)
+        }
+    }
+
+    // MARK: - External Keyboard Type-To-Speak Input Field (iPad Step 14.2)
+
+    private func typeToSpeakInputField(_ viewModel: CommunicatorLiveViewModel) -> some View {
+        HStack(spacing: 8) {
+            TextField("Type to speak aloud (Return to send)…", text: $typeToSpeakText)
+                .font(.system(size: 14))
+                .foregroundStyle(Color.white)
+                .focused($isTypeToSpeakFocused)
+                .submitLabel(.send)
+                .onSubmit {
+                    submitTypeToSpeak(viewModel)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+
+            Button {
+                submitTypeToSpeak(viewModel)
+            } label: {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(typeToSpeakText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.white.opacity(0.3) : Color.brandTurquoise)
+            }
+            .buttonStyle(.plain)
+            .disabled(typeToSpeakText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .hoverEffect(.highlight)
+        }
+    }
+
+    private func quickPhrasesRow(_ viewModel: CommunicatorLiveViewModel) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(["Hello! 👋", "Thank you! 🙏", "How can I help?", "One moment please", "Understood 👍"], id: \.self) { phrase in
+                    Button {
+                        Task { await viewModel.typeAndSpeak(phrase) }
+                    } label: {
+                        Text(phrase)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .hoverEffect(.lift)
+                }
+            }
+        }
+    }
+
+    private func submitTypeToSpeak(_ viewModel: CommunicatorLiveViewModel) {
+        let text = typeToSpeakText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        typeToSpeakText = ""
+        Task {
+            await viewModel.typeAndSpeak(text)
         }
     }
 
