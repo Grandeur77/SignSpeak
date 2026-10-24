@@ -253,6 +253,16 @@ public protocol ConversationRepository: Sendable {
     @discardableResult
     func toggleSaved(userId: String, conversationId: String) async throws -> Bool
     func deleteConversation(userId: String, conversationId: String) async throws
+    func deleteAllConversations(userId: String) async throws
+}
+
+public extension ConversationRepository {
+    func deleteAllConversations(userId: String) async throws {
+        let items = try await fetchConversations(userId: userId)
+        for item in items {
+            try await deleteConversation(userId: userId, conversationId: item.id)
+        }
+    }
 }
 
 // MARK: - In-Memory Stub Repository
@@ -319,6 +329,12 @@ public final class StubConversationRepository: ConversationRepository, @unchecke
             }
             userList.removeAll { $0.id == conversationId }
             conversations[userId] = userList
+        }
+    }
+
+    public func deleteAllConversations(userId: String) async throws {
+        lock.withLock {
+            conversations[userId] = []
         }
     }
 }
