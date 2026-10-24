@@ -5,20 +5,56 @@ import FirebaseCore
 import FirebaseFirestore
 #endif
 
-/// Practice reminder configuration for daily notifications.
+/// Practice reminder configuration for daily and smart notifications.
 public struct ReminderSettings: Codable, Sendable, Equatable {
     public var enabled: Bool
     public var practiceTime: String // "19:00"
-    public var activeDays: [Int] // 1...7 (e.g. 1 = Monday / Sunday)
+    public var activeDays: [Int] // 1...7 (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
+    public var eveningEnabled: Bool
+    public var eveningTime: String // "20:30"
+    public var streakAlertsEnabled: Bool
+    public var communityReactionsEnabled: Bool
+    public var newLessonsEnabled: Bool
+    public var weeklyReportEnabled: Bool
 
     public init(
         enabled: Bool = true,
         practiceTime: String = "19:00",
-        activeDays: [Int] = [1, 2, 3, 4, 5, 6, 7]
+        activeDays: [Int] = [1, 2, 3, 4, 5, 6, 7],
+        eveningEnabled: Bool = true,
+        eveningTime: String = "20:30",
+        streakAlertsEnabled: Bool = true,
+        communityReactionsEnabled: Bool = true,
+        newLessonsEnabled: Bool = true,
+        weeklyReportEnabled: Bool = true
     ) {
         self.enabled = enabled
         self.practiceTime = practiceTime
         self.activeDays = activeDays
+        self.eveningEnabled = eveningEnabled
+        self.eveningTime = eveningTime
+        self.streakAlertsEnabled = streakAlertsEnabled
+        self.communityReactionsEnabled = communityReactionsEnabled
+        self.newLessonsEnabled = newLessonsEnabled
+        self.weeklyReportEnabled = weeklyReportEnabled
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case enabled, practiceTime, activeDays, eveningEnabled, eveningTime
+        case streakAlertsEnabled, communityReactionsEnabled, newLessonsEnabled, weeklyReportEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
+        self.practiceTime = try container.decodeIfPresent(String.self, forKey: .practiceTime) ?? "19:00"
+        self.activeDays = try container.decodeIfPresent([Int].self, forKey: .activeDays) ?? [1, 2, 3, 4, 5, 6, 7]
+        self.eveningEnabled = try container.decodeIfPresent(Bool.self, forKey: .eveningEnabled) ?? true
+        self.eveningTime = try container.decodeIfPresent(String.self, forKey: .eveningTime) ?? "20:30"
+        self.streakAlertsEnabled = try container.decodeIfPresent(Bool.self, forKey: .streakAlertsEnabled) ?? true
+        self.communityReactionsEnabled = try container.decodeIfPresent(Bool.self, forKey: .communityReactionsEnabled) ?? true
+        self.newLessonsEnabled = try container.decodeIfPresent(Bool.self, forKey: .newLessonsEnabled) ?? true
+        self.weeklyReportEnabled = try container.decodeIfPresent(Bool.self, forKey: .weeklyReportEnabled) ?? true
     }
 }
 

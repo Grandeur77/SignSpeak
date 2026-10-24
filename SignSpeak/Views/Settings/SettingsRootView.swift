@@ -95,7 +95,12 @@ public struct SettingsRootView: View {
                         .padding(.horizontal, Theme.Spacing.l)
 
                     VStack(spacing: 0) {
-                        settingsRow(icon: "bell.badge.fill", color: Color.brandYellow, title: "Reminders & Notifications")
+                        NavigationLink {
+                            RemindersSettingsView()
+                        } label: {
+                            settingsRow(icon: "bell.badge.fill", color: Color.brandYellow, title: "Reminders & Notifications")
+                        }
+                        .buttonStyle(.plain)
                         Divider().padding(.leading, 52)
                         NavigationLink {
                             VoiceAndSpeechSettingsView()

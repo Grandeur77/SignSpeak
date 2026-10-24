@@ -56,6 +56,7 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
 
     public override init() {
         super.init()
+        session.automaticallyConfiguresApplicationAudioSession = false
     }
 
     deinit {
@@ -140,6 +141,7 @@ public final class CameraService: NSObject, CameraServicing, AVCaptureVideoDataO
 
     private func configureSession() {
         session.beginConfiguration()
+        session.automaticallyConfiguresApplicationAudioSession = false
         session.sessionPreset = .high
 
         setupInput(for: position)
