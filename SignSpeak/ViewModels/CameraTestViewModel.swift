@@ -182,6 +182,8 @@ final class CameraTestViewModel {
 
     func closeGuidance() {
         showTryAgainGuidance = false
+        recognitionState = .noHand
+        signRecognitionService.reset()
     }
 
     func handleScenePhaseChange(to phase: ScenePhase) async {

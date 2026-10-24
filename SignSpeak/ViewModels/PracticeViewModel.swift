@@ -263,6 +263,7 @@ public final class PracticeViewModel {
 
     public func closeGuidance() {
         showTryAgainGuidance = false
+        resetSignRecognitionState()
     }
 
     public func toggleHelpModal() {
@@ -294,6 +295,7 @@ public final class PracticeViewModel {
     public func simulateMatch() async {
         guard let currentSign else { return }
         isTargetMatched = true
+        recognitionState = .recognized(label: currentSign.name, confidence: 0.94, runnerUp: nil)
         triggerSuccessFeedback(for: currentSign, confidence: 0.94)
         try? await progressRepository.recordAttempt(
             userId: userId,
@@ -309,7 +311,7 @@ public final class PracticeViewModel {
 
     // MARK: - Private Pipelines
 
-    private func resetSignRecognitionState() {
+    public func resetSignRecognitionState() {
         isTargetMatched = false
         showTryAgainGuidance = false
         lastDetectedMistake = nil
@@ -356,6 +358,7 @@ public final class PracticeViewModel {
         case .recognized(let label, let confidence, _):
             if sign.matchesRecognitionLabel(label) {
                 isTargetMatched = true
+                lastDetectedMistake = nil
                 triggerSuccessFeedback(for: sign, confidence: confidence)
                 try? await progressRepository.recordAttempt(
                     userId: userId,
@@ -368,17 +371,21 @@ public final class PracticeViewModel {
             }
 
         case .detecting(let label, _, _, _):
-            if !sign.matchesRecognitionLabel(label) && label != "Background" {
+            if sign.matchesRecognitionLabel(label) {
+                lastDetectedMistake = nil
+            } else if label != "Background" {
                 lastDetectedMistake = label
             }
 
         case .lowConfidence(let label, _, _):
-            if let label, !sign.matchesRecognitionLabel(label) && label != "Background" {
+            if let label, sign.matchesRecognitionLabel(label) {
+                lastDetectedMistake = nil
+            } else if let label, !sign.matchesRecognitionLabel(label) && label != "Background" {
                 lastDetectedMistake = label
             }
 
         case .noHand:
-            break
+            lastDetectedMistake = nil
         }
     }
 

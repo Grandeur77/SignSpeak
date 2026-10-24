@@ -121,6 +121,11 @@ public protocol UserProfileRepository: Sendable {
     func updateStreak(userId: String, streak: Int) async throws
     @discardableResult
     func createProfileIfNeeded(userId: String, displayName: String, email: String?) async throws -> UserProfile
+    func deleteProfile(userId: String) async throws
+}
+
+public extension UserProfileRepository {
+    func deleteProfile(userId: String) async throws {}
 }
 
 #if canImport(FirebaseFirestore)
@@ -222,5 +227,11 @@ public final class StubUserProfileRepository: UserProfileRepository, @unchecked 
         )
         profiles[userId] = newProfile
         return newProfile
+    }
+
+    public func deleteProfile(userId: String) async throws {
+        lock.lock()
+        defer { lock.unlock() }
+        profiles.removeValue(forKey: userId)
     }
 }

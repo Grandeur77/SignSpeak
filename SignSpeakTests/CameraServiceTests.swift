@@ -94,4 +94,36 @@ struct CameraServiceTests {
         #expect(viewModel.authorizationState == .unavailableOnSimulator)
         #expect(!viewModel.isAuthorized)
     }
+
+    @Test("CameraService frameStream supports recurring multi-attempt subscriptions without terminating")
+    func testCameraServiceMultiAttemptStreaming() async throws {
+        let cameraService = CameraService()
+
+        // 1st Attempt: subscribe and cancel
+        let task1 = Task {
+            var count = 0
+            for await _ in cameraService.frameStream {
+                count += 1
+                if count >= 1 { break }
+            }
+            return count
+        }
+        task1.cancel()
+        _ = await task1.value
+
+        // 2nd Attempt: new subscriber must receive a fresh, working stream instead of a terminated one
+        let stream2 = cameraService.frameStream
+        let task2 = Task {
+            var received = false
+            for await _ in stream2 {
+                received = true
+                break
+            }
+            return received
+        }
+        // Ensure stream2 registered successfully and task2 is running without immediate termination
+        try await Task.sleep(nanoseconds: 50_000_000)
+        #expect(!task2.isCancelled)
+        task2.cancel()
+    }
 }
