@@ -9,6 +9,8 @@ public enum DeepLinkDestination: Equatable, Sendable {
     case signDetail(signId: String)
     case signsSearch(query: String)
     case soundAlerts
+    case inbox
+    case community
 }
 
 /// Central deep-link coordinator handling `signspeak://` custom scheme URLs
@@ -82,6 +84,16 @@ public final class DeepLinkRouter {
         case "alerts", "sound-alerts":
             selectedTab = .home
             activeDestination = .soundAlerts
+            return true
+
+        case "inbox", "notifications":
+            selectedTab = .home
+            activeDestination = .inbox
+            return true
+
+        case "community":
+            selectedTab = .home
+            activeDestination = .community
             return true
 
         default:

@@ -6,8 +6,8 @@ public struct HomeRootView: View {
     @Environment(\.dependencies) private var dependencies
     @Bindable var deepLinkRouter: DeepLinkRouter
 
-    @State private var isShowingPractice = false
-    @State private var isShowingCommunicator = false
+    @State private var isShowingInbox = false
+    @State private var unreadNotificationCount = 0
     @State private var userProfile: UserProfile?
 
     public init(deepLinkRouter: DeepLinkRouter) {
@@ -81,24 +81,23 @@ public struct HomeRootView: View {
             .padding(.bottom, Theme.Spacing.xl)
         }
         .task {
-            if let userId = dependencies.authService.currentUserId {
-                userProfile = try? await dependencies.userProfileRepository.fetchProfile(userId: userId)
-            }
+            let userId = dependencies.authService.currentUserId ?? "guest"
+            userProfile = try? await dependencies.userProfileRepository.fetchProfile(userId: userId)
+            unreadNotificationCount = (try? await dependencies.inboxRepository.unreadCount(userId: userId)) ?? 0
         }
         .background(Color.appBackground.ignoresSafeArea())
-        .navigationDestination(isPresented: $isShowingPractice) {
-            CameraTestView()
-        }
-        .navigationDestination(isPresented: $isShowingCommunicator) {
-            // Temporary placeholder until Step 3.8
-            CameraTestView()
+        .navigationDestination(isPresented: $isShowingInbox) {
+            NotificationsInboxView()
         }
         .onChange(of: deepLinkRouter.activeDestination) { _, newDest in
             if newDest == .communicator {
-                isShowingCommunicator = true
-                deepLinkRouter.activeDestination = nil
+                deepLinkRouter.selectedTab = .talk
+                deepLinkRouter.activeDestination = .communicator
             } else if case .practice = newDest {
-                isShowingPractice = true
+                deepLinkRouter.selectedTab = .learn
+                deepLinkRouter.activeDestination = newDest
+            } else if newDest == .inbox {
+                isShowingInbox = true
                 deepLinkRouter.activeDestination = nil
             }
         }
@@ -138,6 +137,28 @@ public struct HomeRootView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(Color.brandYellow.opacity(0.18), in: Capsule())
+
+            // Notification Bell Button with Badge
+            NavigationLink {
+                NotificationsInboxView()
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Color.textPrimary)
+                        .frame(width: 34, height: 34)
+                        .background(Color.cardBackground, in: Circle())
+
+                    if unreadNotificationCount > 0 {
+                        Circle()
+                            .fill(Color.brandTurquoise)
+                            .frame(width: 9, height: 9)
+                            .overlay(Circle().stroke(Color.appBackground, lineWidth: 1.5))
+                            .offset(x: 1, y: -1)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
 
             // User Avatar Button
             ProfileAvatarButton {
@@ -307,8 +328,8 @@ public struct HomeRootView: View {
             }
 
             // Practice Now Button
-            Button {
-                isShowingPractice = true
+            NavigationLink {
+                CameraTestView()
             } label: {
                 HStack(spacing: 8) {
                     Spacer()
@@ -359,8 +380,11 @@ public struct HomeRootView: View {
                     .foregroundStyle(.white.opacity(0.8))
             }
 
-            Button {
-                isShowingCommunicator = true
+            NavigationLink {
+                CommunicatorLiveView(
+                    mode: .faceToFaceSplit,
+                    dominantHand: userProfile?.dominantHand == "left" ? .left : .right
+                )
             } label: {
                 HStack(spacing: 8) {
                     Spacer()
